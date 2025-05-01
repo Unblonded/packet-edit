@@ -1,0 +1,36 @@
+{
+	"schemaVersion": 1,
+	"id": "packet-edit",
+	"version": "${version}",
+	"name": "packet-edit",
+	"description": "A Simplistic Cheat Client for Minecraft 1.21.4",
+	"authors": [
+		"Unblonded"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/packet-edit/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"client": [
+			"unblonded.packets.Packetedit",
+			"unblonded.packets.cheats.PlayerTracker",
+			"unblonded.packets.render.ESPOverlayRenderer"
+		]
+	},
+	"mixins": [
+		"packet-edit.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.10",
+		"minecraft": "~1.21.4",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}

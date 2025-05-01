@@ -1,0 +1,15 @@
+{
+	"required": true,
+	"package": "unblonded.packets.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"ChatScreenMixin",
+		"OnTickMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"client": [
+		"GameRendererMixin"
+	]
+}
