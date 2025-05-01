@@ -182,7 +182,7 @@ public class ESPOverlayRenderer implements ClientModInitializer {
 
                 // Check all 6 adjacent blocks
                 for (Direction direction : Direction.values()) {
-                    BlockPos neighbor = current.offset(direction); // This takes a Direction
+                    BlockPos neighbor = current.offset(direction.getUnitVec3i());
                     if (blocks.contains(neighbor) && !processed.contains(neighbor)) {
                         processed.add(neighbor);
                         queue.add(neighbor);
@@ -199,19 +199,11 @@ public class ESPOverlayRenderer implements ClientModInitializer {
             for (BlockPos block : group) {
                 avgPos = avgPos.add(block.getX(), block.getY(), block.getZ());
             }
-            avgPos = avgPos.multiply(1.0 / group.size());
+            avgPos = avgPos.multiply(1.0 / group.size(), 1.0 / group.size(), 1.0 / group.size());
 
             drawTracers(context, avgPos.add(0.5, 0.5, 0.5), color);
         }
     }
-
-    private static double getSquaredDistance(BlockPos a, BlockPos b) {
-        int dx = a.getX() - b.getX();
-        int dy = a.getY() - b.getY();
-        int dz = a.getZ() - b.getZ();
-        return dx * dx + dy * dy + dz * dz;
-    }
-
 
     private static void drawLine(BufferBuilder buffer, Matrix4f matrix, double x1, double y1, double z1, double x2, double y2, double z2, Color color) {
         buffer.addVertex(matrix, (float)x1, (float)y1, (float)z1).setColor(color.getRed()/255.f, color.getGreen()/255.f, color.getBlue()/255.f, color.getAlpha()/255.f);
@@ -240,12 +232,12 @@ public class ESPOverlayRenderer implements ClientModInitializer {
 
             renderBuffer.removeIf(pos -> playerPos.distSqr(pos) > (renderDistance * renderDistance));
 
-            for (BlockPos pos : renderBuffer) {
-                try {
-                    ESPOverlayRenderer.drawEspPos(context, pos, Color.CYAN);
-                    if (cfg.drawBlockTracer) drawTracers(context, pos.getCenter(), Color.CYAN);
-                } catch (Exception ignored) { }
-            }
+            for (BlockPos pos : renderBuffer) try {
+                ESPOverlayRenderer.drawEspPos(context, pos, Color.CYAN);
+            } catch (Exception ignored) {}
+            try { drawGroupedTracers(context, renderBuffer, Color.CYAN);}
+            catch (Exception ignored) {}
+
         });
     }
 
