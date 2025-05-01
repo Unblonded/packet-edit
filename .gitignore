@@ -1,16 +1,32 @@
-# Gradle
+# gradle
+
 .gradle/
 build/
 out/
-!gradle/wrapper/gradle-wrapper.jar
+classes/
+logs/
+# eclipse
 
-# IntelliJ
+*.launch
+
+# idea
+
 .idea/
 *.iml
+*.ipr
+*.iws
 
-# OS
-.DS_Store
-Thumbs.db
+# vscode
 
-# Minecraft specific
+.settings/
+.vscode/
+bin/
+.classpath
+.project
+
+# fabric
+
+remappedSrc/
 run/
+
+.DS_Store
