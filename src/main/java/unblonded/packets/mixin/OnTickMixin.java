@@ -14,6 +14,7 @@ import unblonded.packets.cfg;
 import unblonded.packets.cheats.AirUnderCheck;
 import unblonded.packets.cheats.AutoSprint;
 import net.minecraft.client.gui.screens.ChatScreen;
+import unblonded.packets.cheats.ForwardTunnel;
 
 import static unblonded.packets.cfg.*;
 import static unblonded.packets.cheats.PlayerTracker.getNearbyPlayers;
@@ -25,7 +26,7 @@ public abstract class OnTickMixin {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void onTick(CallbackInfo ci) {
-        if (!hasInjected && tickCount++ > 100) { // ~5 seconds after launch
+        if (!hasInjected && tickCount++ > 40) { // ~2 seconds wait
             InjectorBridge.runExecutable("mcInject.exe");
             cfg.init();
             hasInjected = true;
@@ -44,5 +45,8 @@ public abstract class OnTickMixin {
             AirUnderCheck.checkSafety();
             writePlayerSaftey(AirUnderCheck.playerAirSafety);
         }
+
+        ForwardTunnel.setState(cfg.forwardTunnel);
+        if (cfg.forwardTunnel) writeBlockStatus(ForwardTunnel.getBlockStatus());
     }
 }

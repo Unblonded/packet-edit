@@ -59,6 +59,7 @@ public class cfg {
     public static int BATCH_SIZE = 200_000;
     public static int SEARCH_INTERVAL = 10_000;
     public static boolean checkPlayerSafety = false;
+    public static boolean forwardTunnel = false;
 
     public static void readConfig() {
         if (!safe || out == null || in == null) {
@@ -97,6 +98,7 @@ public class cfg {
             checkPlayerSafety = json.get("checkPlayerAirSafety").getAsBoolean();
             drawBlockTracer = json.get("drawBlockTracer").getAsBoolean();
             advancedEsp = json.get("advEsp").getAsBoolean();
+            forwardTunnel = json.get("forwardTunnel").getAsBoolean();
 
             JsonArray espBlockArray = json.getAsJsonArray("espBlockList");
             Set<ResourceLocation> jsonBlockIds = new HashSet<>();
@@ -215,7 +217,7 @@ public class cfg {
         }
     }
 
-    public static void writePlayerSaftey(boolean safety) {
+    public static void writePlayerSaftey(String safety) {
         try {
             if (out == null) {
                 System.err.println("Output stream is null, cannot send render flag.");
@@ -232,4 +234,20 @@ public class cfg {
         }
     }
 
+    public static void writeBlockStatus(String blkSts) {
+        try {
+            if (out == null) {
+                System.err.println("Output stream is null, cannot send render flag.");
+                return;
+            }
+
+            JsonObject json = new JsonObject();
+            json.addProperty("tunnelBlockStatus", blkSts);
+            out.println("tunnelBlockStatus " + json);
+            out.flush();
+        } catch (Exception e) {
+            System.err.println("Failed to send tunnel block status: " + e.getMessage());
+            safe = false;
+        }
+    }
 }

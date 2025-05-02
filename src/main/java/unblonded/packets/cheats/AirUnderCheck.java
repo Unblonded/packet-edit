@@ -8,7 +8,8 @@ import net.minecraft.world.level.block.state.BlockState;
 public class AirUnderCheck {
 
     private static final Minecraft mc = Minecraft.getInstance();
-    public static boolean playerAirSafety = false;
+    public static String playerAirSafety = "";
+    public static boolean isSafe = false;
 
     public static void checkSafety() {
         Player player = mc.player;
@@ -22,6 +23,11 @@ public class AirUnderCheck {
         BlockPos blockUnderBlockUnderPlayer = blockUnderPlayer.below();
         BlockState blockStateUnderBlockUnderPlayer = player.level().getBlockState(blockUnderBlockUnderPlayer);
 
-        if (blockStateUnderPlayer.getBlock() != Blocks.AIR) playerAirSafety = blockStateUnderBlockUnderPlayer.getBlock() != Blocks.AIR;
+        boolean notAir = blockStateUnderBlockUnderPlayer.getBlock() != Blocks.AIR &&
+                         blockStateUnderBlockUnderPlayer.getBlock() != Blocks.LAVA;
+        isSafe = !notAir;
+        String state = notAir ? "Yes" : "No";
+
+        playerAirSafety = ("Safe? -> "+ state + " | Y -> " + (int)player.getY());
     }
 }

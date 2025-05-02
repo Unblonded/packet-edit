@@ -18,7 +18,8 @@
 		"client": [
 			"unblonded.packets.Packetedit",
 			"unblonded.packets.cheats.PlayerTracker",
-			"unblonded.packets.render.ESPOverlayRenderer"
+			"unblonded.packets.render.ESPOverlayRenderer",
+			"unblonded.packets.cheats.ForwardTunnel"
 		]
 	},
 	"mixins": [
