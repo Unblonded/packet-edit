@@ -34,18 +34,19 @@ public abstract class OnTickMixin {
         AutoSprint.run();
         if (cfg.safe) {
             cfg.readConfig();
-            writeRenderFlag(Minecraft.getInstance().screen instanceof ChatScreen);
+            boolean worldLoaded = Minecraft.getInstance().level != null;
+            writeRenderFlag(Minecraft.getInstance().screen instanceof ChatScreen, worldLoaded);
         }
 
         if (cfg.displayplayers) writePlayerList(getNearbyPlayers());
-
-        if (cfg.drawBlocks) {
-            System.out.println(RADIUS + " " + BATCH_SIZE + " " + SEARCH_INTERVAL);
-        }
 
         if (cfg.checkPlayerSafety) {
             AirUnderCheck.checkSafety();
             writePlayerSaftey(AirUnderCheck.playerAirSafety);
         }
+
+//        for (unblonded.packets.util.BlockColor blockColor : cfg.espBlockList) {
+//            System.out.println(blockColor.getBlock().toString());
+//        }
     }
 }

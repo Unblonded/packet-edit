@@ -22,7 +22,8 @@ import org.joml.Matrix4f;
 import unblonded.packets.cfg;
 
 
-import java.awt.Color;
+import unblonded.packets.util.BlockColor;
+import unblonded.packets.util.Color;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -157,7 +158,6 @@ public class ESPOverlayRenderer implements ClientModInitializer {
             // Finish drawing with the shader
             BufferUploader.drawWithShader(buffer.build());
         } finally {
-            // Restore the pose stack after rendering
             poseStack.popPose();
         }
     }
@@ -206,8 +206,8 @@ public class ESPOverlayRenderer implements ClientModInitializer {
     }
 
     private static void drawLine(BufferBuilder buffer, Matrix4f matrix, double x1, double y1, double z1, double x2, double y2, double z2, Color color) {
-        buffer.addVertex(matrix, (float)x1, (float)y1, (float)z1).setColor(color.getRed()/255.f, color.getGreen()/255.f, color.getBlue()/255.f, color.getAlpha()/255.f);
-        buffer.addVertex(matrix, (float)x2, (float)y2, (float)z2).setColor(color.getRed()/255.f, color.getGreen()/255.f, color.getBlue()/255.f, color.getAlpha()/255.f);
+        buffer.addVertex(matrix, (float)x1, (float)y1, (float)z1).setColor(color.R(), color.G(), color.B(), color.A());
+        buffer.addVertex(matrix, (float)x2, (float)y2, (float)z2).setColor(color.R(), color.G(), color.B(), color.A());
     }
 
     @Override
@@ -225,20 +225,39 @@ public class ESPOverlayRenderer implements ClientModInitializer {
         });
 
         WorldRenderEvents.AFTER_ENTITIES.register(context -> {
-            if (!drawBlocks) return;
+            if (cfg.drawBlocks) try {
+                Map<Color, List<BlockPos>> colorGroups = new HashMap<>();
 
-            BlockPos playerPos = context.camera().getBlockPosition();
-            int renderDistance = RADIUS;
+                try {
+                    for (BlockPos pos : renderBuffer) {
 
-            renderBuffer.removeIf(pos -> playerPos.distSqr(pos) > (renderDistance * renderDistance));
+                            Block block = context.world().getBlockState(pos).getBlock();
+                            Color color = getBlockColor(block);
 
-            for (BlockPos pos : renderBuffer) try {
-                ESPOverlayRenderer.drawEspPos(context, pos, Color.CYAN);
+                            ESPOverlayRenderer.drawEspPos(context, pos, color);
+                            colorGroups.computeIfAbsent(color, k -> new ArrayList<>()).add(pos);
+                    }
+                } catch (Exception ignored) {}
+
+                if (cfg.drawBlockTracer) {
+                    try {
+                        for (Map.Entry<Color, List<BlockPos>> entry : colorGroups.entrySet()) {
+                            drawGroupedTracers(context, entry.getValue(), entry.getKey());
+                        }
+                    } catch (Exception ignored) {}
+                }
+
             } catch (Exception ignored) {}
-            try { drawGroupedTracers(context, renderBuffer, Color.CYAN);}
-            catch (Exception ignored) {}
-
         });
+    }
+
+    private Color getBlockColor(Block block) {
+        for (BlockColor blockColor : cfg.espBlockList) {
+            if (blockColor.getBlock().equals(block)) {
+                return blockColor.getColor();
+            }
+        }
+        return null;
     }
 
 
@@ -292,15 +311,17 @@ public class ESPOverlayRenderer implements ClientModInitializer {
             // Skip unloaded chunks (reduces lag)
             if (!world.hasChunkAt(targetPos)) continue;
 
-            if (cfg.espBlockList.contains(world.getBlockState(targetPos).getBlock())) {
-                foundPositions.add(targetPos);
+            for (BlockColor block : cfg.espBlockList) {
+                if (block.getBlock().equals(world.getBlockState(targetPos).getBlock()) && !foundPositions.contains(targetPos)) {
+                    foundPositions.add(targetPos);
+                    break;
+                }
             }
         }
 
         currentBatch = endIndex;
 
         if (currentBatch >= cachedOffsets.size()) {
-            System.out.println("[PacketEdit] Search complete! Found " + foundPositions.size() + " ores.");
             renderBuffer.clear();
             renderBuffer.addAll(foundPositions);
             foundPositions.clear();

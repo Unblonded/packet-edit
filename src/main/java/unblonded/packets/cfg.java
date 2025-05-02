@@ -1,6 +1,7 @@
 package unblonded.packets;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -8,14 +9,14 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import unblonded.packets.util.BlockColor;
+import unblonded.packets.util.Color;
 
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class cfg {
     private static Socket socket;
@@ -52,7 +53,7 @@ public class cfg {
     public static boolean autosprint = false;
     public static boolean drawBlocks = false;
     public static boolean drawBlockTracer = false;
-    public static List<Block> espBlockList = new ArrayList<>();
+    public static List<BlockColor> espBlockList = new ArrayList<>();
     public static int RADIUS = 128;
     public static int BATCH_SIZE = 200_000;
     public static int SEARCH_INTERVAL = 10_000;
@@ -96,25 +97,44 @@ public class cfg {
             drawBlockTracer = json.get("drawBlockTracer").getAsBoolean();
 
             JsonArray espBlockArray = json.getAsJsonArray("espBlockList");
-            for (int i = 0; i < espBlockArray.size(); i++) {
-                String blockId = espBlockArray.get(i).getAsString();
-                try {
-                    ResourceLocation id = ResourceLocation.tryParse(blockId);
-                    if (id != null) {
-                        Optional<Block> maybeBlock = BuiltInRegistries.BLOCK.getOptional(id);
-                        if (maybeBlock.isPresent()) {
-                            Block block = maybeBlock.get();
-                            if (block != Blocks.AIR && !espBlockList.contains(block)) {
-                                espBlockList.add(block);
-                            }
-                        } else {
-                            System.err.println("Block not found in registry: " + blockId);
-                        }
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error parsing block ID: " + blockId + " -> " + e.getMessage());
+            Set<ResourceLocation> jsonBlockIds = new HashSet<>();
+            for (JsonElement element : espBlockArray) {
+                JsonObject blockObj = element.getAsJsonObject();
+                String blockId = blockObj.get("name").getAsString();
+                ResourceLocation id = ResourceLocation.tryParse(blockId);
+                if (id != null) {
+                    jsonBlockIds.add(id);
                 }
             }
+
+            for (JsonElement element : espBlockArray) {
+                JsonObject blockObj = element.getAsJsonObject();
+                String blockIdStr = blockObj.get("name").getAsString();
+                JsonArray colorArray = blockObj.get("color").getAsJsonArray();
+                try {
+                    ResourceLocation id = ResourceLocation.tryParse(blockIdStr);
+                    if (id == null) continue;
+
+                    BuiltInRegistries.BLOCK.getOptional(id).ifPresent(block -> {
+                        if (block == Blocks.AIR) return;
+
+                        Color blockColor = new Color(
+                                colorArray.get(0).getAsFloat(),
+                                colorArray.get(1).getAsFloat(),
+                                colorArray.get(2).getAsFloat(),
+                                colorArray.get(3).getAsFloat()
+                        );
+                        espBlockList.removeIf(bc -> bc.getBlock().equals(block));
+                        espBlockList.add(new BlockColor(block, blockColor));
+                    });
+                } catch (Exception e) {
+                    System.err.println("Error processing block: " + blockIdStr + " -> " + e.getMessage());
+                }
+            }
+            espBlockList.removeIf(bc -> {
+                ResourceLocation id = BuiltInRegistries.BLOCK.getKey(bc.getBlock());
+                return !jsonBlockIds.contains(id);
+            });
 
         } catch (SocketTimeoutException e) {
             System.err.println("Timeout waiting for server response");
@@ -152,7 +172,7 @@ public class cfg {
     }
 
 
-    public static void writeRenderFlag(boolean shouldRender) {
+    public static void writeRenderFlag(boolean shouldRender, boolean worldReady) {
         try {
             if (out == null) {
                 System.err.println("Output stream is null, cannot send render flag.");
@@ -161,6 +181,7 @@ public class cfg {
 
             JsonObject json = new JsonObject();
             json.addProperty("shouldRender", shouldRender);
+            json.addProperty("worldReady", worldReady);
             out.println("RENDER_FLAG " + json);
             out.flush();
         } catch (Exception e) {
