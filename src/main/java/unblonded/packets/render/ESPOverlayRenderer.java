@@ -28,10 +28,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static unblonded.packets.cfg.drawBlocks;
-import static unblonded.packets.cfg.RADIUS;
-import static unblonded.packets.cfg.BATCH_SIZE;
-import static unblonded.packets.cfg.SEARCH_INTERVAL;
+import static unblonded.packets.cfg.*;
 
 public class ESPOverlayRenderer implements ClientModInitializer {
     private List<BlockPos> cachedOffsets = new ArrayList<>();
@@ -225,12 +222,12 @@ public class ESPOverlayRenderer implements ClientModInitializer {
         });
 
         WorldRenderEvents.AFTER_ENTITIES.register(context -> {
+            if (!advancedEsp) return;
             if (cfg.drawBlocks) try {
                 Map<Color, List<BlockPos>> colorGroups = new HashMap<>();
 
                 try {
                     for (BlockPos pos : renderBuffer) {
-
                             Block block = context.world().getBlockState(pos).getBlock();
                             Color color = getBlockColor(block);
 
@@ -241,9 +238,8 @@ public class ESPOverlayRenderer implements ClientModInitializer {
 
                 if (cfg.drawBlockTracer) {
                     try {
-                        for (Map.Entry<Color, List<BlockPos>> entry : colorGroups.entrySet()) {
+                        for (Map.Entry<Color, List<BlockPos>> entry : colorGroups.entrySet())
                             drawGroupedTracers(context, entry.getValue(), entry.getKey());
-                        }
                     } catch (Exception ignored) {}
                 }
 

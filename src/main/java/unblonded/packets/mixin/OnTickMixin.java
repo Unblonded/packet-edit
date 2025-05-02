@@ -44,9 +44,5 @@ public abstract class OnTickMixin {
             AirUnderCheck.checkSafety();
             writePlayerSaftey(AirUnderCheck.playerAirSafety);
         }
-
-//        for (unblonded.packets.util.BlockColor blockColor : cfg.espBlockList) {
-//            System.out.println(blockColor.getBlock().toString());
-//        }
     }
 }

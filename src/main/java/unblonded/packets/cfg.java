@@ -53,6 +53,7 @@ public class cfg {
     public static boolean autosprint = false;
     public static boolean drawBlocks = false;
     public static boolean drawBlockTracer = false;
+    public static boolean advancedEsp = false;
     public static List<BlockColor> espBlockList = new ArrayList<>();
     public static int RADIUS = 128;
     public static int BATCH_SIZE = 200_000;
@@ -95,6 +96,7 @@ public class cfg {
             SEARCH_INTERVAL = json.get("espSearchTime").getAsInt() * 1000;
             checkPlayerSafety = json.get("checkPlayerAirSafety").getAsBoolean();
             drawBlockTracer = json.get("drawBlockTracer").getAsBoolean();
+            advancedEsp = json.get("advEsp").getAsBoolean();
 
             JsonArray espBlockArray = json.getAsJsonArray("espBlockList");
             Set<ResourceLocation> jsonBlockIds = new HashSet<>();
