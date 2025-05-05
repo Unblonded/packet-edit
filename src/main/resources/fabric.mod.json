@@ -19,7 +19,10 @@
 			"unblonded.packets.Packetedit",
 			"unblonded.packets.cheats.PlayerTracker",
 			"unblonded.packets.render.ESPOverlayRenderer",
-			"unblonded.packets.cheats.ForwardTunnel"
+			"unblonded.packets.cheats.ForwardTunnel",
+			"unblonded.packets.cheats.AutoCrystal",
+			"unblonded.packets.cheats.InteractionCanceler",
+			"unblonded.packets.util.Keybinds"
 		]
 	},
 	"mixins": [

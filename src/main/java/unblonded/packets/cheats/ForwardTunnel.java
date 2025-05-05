@@ -54,10 +54,9 @@ public class ForwardTunnel implements ClientModInitializer {
             GameModeAccessor accessor = (GameModeAccessor)client.gameMode;
             BlockPos pos = accessor.getDestroyBlockPos();
             float progress = accessor.getDestroyProgress();
-            Block block = client.level.getBlockState(pos).getBlock();
 
-            if (block != Blocks.AIR)
-                blockStatus = "Mining -> " + block.getName().getString() + " | " + Float.parseFloat(String.format("%.0f", progress*100)) + "%";
+            if (client.level.getBlockState(pos).getBlock() != Blocks.AIR)
+                blockStatus = "Mining -> " + client.level.getBlockState(pos).getBlock().getName().getString() + " | " + Float.parseFloat(String.format("%.0f", progress*100)) + "%";
 
             if (hit != null && hit.getType() == HitResult.Type.BLOCK) {
                 BlockPos targetPos = hit.getBlockPos();

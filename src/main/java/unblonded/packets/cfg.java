@@ -1,11 +1,11 @@
 package unblonded.packets;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -34,10 +34,12 @@ public class cfg {
                     out = new PrintWriter(socket.getOutputStream(), true);
                     safe = true;
                     System.out.println("Connected to C++ server.");
+                    Minecraft client = Minecraft.getInstance();
+                    client.getWindow().setTitle("Packet Edit v3 - Ready");
                 } catch (IOException e) {
-                    System.out.println("Waiting for injection...");
+                    //System.out.println("Waiting for injection...");
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(100);
                     } catch (InterruptedException ignored) {
                         Thread.currentThread().interrupt();
                     }
@@ -60,6 +62,10 @@ public class cfg {
     public static int SEARCH_INTERVAL = 10_000;
     public static boolean checkPlayerSafety = false;
     public static boolean forwardTunnel = false;
+    public static boolean autoCrystal = false;
+    public static int crystalAttackTime = 20;
+    public static int crystalPlaceTime = 20;
+    public static boolean cancelInteraction = false;
 
     public static void readConfig() {
         if (!safe || out == null || in == null) {
@@ -88,7 +94,10 @@ public class cfg {
                 return;
             }
 
-            JsonObject json = JsonParser.parseString(response).getAsJsonObject();
+            JsonReader reader = new JsonReader(new StringReader(response));
+            reader.setStrictness(Strictness.LENIENT); // requires Gson 2.10+
+            JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+
 
             displayplayers = json.get("displayPlayers").getAsBoolean();
             drawBlocks = json.get("drawBlocks").getAsBoolean();
@@ -99,6 +108,10 @@ public class cfg {
             drawBlockTracer = json.get("drawBlockTracer").getAsBoolean();
             advancedEsp = json.get("advEsp").getAsBoolean();
             forwardTunnel = json.get("forwardTunnel").getAsBoolean();
+            autoCrystal = json.get("autoCrystal").getAsBoolean();
+            crystalAttackTime = json.get("crystalAttackTime").getAsInt();
+            crystalPlaceTime = json.get("crystalPlaceTime").getAsInt();
+            cancelInteraction = json.get("cancelInteraction").getAsBoolean();
 
             JsonArray espBlockArray = json.getAsJsonArray("espBlockList");
             Set<ResourceLocation> jsonBlockIds = new HashSet<>();
