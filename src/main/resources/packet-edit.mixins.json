@@ -4,14 +4,16 @@
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"ChatScreenMixin",
-		"OnTickMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"client": [
+		"CountPlacementModifierAccessor",
+		"HeightContextMixin",
+		"HeightRangePlacementModifierAccessor",
+		"OnTickMixin",
+		"RarityFilterPlacementModifierAccessor",
 		"GameModeMixin",
 		"GameRendererMixin",
 		"MixinBlockBreaking"
-	]
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
 }

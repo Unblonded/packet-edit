@@ -52,6 +52,11 @@ public class util {
             writePlayerSaftey(AirUnderCheck.playerAirSafety);
         }
     }
+    public static void updateOreSim(MinecraftClient client) {
+        if (client.world != null && client.player.age % 20 == 0) {
+            OreSimulator.recalculateChunks();
+        }
+    }
 
     public static int rndInt(int max) {
         return ThreadLocalRandom.current().nextInt(-max, max + 1);

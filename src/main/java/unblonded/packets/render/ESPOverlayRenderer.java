@@ -19,6 +19,7 @@ import org.joml.Matrix4f;
 import unblonded.packets.cfg;
 
 
+import unblonded.packets.cheats.OreSimulator;
 import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
 
@@ -206,7 +207,7 @@ public class ESPOverlayRenderer implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
-            if (client.player == null || client.world == null || !drawBlocks) return;  // Skip if drawBlocks is false
+            if (client.player == null || client.world == null || !drawBlocks || !oreSim) return;
 
             BlockPos currentPos = client.player.getBlockPos();
             updateOffsetsIfNeeded(RADIUS);
@@ -218,8 +219,7 @@ public class ESPOverlayRenderer implements ClientModInitializer {
         });
 
         WorldRenderEvents.AFTER_ENTITIES.register(context -> {
-            if (!advancedEsp) return;
-            if (cfg.drawBlocks) try {
+            if (cfg.drawBlocks && advancedEsp) try {
                 Map<Color, List<BlockPos>> colorGroups = new HashMap<>();
 
                 try {
@@ -227,7 +227,7 @@ public class ESPOverlayRenderer implements ClientModInitializer {
                             Block block = context.world().getBlockState(pos).getBlock();
                             Color color = getBlockColor(block);
 
-                            ESPOverlayRenderer.drawEspPos(context, pos, color);
+                            drawEspPos(context, pos, color);
                             colorGroups.computeIfAbsent(color, k -> new ArrayList<>()).add(pos);
                     }
                 } catch (Exception ignored) {}
@@ -240,6 +240,15 @@ public class ESPOverlayRenderer implements ClientModInitializer {
                 }
 
             } catch (Exception ignored) {}
+            if (cfg.oreSim) {
+                for (Map.Entry<Long, Set<Vec3d>> entry : OreSimulator.chunkDebrisPositions.entrySet()) {
+                    for (Vec3d pos : entry.getValue()) {
+                        BlockPos seedPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
+                        if (mc.world.getBlockState(seedPos).isOpaque())
+                            drawEspPos(context, seedPos, oreSimColor);
+                    }
+                }
+            }
         });
     }
 
@@ -300,7 +309,6 @@ public class ESPOverlayRenderer implements ClientModInitializer {
             BlockPos offset = cachedOffsets.get(i);
             BlockPos targetPos = currentPos.add(offset.getX(), offset.getY(), offset.getZ());
 
-            // Skip unloaded chunks (reduces lag)
             if (!world.isChunkLoaded(targetPos)) continue;
 
             for (BlockColor block : cfg.espBlockList) {

@@ -6,10 +6,11 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
+import unblonded.packets.cheats.OreSimulator;
 import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
+import unblonded.packets.util.util;
 
 import java.io.*;
 import java.net.Socket;
@@ -48,6 +49,9 @@ public class cfg {
         connectionThread.start();
     }
 
+    private static long lastOreSimSeed = -1;
+    private static int lastOreSimDistance = -1;
+
     public static boolean hasInjected = false;
     public static boolean displayplayers = false;
     public static boolean fullbright = false;
@@ -66,6 +70,10 @@ public class cfg {
     public static int crystalPlaceTime = 20;
     public static boolean cancelInteraction = false;
     public static boolean autoAnchor = false;
+    static long oreSimSeed = 0;
+    public static boolean oreSim = false;
+    static int oreSimDistance = 0;
+    public static Color oreSimColor = new Color(1.0f, 0.0f, 0.0f, 1.0f);
 
     public static void readConfig() {
         if (!safe || out == null || in == null) {
@@ -113,6 +121,28 @@ public class cfg {
             crystalPlaceTime = json.get("crystalPlaceTime").getAsInt();
             cancelInteraction = json.get("cancelInteraction").getAsBoolean();
             autoAnchor = json.get("autoAnchor").getAsBoolean();
+            oreSimSeed = json.get("oreSimSeed").getAsLong();
+            oreSimDistance = json.get("oreSimDistance").getAsInt();
+            oreSim = json.get("oreSim").getAsBoolean();
+
+            JsonArray oreSimColArr = json.get("oreSimColor").getAsJsonArray();
+            oreSimColor = new Color(
+                    oreSimColArr.get(0).getAsFloat(),
+                    oreSimColArr.get(1).getAsFloat(),
+                    oreSimColArr.get(2).getAsFloat(),
+                    oreSimColArr.get(3).getAsFloat()
+            );
+
+            if (oreSim) {
+                if (MinecraftClient.getInstance().world != null && (oreSimSeed != lastOreSimSeed || oreSimDistance != lastOreSimDistance)) {
+                    OreSimulator.setWorldSeed(oreSimSeed);
+                    OreSimulator.setHorizontalRadius(oreSimDistance);
+                    OreSimulator.recalculateChunks();
+                    lastOreSimSeed = oreSimSeed;
+                    lastOreSimDistance = oreSimDistance;
+                }
+            }
+
 
             JsonArray espBlockArray = json.getAsJsonArray("espBlockList");
             Set<Identifier> jsonBlockIds = new HashSet<>();
