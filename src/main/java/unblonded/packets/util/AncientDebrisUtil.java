@@ -1,8 +1,8 @@
 package unblonded.packets.util;
 
-import unblonded.packets.mixin.CountPlacementModifierAccessor;
-import unblonded.packets.mixin.HeightRangePlacementModifierAccessor;
-import unblonded.packets.mixin.RarityFilterPlacementModifierAccessor;
+import unblonded.packets.mixin.CPMAccess;
+import unblonded.packets.mixin.HRPMAccess;
+import unblonded.packets.mixin.RFPMAccess;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.*;
 import net.minecraft.util.math.intprovider.ConstantIntProvider;
@@ -41,19 +41,19 @@ public class AncientDebrisUtil {
         if (mc != null && mc.world != null) {
             int bottom = mc.world.getBottomY();
             int height = mc.world.getDimension().logicalHeight();
-            this.heightContext = new HeightContext(null, HeightLimitView.create(bottom, height));
+            this.heightContext = HeightContextUtil.createCustomHeightContext(bottom, height);
         }
 
         // Process all placement modifiers
         for (PlacementModifier modifier : feature.placementModifiers()) {
             if (modifier instanceof CountPlacementModifier) {
-                this.count = ((CountPlacementModifierAccessor) modifier).getCount();
+                this.count = ((CPMAccess) modifier).getCount();
             }
             else if (modifier instanceof HeightRangePlacementModifier) {
-                this.heightProvider = ((HeightRangePlacementModifierAccessor) modifier).getHeight();
+                this.heightProvider = ((HRPMAccess) modifier).getHeight();
             }
             else if (modifier instanceof RarityFilterPlacementModifier) {
-                this.rarity = ((RarityFilterPlacementModifierAccessor) modifier).getChance();
+                this.rarity = ((RFPMAccess) modifier).getChance();
             }
         }
 

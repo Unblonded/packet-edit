@@ -3,14 +3,11 @@
 	"package": "unblonded.packets.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ChatScreenMixin",
-		"CountPlacementModifierAccessor",
-		"HeightContextMixin",
-		"HeightRangePlacementModifierAccessor",
+		"CPMAccess",
+		"HRPMAccess",
+		"RFPMAccess",
 		"OnTickMixin",
-		"RarityFilterPlacementModifierAccessor",
 		"GameModeMixin",
-		"GameRendererMixin",
 		"MixinBlockBreaking"
 	],
 	"injectors": {

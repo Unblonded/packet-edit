@@ -58,6 +58,15 @@ public class util {
         }
     }
 
+    public static void setTitle(MinecraftClient client) {
+        if (client.world != null) {
+            String title = client.world.getRegistryKey().getValue().getPath() + " - Packet Edit v3 by Unblonded";
+            client.getWindow().setTitle(title);
+        } else {
+            client.getWindow().setTitle("Packet Edit v3 by Unblonded");
+        }
+    }
+
     public static int rndInt(int max) {
         return ThreadLocalRandom.current().nextInt(-max, max + 1);
     }
