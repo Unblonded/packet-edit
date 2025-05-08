@@ -1,27 +1,28 @@
 package unblonded.packets.cheats;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.BlockPos;
+
 public class AirUnderCheck {
 
-    private static final Minecraft mc = Minecraft.getInstance();
+    private static final MinecraftClient mc = MinecraftClient.getInstance();
     public static String playerAirSafety = "";
     public static boolean isSafe = false;
 
     public static void checkSafety() {
-        Player player = mc.player;
+        PlayerEntity player = mc.player;
         if (player == null) return;
 
-        BlockPos playerPos = player.blockPosition();
+        BlockPos playerPos = player.getBlockPos();
 
-        BlockPos blockUnderPlayer = playerPos.below();
-        BlockState blockStateUnderPlayer = player.level().getBlockState(blockUnderPlayer);
+        BlockPos blockUnderPlayer = playerPos.down();
+        BlockState blockStateUnderPlayer = player.getWorld().getBlockState(blockUnderPlayer);
 
-        BlockPos blockUnderBlockUnderPlayer = blockUnderPlayer.below();
-        BlockState blockStateUnderBlockUnderPlayer = player.level().getBlockState(blockUnderBlockUnderPlayer);
+        BlockPos blockUnderBlockUnderPlayer = blockUnderPlayer.down();
+        BlockState blockStateUnderBlockUnderPlayer = player.getWorld().getBlockState(blockUnderBlockUnderPlayer);
 
         boolean notAir = blockStateUnderBlockUnderPlayer.getBlock() != Blocks.AIR &&
                          blockStateUnderBlockUnderPlayer.getBlock() != Blocks.LAVA;

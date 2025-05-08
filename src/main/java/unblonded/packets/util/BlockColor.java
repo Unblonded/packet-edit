@@ -1,7 +1,6 @@
 package unblonded.packets.util;
 
-import unblonded.packets.util.Color;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.block.Block;
 
 public class BlockColor {
     private Block block;

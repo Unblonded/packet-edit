@@ -1,29 +1,28 @@
 package unblonded.packets.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.CoreShaders;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.block.Block;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.ShaderProgramKeys;
+import net.minecraft.client.render.*;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.*;
+import net.minecraft.util.math.Box;
+import net.minecraft.world.World;
 import org.joml.Matrix4f;
 import unblonded.packets.cfg;
 
 
 import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
+
+import javax.swing.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -31,6 +30,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static unblonded.packets.cfg.*;
 
 public class ESPOverlayRenderer implements ClientModInitializer {
+    private static final MinecraftClient mc = MinecraftClient.getInstance();
     private List<BlockPos> cachedOffsets = new ArrayList<>();
     private int currentBatch = 0;
     private BlockPos lastSearchPos = null;
@@ -39,31 +39,31 @@ public class ESPOverlayRenderer implements ClientModInitializer {
     private final CopyOnWriteArrayList<BlockPos> renderBuffer = new CopyOnWriteArrayList<>();
 
     public static void drawEspPos(WorldRenderContext context, BlockPos pos, Color color) {
-        ClientLevel world = context.world();
+        World world = context.world();
         if (world == null) return;
 
         Camera camera = context.camera();
-        PoseStack poseStack = context.matrixStack();
-        Vec3 cameraPos = camera.getPosition();
+        MatrixStack matrices = context.matrixStack();
+        Vec3d cameraPos = camera.getPos();
 
-        poseStack.pushPose();
+        matrices.push();
         try {
-            poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z); // Apply camera offset
+            matrices.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z); // Apply camera offset
 
-            AABB bb = new AABB(pos);
-            PoseStack.Pose pose = poseStack.last();
-            Matrix4f matrix = pose.pose();
+            Box bb = new Box(pos);
+            MatrixStack.Entry entry = matrices.peek();
+            Matrix4f matrix = entry.getPositionMatrix();
 
-            boolean blockBelow = isTargetBlock(world, pos.below());
-            boolean blockAbove = isTargetBlock(world, pos.above());
+            boolean blockBelow = isTargetBlock(world, pos.up());
+            boolean blockAbove = isTargetBlock(world, pos.down());
             boolean blockNorth = isTargetBlock(world, pos.north());
             boolean blockSouth = isTargetBlock(world, pos.south());
             boolean blockWest = isTargetBlock(world, pos.west());
             boolean blockEast = isTargetBlock(world, pos.east());
 
-            Tesselator tessellator = Tesselator.getInstance();
-            RenderSystem.setShader(CoreShaders.POSITION_COLOR); // required now
-            BufferBuilder buffer = tessellator.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+            Tessellator tessellator = Tessellator.getInstance();
+            RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+            BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
 
             if (blockBelow && blockNorth)
                 drawLine(buffer, matrix, bb.minX, bb.minY, bb.minZ, bb.maxX, bb.minY, bb.minZ, color);
@@ -90,61 +90,57 @@ public class ESPOverlayRenderer implements ClientModInitializer {
             if (blockSouth && blockEast)
                 drawLine(buffer, matrix, bb.maxX, bb.minY, bb.maxZ, bb.maxX, bb.maxY, bb.maxZ, color);
 
-            BufferUploader.drawWithShader(buffer.build());
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
         } finally {
-            poseStack.popPose();
+            matrices.pop();
         }
     }
 
-    private static boolean isTargetBlock(ClientLevel world, BlockPos pos) {
-        ArrayList<Block> targetBlocks = new ArrayList<>(
-                List.of(
-                        Blocks.DEEPSLATE_DIAMOND_ORE,
-                        Blocks.DIAMOND_ORE
-                )
-        );
-        return !targetBlocks.contains(world.getBlockState(pos).getBlock());
+    private static boolean isTargetBlock(World world, BlockPos pos) {
+        for (BlockColor blockColor : cfg.espBlockList) {
+            if (blockColor.getBlock().equals(world.getBlockState(pos).getBlock())) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    public static void drawTracers(WorldRenderContext context, Vec3 targetPos, Color color) {
-        Minecraft client = Minecraft.getInstance();
-        if (client.player == null || targetPos == null) return;
+    public static void drawTracers(WorldRenderContext context, Vec3d targetPos, Color color) {
+        if (mc.player == null || targetPos == null) return;
 
-        Player player = client.player;
+        PlayerEntity player = mc.player;
         Camera camera = context.camera();
-        PoseStack poseStack = context.matrixStack();
-        Vec3 cameraPos = camera.getPosition();
-        float tickDelta = context.camera().getPartialTickTime();
+        MatrixStack matrices = context.matrixStack();
+        Vec3d cameraPos = camera.getPos();
+        float tickDelta = context.camera().getLastTickDelta();
 
         // Interpolate player position to account for partial ticks
-        double eyeX = Mth.lerp(tickDelta, player.xo, player.getX());
-        double eyeY = Mth.lerp(tickDelta, player.yo, player.getY()) + player.getEyeHeight();
-        double eyeZ = Mth.lerp(tickDelta, player.zo, player.getZ());
-        Vec3 eyePos = new Vec3(eyeX, eyeY, eyeZ);
+        double eyeX = MathHelper.lerp(tickDelta, player.prevX, player.getX());
+        double eyeY = MathHelper.lerp(tickDelta, player.prevY, player.getY()) + player.getEyeHeight(player.getPose());
+        double eyeZ = MathHelper.lerp(tickDelta, player.prevZ, player.getZ());
+        Vec3d eyePos = new Vec3d(eyeX, eyeY, eyeZ);
 
-        // Get the player's view direction (looking direction) and calculate the crosshair position
-        Vec3 viewVector = player.getViewVector(tickDelta);
-        Vec3 crosshairPos = eyePos.add(viewVector.multiply(10, 10, 10));  // Adjust the multiplier to suit your needs (e.g., 10 is a reasonable distance)
+        Vec3d viewVector = player.getRotationVec(tickDelta);
+        Vec3d crosshairPos = eyePos.add(viewVector.multiply(10, 10, 10));
 
         // Start matrix stack transformations
-        poseStack.pushPose();
+        matrices.push();
         try {
-            // Apply camera offset
-            poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z); // WORKS GREAT JUST ADD A SETTING INSIDE OF THE IMGUI CONFIG FOR TRACERS OR NOT TRACERS
+            matrices.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z); // WORKS GREAT JUST ADD A SETTING INSIDE OF THE IMGUI CONFIG FOR TRACERS OR NOT TRACERS
 
-            PoseStack.Pose pose = poseStack.last();
-            Matrix4f matrix = pose.pose();
+            MatrixStack.Entry entry = matrices.peek();
+            Matrix4f matrix = entry.getPositionMatrix();
 
             // Set up rendering properties
-            Tesselator tessellator = Tesselator.getInstance();
-            RenderSystem.setShader(CoreShaders.POSITION_COLOR);
+            Tessellator tessellator = Tessellator.getInstance();
+            RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
             RenderSystem.disableDepthTest();
             RenderSystem.lineWidth(1.5f);
 
             // Start the buffer and begin drawing lines
-            BufferBuilder buffer = tessellator.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+            BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
 
             // Draw line from player's eye position to crosshair
             drawLine(buffer, matrix,
@@ -153,9 +149,9 @@ public class ESPOverlayRenderer implements ClientModInitializer {
                     color);
 
             // Finish drawing with the shader
-            BufferUploader.drawWithShader(buffer.build());
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
         } finally {
-            poseStack.popPose();
+            matrices.pop();
         }
     }
 
@@ -179,7 +175,7 @@ public class ESPOverlayRenderer implements ClientModInitializer {
 
                 // Check all 6 adjacent blocks
                 for (Direction direction : Direction.values()) {
-                    BlockPos neighbor = current.offset(direction.getUnitVec3i());
+                    BlockPos neighbor = current.offset(direction);
                     if (blocks.contains(neighbor) && !processed.contains(neighbor)) {
                         processed.add(neighbor);
                         queue.add(neighbor);
@@ -192,7 +188,7 @@ public class ESPOverlayRenderer implements ClientModInitializer {
         for (List<BlockPos> group : groups) {
             if (group.isEmpty()) continue;
 
-            Vec3 avgPos = Vec3.ZERO;
+            Vec3d avgPos = Vec3d.ZERO;
             for (BlockPos block : group) {
                 avgPos = avgPos.add(block.getX(), block.getY(), block.getZ());
             }
@@ -203,16 +199,16 @@ public class ESPOverlayRenderer implements ClientModInitializer {
     }
 
     private static void drawLine(BufferBuilder buffer, Matrix4f matrix, double x1, double y1, double z1, double x2, double y2, double z2, Color color) {
-        buffer.addVertex(matrix, (float)x1, (float)y1, (float)z1).setColor(color.R(), color.G(), color.B(), color.A());
-        buffer.addVertex(matrix, (float)x2, (float)y2, (float)z2).setColor(color.R(), color.G(), color.B(), color.A());
+        buffer.vertex(matrix, (float)x1, (float)y1, (float)z1).color(color.R(), color.G(), color.B(), color.A());
+        buffer.vertex(matrix, (float)x2, (float)y2, (float)z2).color(color.R(), color.G(), color.B(), color.A());
     }
 
     @Override
     public void onInitializeClient() {
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
-            if (client.player == null || client.level == null || !drawBlocks) return;  // Skip if drawBlocks is false
+            if (client.player == null || client.world == null || !drawBlocks) return;  // Skip if drawBlocks is false
 
-            BlockPos currentPos = client.player.blockPosition();
+            BlockPos currentPos = client.player.getBlockPos();
             updateOffsetsIfNeeded(RADIUS);
             if (shouldStartNewSearch(currentPos)) {
                 startNewSearch(currentPos);
@@ -284,28 +280,28 @@ public class ESPOverlayRenderer implements ClientModInitializer {
         if (lastSearchPos == null) return true;
         long timeSinceLast = System.currentTimeMillis() - lastSearchTime;
         return timeSinceLast > SEARCH_INTERVAL ||
-                currentPos.distSqr(lastSearchPos) > (RADIUS/2) * (RADIUS/2);
+                currentPos.getSquaredDistance(lastSearchPos) > ((double) RADIUS /2) * ((double) RADIUS /2);
     }
 
     private void startNewSearch(BlockPos currentPos) {
-        lastSearchPos = currentPos.immutable();
+        lastSearchPos = currentPos.toImmutable();
         lastSearchTime = System.currentTimeMillis();
         currentBatch = 0;
         foundPositions.clear();
     }
 
-    private void processSearchBatch(Minecraft client, BlockPos currentPos) {
+    private void processSearchBatch(MinecraftClient client, BlockPos currentPos) {
         if (currentBatch >= cachedOffsets.size()) return;
 
         int endIndex = Math.min(currentBatch + BATCH_SIZE, cachedOffsets.size());
-        ClientLevel world = client.level;
+        ClientWorld world = client.world;
 
         for (int i = currentBatch; i < endIndex; i++) {
             BlockPos offset = cachedOffsets.get(i);
-            BlockPos targetPos = currentPos.offset(offset.getX(), offset.getY(), offset.getZ());
+            BlockPos targetPos = currentPos.add(offset.getX(), offset.getY(), offset.getZ());
 
             // Skip unloaded chunks (reduces lag)
-            if (!world.hasChunkAt(targetPos)) continue;
+            if (!world.isChunkLoaded(targetPos)) continue;
 
             for (BlockColor block : cfg.espBlockList) {
                 if (block.getBlock().equals(world.getBlockState(targetPos).getBlock()) && !foundPositions.contains(targetPos)) {

@@ -2,13 +2,12 @@ package unblonded.packets;
 
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.util.Identifier;
 import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
 
@@ -34,7 +33,7 @@ public class cfg {
                     out = new PrintWriter(socket.getOutputStream(), true);
                     safe = true;
                     System.out.println("Connected to C++ server.");
-                    Minecraft client = Minecraft.getInstance();
+                    MinecraftClient client = MinecraftClient.getInstance();
                     client.getWindow().setTitle("Packet Edit v3 - Ready");
                 } catch (IOException e) {
                     //System.out.println("Waiting for injection...");
@@ -66,6 +65,7 @@ public class cfg {
     public static int crystalAttackTime = 20;
     public static int crystalPlaceTime = 20;
     public static boolean cancelInteraction = false;
+    public static boolean autoAnchor = false;
 
     public static void readConfig() {
         if (!safe || out == null || in == null) {
@@ -112,13 +112,14 @@ public class cfg {
             crystalAttackTime = json.get("crystalAttackTime").getAsInt();
             crystalPlaceTime = json.get("crystalPlaceTime").getAsInt();
             cancelInteraction = json.get("cancelInteraction").getAsBoolean();
+            autoAnchor = json.get("autoAnchor").getAsBoolean();
 
             JsonArray espBlockArray = json.getAsJsonArray("espBlockList");
-            Set<ResourceLocation> jsonBlockIds = new HashSet<>();
+            Set<Identifier> jsonBlockIds = new HashSet<>();
             for (JsonElement element : espBlockArray) {
                 JsonObject blockObj = element.getAsJsonObject();
                 String blockId = blockObj.get("name").getAsString();
-                ResourceLocation id = ResourceLocation.tryParse(blockId);
+                Identifier  id = Identifier.tryParse(blockId);
                 if (id != null) {
                     jsonBlockIds.add(id);
                 }
@@ -128,28 +129,28 @@ public class cfg {
                 JsonObject blockObj = element.getAsJsonObject();
                 String blockIdStr = blockObj.get("name").getAsString();
                 JsonArray colorArray = blockObj.get("color").getAsJsonArray();
+
                 try {
-                    ResourceLocation id = ResourceLocation.tryParse(blockIdStr);
-                    if (id == null) continue;
+                    Identifier id = Identifier.tryParse(blockIdStr);
 
-                    BuiltInRegistries.BLOCK.getOptional(id).ifPresent(block -> {
-                        if (block == Blocks.AIR) return;
+                    Block block = Registries.BLOCK.get(id);
+                    if (block == Blocks.AIR) return;
 
-                        Color blockColor = new Color(
-                                colorArray.get(0).getAsFloat(),
-                                colorArray.get(1).getAsFloat(),
-                                colorArray.get(2).getAsFloat(),
-                                colorArray.get(3).getAsFloat()
-                        );
-                        espBlockList.removeIf(bc -> bc.getBlock().equals(block));
-                        espBlockList.add(new BlockColor(block, blockColor));
-                    });
+                    Color blockColor = new Color(
+                            colorArray.get(0).getAsFloat(),
+                            colorArray.get(1).getAsFloat(),
+                            colorArray.get(2).getAsFloat(),
+                            colorArray.get(3).getAsFloat()
+                    );
+                    espBlockList.removeIf(bc -> bc.getBlock().equals(block));
+                    espBlockList.add(new BlockColor(block, blockColor));
+
                 } catch (Exception e) {
                     System.err.println("Error processing block: " + blockIdStr + " -> " + e.getMessage());
                 }
             }
             espBlockList.removeIf(bc -> {
-                ResourceLocation id = BuiltInRegistries.BLOCK.getKey(bc.getBlock());
+                Identifier id = Registries.BLOCK.getId(bc.getBlock());
                 return !jsonBlockIds.contains(id);
             });
 

@@ -22,7 +22,9 @@
 			"unblonded.packets.cheats.ForwardTunnel",
 			"unblonded.packets.cheats.AutoCrystal",
 			"unblonded.packets.cheats.InteractionCanceler",
-			"unblonded.packets.util.Keybinds"
+			"unblonded.packets.util.Keybinds",
+			"unblonded.packets.cheats.BedrockScanner",
+			"unblonded.packets.cheats.AutoAnchor"
 		]
 	},
 	"mixins": [

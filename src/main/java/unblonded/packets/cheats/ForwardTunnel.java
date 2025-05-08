@@ -2,27 +2,21 @@ package unblonded.packets.cheats;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Shadow;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
 import unblonded.packets.util.GameModeAccessor;
 
 public class ForwardTunnel implements ClientModInitializer {
 
-    private static final Minecraft client = Minecraft.getInstance();
+    private static final MinecraftClient client = MinecraftClient.getInstance();
     private static boolean enabled = true;
     private static boolean keyReset = false;
     private static float targetYaw = -1f;
@@ -32,31 +26,31 @@ public class ForwardTunnel implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
-            if (!enabled || client.player == null || client.level == null) return;
+            if (!enabled || client.player == null || client.world == null) return;
 
-            Player player = client.player;
+            PlayerEntity player = client.player;
             if (!player.isAlive() || player.isSpectator()) return;
 
             setHeadPos();
             updateHeadRotation();
 
-            Vec3 start = player.getEyePosition(1.0f);
-            Vec3 look = player.getViewVector(1.0f).normalize();
-            Vec3 end = start.add(look.scale(5.0));
+            Vec3d start = player.getEyePos();
+            Vec3d look = player.getRotationVec(1.0f).normalize();
+            Vec3d end = start.add(look.multiply(5.0));
 
-            BlockHitResult hit = client.level.clip(new ClipContext(
+            BlockHitResult hit = client.world.raycast(new RaycastContext(
                     start, end,
-                    ClipContext.Block.OUTLINE,
-                    ClipContext.Fluid.NONE,
+                    RaycastContext.ShapeType.OUTLINE,
+                    RaycastContext.FluidHandling.NONE,
                     player
             ));
 
-            GameModeAccessor accessor = (GameModeAccessor)client.gameMode;
+            GameModeAccessor accessor = (GameModeAccessor) client.interactionManager;
             BlockPos pos = accessor.getDestroyBlockPos();
             float progress = accessor.getDestroyProgress();
 
-            if (client.level.getBlockState(pos).getBlock() != Blocks.AIR)
-                blockStatus = "Mining -> " + client.level.getBlockState(pos).getBlock().getName().getString() + " | " + Float.parseFloat(String.format("%.0f", progress*100)) + "%";
+            if (client.world.getBlockState(pos).getBlock() != Blocks.AIR)
+                blockStatus = "Mining -> " + client.world.getBlockState(pos).getBlock().getName().getString() + " | " + String.format("%.0f", progress * 100) + "%";
 
             if (hit != null && hit.getType() == HitResult.Type.BLOCK) {
                 BlockPos targetPos = hit.getBlockPos();
@@ -66,9 +60,9 @@ public class ForwardTunnel implements ClientModInitializer {
                     return;
                 }
 
-                client.options.keyUp.setDown(true); // Start moving forward
-                client.gameMode.continueDestroyBlock(targetPos, hit.getDirection());
-                player.swing(InteractionHand.MAIN_HAND);
+                KeyBinding.setKeyPressed(client.options.forwardKey.getDefaultKey(), true); // Start moving forward
+                client.interactionManager.updateBlockBreakingProgress(targetPos, hit.getSide());
+                player.swingHand(player.getActiveHand());
             }
         });
     }
@@ -76,24 +70,24 @@ public class ForwardTunnel implements ClientModInitializer {
     /**
      * Checks if the block ahead and its surroundings are safe for mining and walking into.
      */
-    private boolean isTunnelPathSafe(Player player, BlockPos target, Vec3 lookVec) {
+    private boolean isTunnelPathSafe(PlayerEntity player, BlockPos target, Vec3d lookVec) {
         // Blocks directly in the path
         for (int i = 0; i <= 2; i++) {
-            Vec3 offset = lookVec.scale(i + 1);
-            BlockPos ahead = target.offset((int) offset.x, (int) offset.y, (int) offset.z);
+            Vec3d offset = lookVec.multiply(i + 1);
+            BlockPos ahead = target.add((int) offset.x, (int) offset.y, (int) offset.z);
 
             if (isDangerousBlock(ahead)) return false;
 
             // Ensure the block below is not air or liquid
-            BlockPos below = ahead.below();
-            BlockState belowState = client.level.getBlockState(below);
+            BlockPos below = ahead.down();
+            BlockState belowState = client.world.getBlockState(below);
             if (belowState.isAir() || isDangerousBlock(below)) return false;
         }
 
         // Prevent falling into holes
-        BlockPos afterBreak = target.relative(player.getDirection());
-        BlockPos belowAfterBreak = afterBreak.below();
-        BlockState stateBelow = client.level.getBlockState(belowAfterBreak);
+        BlockPos afterBreak = target.offset(player.getHorizontalFacing().getOpposite());
+        BlockPos belowAfterBreak = afterBreak.down();
+        BlockState stateBelow = client.world.getBlockState(belowAfterBreak);
         if (stateBelow.isAir() || isDangerousBlock(belowAfterBreak)) return false;
 
         return true;
@@ -103,14 +97,14 @@ public class ForwardTunnel implements ClientModInitializer {
      * Determines if the block at a given position is dangerous.
      */
     private boolean isDangerousBlock(BlockPos pos) {
-        BlockState state = client.level.getBlockState(pos);
+        BlockState state = client.world.getBlockState(pos);
         return state.isAir()
-                || state.is(Blocks.LAVA)
-                || state.is(Blocks.WATER)
-                || state.is(Blocks.FIRE)
-                || state.is(Blocks.CACTUS)
-                || state.is(Blocks.MAGMA_BLOCK)
-                || state.is(Blocks.VOID_AIR);
+                || state.isOf(Blocks.LAVA)
+                || state.isOf(Blocks.WATER)
+                || state.isOf(Blocks.FIRE)
+                || state.isOf(Blocks.CACTUS)
+                || state.isOf(Blocks.MAGMA_BLOCK)
+                || state.isOf(Blocks.VOID_AIR);
     }
 
     public static void setState(boolean state) {
@@ -124,28 +118,28 @@ public class ForwardTunnel implements ClientModInitializer {
 
         if (targetYaw == -1f) return; // No target set
 
-        float currentYaw = normalizeYaw(client.player.getYRot());
+        float currentYaw = normalizeYaw(client.player.getYaw());
 
         float delta = getShortestAngleDiff(currentYaw, targetYaw);
 
         // Stop rotating if close enough
         if (Math.abs(delta) < 1.0f) {
-            client.player.setYRot(targetYaw);
-            client.player.setYHeadRot(targetYaw);
+            client.player.setYaw(targetYaw);
+            client.player.setHeadYaw(targetYaw);
             targetYaw = -1f;
             return;
         }
 
         // Interpolate yaw
         float newYaw = normalizeYaw(currentYaw + Math.signum(delta) * Math.min(SMOOTHING_SPEED, Math.abs(delta)));
-        client.player.setYRot(newYaw);
-        client.player.setYHeadRot(newYaw);
+        client.player.setYaw(newYaw);
+        client.player.setHeadYaw(newYaw);
     }
 
     public static void setHeadPos() {
         if (client.player == null) return;
 
-        float yaw = normalizeYaw(client.player.getYRot());
+        float yaw = normalizeYaw(client.player.getYaw());
 
         // Snap to nearest cardinal direction
         float snappedYaw;
@@ -173,15 +167,12 @@ public class ForwardTunnel implements ClientModInitializer {
         return diff;
     }
 
-
-
-
     public static void disable() {
         if (!enabled) return;
         enabled = false;
 
         if (!keyReset) {
-            client.options.keyUp.setDown(false);
+            KeyBinding.setKeyPressed(client.options.forwardKey.getDefaultKey(), false);
             keyReset = true;
         }
     }

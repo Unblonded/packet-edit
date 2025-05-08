@@ -1,14 +1,12 @@
 package unblonded.packets.util;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.KeyMapping;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.option.KeyBinding;
 import org.lwjgl.glfw.GLFW;
 
 public class Keybinds implements ClientModInitializer {
-    public static final KeyMapping openGui = new KeyMapping("key.packetedit.open_gui", GLFW.GLFW_KEY_G, "category.packetedit");
+    public static final KeyBinding openGui = new KeyBinding("key.packetedit.open_gui", GLFW.GLFW_KEY_G, "category.packetedit");
 
 
     @Override
@@ -16,8 +14,8 @@ public class Keybinds implements ClientModInitializer {
         KeyBindingHelper.registerKeyBinding(openGui);
     }
 
-    public static int getKeycode(KeyMapping key) {
-        return key.getDefaultKey().getValue();
+    public static int getKeycode(KeyBinding key) {
+        return key.getDefaultKey().getCode();
     }
 
 }

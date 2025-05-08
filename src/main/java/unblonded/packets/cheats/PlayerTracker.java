@@ -2,7 +2,7 @@ package unblonded.packets.cheats;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.entity.player.PlayerEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,16 +14,16 @@ public class PlayerTracker implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player != null && client.level != null) {
+            if (client.player != null && client.world != null) {
                 nearbyPlayers.clear();
                 double range = 256;
 
                 List<PlayerDistance> tempList = new ArrayList<>();
 
-                for (Player player : client.level.players()) {
+                for (PlayerEntity player : client.world.getPlayers()) {
                     if (!player.getName().getString().equals(client.player.getName().getString()) &&
-                            player.distanceToSqr(client.player) <= range * range) {
-                        double distance = Math.sqrt(player.distanceToSqr(client.player));
+                            player.squaredDistanceTo(client.player) <= range * range) {
+                        double distance = Math.sqrt(player.squaredDistanceTo(client.player));
                         tempList.add(new PlayerDistance(player.getName().getString(), distance));
                     }
                 }
