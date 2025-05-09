@@ -74,6 +74,9 @@ public class cfg {
     public static boolean oreSim = false;
     static int oreSimDistance = 0;
     public static Color oreSimColor = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+    public static boolean autoTotem = false;
+    public static int autoTotemDelay = 50;
+    public static int autoTotemHumanity = 0;
 
     public static void readConfig() {
         if (!safe || out == null || in == null) {
@@ -124,6 +127,9 @@ public class cfg {
             oreSimSeed = json.get("oreSimSeed").getAsLong();
             oreSimDistance = json.get("oreSimDistance").getAsInt();
             oreSim = json.get("oreSim").getAsBoolean();
+            autoTotem = json.get("autoTotem").getAsBoolean();
+            autoTotemDelay = json.get("autoTotemDelay").getAsInt();
+            autoTotemHumanity = json.get("autoTotemHumanity").getAsInt();
 
             JsonArray oreSimColArr = json.get("oreSimColor").getAsJsonArray();
             oreSimColor = new Color(
@@ -143,28 +149,37 @@ public class cfg {
                 }
             }
 
-
             JsonArray espBlockArray = json.getAsJsonArray("espBlockList");
-            Set<Identifier> jsonBlockIds = new HashSet<>();
-            for (JsonElement element : espBlockArray) {
-                JsonObject blockObj = element.getAsJsonObject();
-                String blockId = blockObj.get("name").getAsString();
-                Identifier  id = Identifier.tryParse(blockId);
-                if (id != null) {
-                    jsonBlockIds.add(id);
-                }
-            }
+            if (espBlockArray == null || espBlockArray.isEmpty()) return;
+
+            List<BlockColor> newBlockList = new ArrayList<>();
+            Set<Identifier> validIds = new HashSet<>();
 
             for (JsonElement element : espBlockArray) {
-                JsonObject blockObj = element.getAsJsonObject();
-                String blockIdStr = blockObj.get("name").getAsString();
-                JsonArray colorArray = blockObj.get("color").getAsJsonArray();
-
                 try {
-                    Identifier id = Identifier.tryParse(blockIdStr);
+                    JsonObject blockObj = element.getAsJsonObject();
 
+                    // 1. Get and validate block ID
+                    String blockIdStr = blockObj.get("name").getAsString();
+                    Identifier id = Identifier.tryParse(blockIdStr);
+                    if (id == null) {
+                        System.err.println("Invalid block ID format: " + blockIdStr);
+                        continue;
+                    }
+
+                    // 2. Get block from registry
                     Block block = Registries.BLOCK.get(id);
-                    if (block == Blocks.AIR) return;
+                    if (block == Blocks.AIR) {
+                        System.err.println("Block not found in registry: " + blockIdStr);
+                        continue;
+                    }
+
+                    // 3. Get and validate color array
+                    JsonArray colorArray = blockObj.get("color").getAsJsonArray();
+                    if (colorArray.size() != 4) {
+                        System.err.println("Invalid color format for block: " + blockIdStr);
+                        continue;
+                    }
 
                     Color blockColor = new Color(
                             colorArray.get(0).getAsFloat(),
@@ -172,17 +187,24 @@ public class cfg {
                             colorArray.get(2).getAsFloat(),
                             colorArray.get(3).getAsFloat()
                     );
-                    espBlockList.removeIf(bc -> bc.getBlock().equals(block));
-                    espBlockList.add(new BlockColor(block, blockColor));
 
+                    // 4. Get enabled state (default to true if not specified)
+                    boolean enabled = !blockObj.has("enabled") || blockObj.get("enabled").getAsBoolean();
+
+                    // 5. Add to list regardless of enabled state so we track it
+                    BlockColor blockColorEntry = new BlockColor(block, blockColor, enabled);
+                    newBlockList.add(blockColorEntry);
+
+                    if (enabled) {
+                        validIds.add(id);
+                    }
                 } catch (Exception e) {
-                    System.err.println("Error processing block: " + blockIdStr + " -> " + e.getMessage());
+                    System.err.println("Error processing block entry: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
-            espBlockList.removeIf(bc -> {
-                Identifier id = Registries.BLOCK.getId(bc.getBlock());
-                return !jsonBlockIds.contains(id);
-            });
+            espBlockList.clear();
+            espBlockList.addAll(newBlockList);
 
         } catch (SocketTimeoutException e) {
             System.err.println("Timeout waiting for server response");

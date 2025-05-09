@@ -55,7 +55,6 @@ public class AutoAnchor implements ClientModInitializer {
                 try {
                     for (int i = 0; i < 4; i++) {
                         Thread.sleep(5 + util.rndInt(3));
-                        int stageCopy = i;
                         client.execute(() -> {
                             client.player.getInventory().selectedSlot = glowstoneSlot;
                             interactWithBlock(anchorPos);

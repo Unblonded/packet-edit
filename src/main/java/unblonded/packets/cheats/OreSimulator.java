@@ -152,9 +152,11 @@ public class OreSimulator {
 	}
 
 	private static ArrayList<Vec3d> generateVeinPart(ClientWorld world, ChunkRandom random, int veinSize, double startX, double endX, double startZ, double endZ, double startY, double endY, int x, int y, int z, int size, int i, float discardOnAir) {
+
 		BitSet bitSet = new BitSet(size * i * size);
 		BlockPos.Mutable mutable = new BlockPos.Mutable();
 		double[] ds = new double[veinSize * 4];
+
 		ArrayList<Vec3d> poses = new ArrayList<>();
 
 		int n;
@@ -162,7 +164,6 @@ public class OreSimulator {
 		double q;
 		double r;
 		double s;
-
 		for (n = 0; n < veinSize; ++n) {
 			float f = (float) n / (float) veinSize;
 			p = MathHelper.lerp(f, startX, endX);
@@ -222,7 +223,7 @@ public class OreSimulator {
 										if (!bitSet.get(an)) {
 											bitSet.set(an);
 											mutable.set(ah, aj, al);
-											if (aj >= -64 && aj < 320) {
+											if (aj >= -64 && aj < 320 && (world.getBlockState(mutable).isOpaque())) {
 												if (shouldPlace(world, mutable, discardOnAir, random)) {
 													poses.add(new Vec3d(ah, aj, al));
 												}
@@ -240,38 +241,33 @@ public class OreSimulator {
 		return poses;
 	}
 
+
 	private static boolean shouldPlace(ClientWorld world, BlockPos orePos, float discardOnAir, ChunkRandom random) {
-		if (discardOnAir == 0F) return true;
-		if (discardOnAir != 1F && random.nextFloat() >= discardOnAir) return true;
-
-		for (Direction direction : Direction.values()) {
-			BlockPos adjacentPos = orePos.add(direction.getVector());
-
-			if (world.isChunkLoaded(adjacentPos)) {
-				if (!world.getBlockState(adjacentPos).isOpaque() && discardOnAir != 1F) {
-					return false;
-				}
-			}
+		if (discardOnAir == 0F || (discardOnAir != 1F && random.nextFloat() >= discardOnAir)) {
+			return true;
 		}
 
+		for (Direction direction : Direction.values()) {
+			if (!world.getBlockState(orePos.add(direction.getVector())).isOpaque() && discardOnAir != 1F) {
+				return false;
+			}
+		}
 		return true;
 	}
 
 	private static ArrayList<Vec3d> generateHidden(ClientWorld world, ChunkRandom random, BlockPos blockPos, int size) {
+
 		ArrayList<Vec3d> poses = new ArrayList<>();
-		int count = random.nextInt(size + 1);
 
-		for (int j = 0; j < count; ++j) {
-			int actualSize = Math.min(j, 7);
+		int i = random.nextInt(size + 1);
 
-			int x = randomCoord(random, actualSize) + blockPos.getX();
-			int y = randomCoord(random, actualSize) + blockPos.getY();
-			int z = randomCoord(random, actualSize) + blockPos.getZ();
-
-			BlockPos pos = new BlockPos(x, y, z);
-
-			if (world.isChunkLoaded(pos)) {
-				if (shouldPlace(world, pos, 1F, random)) {
+		for (int j = 0; j < i; ++j) {
+			size = Math.min(j, 7);
+			int x = randomCoord(random, size) + blockPos.getX();
+			int y = randomCoord(random, size) + blockPos.getY();
+			int z = randomCoord(random, size) + blockPos.getZ();
+			if (world.getBlockState(new BlockPos(x, y, z)).isOpaque()) {
+				if (shouldPlace(world, new BlockPos(x, y, z), 1F, random)) {
 					poses.add(new Vec3d(x, y, z));
 				}
 			}

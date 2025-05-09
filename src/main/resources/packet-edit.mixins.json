@@ -4,11 +4,11 @@
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"CPMAccess",
-		"HRPMAccess",
-		"RFPMAccess",
-		"OnTickMixin",
 		"GameModeMixin",
-		"MixinBlockBreaking"
+		"HRPMAccess",
+		"MixinBlockBreaking",
+		"OnTickMixin",
+		"RFPMAccess"
 	],
 	"injectors": {
 		"defaultRequire": 1

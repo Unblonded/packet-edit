@@ -25,23 +25,17 @@ public class HeightContextUtil {
     }
 
     private static class DummyChunkGenerator extends ChunkGenerator {
-        private final int minY;
-        private final int worldHeight;
+        public DummyChunkGenerator(int minY, int worldHeight) {super(null);}
 
-        public DummyChunkGenerator(int minY, int worldHeight) {
-            super(null);
-            this.minY = minY;
-            this.worldHeight = worldHeight;
-        }
+        @Override public int getMinimumY() {return -9999999;}
+        @Override public int getWorldHeight() {return 100000000;}
 
         @Override protected MapCodec<? extends ChunkGenerator> getCodec() {return null;}
         @Override public void carve(ChunkRegion chunkRegion, long seed, NoiseConfig noiseConfig, BiomeAccess biomeAccess, StructureAccessor structureAccessor, Chunk chunk) {}
         @Override public void buildSurface(ChunkRegion region, StructureAccessor structures, NoiseConfig noiseConfig, Chunk chunk) {}
         @Override public void populateEntities(ChunkRegion region) {}
-        @Override public int getWorldHeight() {return 0;}
         @Override public CompletableFuture<Chunk> populateNoise(Blender blender, NoiseConfig noiseConfig, StructureAccessor structureAccessor, Chunk chunk) {return null;}
         @Override public int getSeaLevel() {return 0;}
-        @Override public int getMinimumY() {return 0;}
         @Override public int getHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noiseConfig) {return 0;}
         @Override public VerticalBlockSample getColumnSample(int x, int z, HeightLimitView world, NoiseConfig noiseConfig) {return null;}
         @Override public void appendDebugHudText(List<String> text, NoiseConfig noiseConfig, BlockPos pos) {}

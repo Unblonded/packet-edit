@@ -2,6 +2,8 @@ package unblonded.packets.util;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ChatScreen;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.Tessellator;
 import net.minecraft.component.Component;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
@@ -10,7 +12,9 @@ import unblonded.packets.Packetedit;
 import unblonded.packets.cfg;
 import unblonded.packets.cheats.*;
 
+import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 import static unblonded.packets.cfg.writePlayerSaftey;
 
@@ -26,7 +30,7 @@ public class util {
         if (Packetedit.isKeyDown(GLFW.GLFW_KEY_PERIOD) && client.currentScreen == null)
             client.setScreen(new ChatScreen("."));
 
-        if (Keybinds.openGui.isPressed() && client.world != null)
+        if (Keybinds.openGui.wasPressed() && client.world != null)
             client.setScreen(new GuiBackground(Text.of("Packet Edit")));
     }
 
@@ -46,6 +50,7 @@ public class util {
         AutoCrystal.setState(cfg.autoCrystal);
         InteractionCanceler.setState(cfg.cancelInteraction);
         AutoAnchor.setState(cfg.autoAnchor);
+        AutoTotem.setState(cfg.autoTotem, cfg.autoTotemDelay, cfg.autoTotemHumanity);
 
         if (cfg.checkPlayerSafety) {
             AirUnderCheck.checkSafety();
@@ -60,8 +65,12 @@ public class util {
 
     public static void setTitle(MinecraftClient client) {
         if (client.world != null) {
-            String title = client.world.getRegistryKey().getValue().getPath() + " - Packet Edit v3 by Unblonded";
-            client.getWindow().setTitle(title);
+            String suffix = " - Packet Edit v3 by Unblonded";
+            String title = client.world.getRegistryKey().getValue().getPath();
+            String formattedTitle = Arrays.stream(title.split("_"))
+                    .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
+                    .collect(Collectors.joining(" "));
+            client.getWindow().setTitle(formattedTitle+suffix);
         } else {
             client.getWindow().setTitle("Packet Edit v3 by Unblonded");
         }

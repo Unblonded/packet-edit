@@ -42,6 +42,7 @@ public class AncientDebrisUtil {
             int bottom = mc.world.getBottomY();
             int height = mc.world.getDimension().logicalHeight();
             this.heightContext = HeightContextUtil.createCustomHeightContext(bottom, height);
+            //this.heightContext = new HeightContext(null, HeightLimitView.create(bottom, height));
         }
 
         // Process all placement modifiers

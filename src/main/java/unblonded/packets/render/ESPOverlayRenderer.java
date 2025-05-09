@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.*;
@@ -18,17 +19,13 @@ import net.minecraft.world.World;
 import org.joml.Matrix4f;
 import unblonded.packets.cfg;
 
-
 import unblonded.packets.cheats.OreSimulator;
 import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
 
-import javax.swing.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import static unblonded.packets.cfg.*;
 
 public class ESPOverlayRenderer implements ClientModInitializer {
     private static final MinecraftClient mc = MinecraftClient.getInstance();
@@ -41,13 +38,18 @@ public class ESPOverlayRenderer implements ClientModInitializer {
 
     public static void drawEspPos(WorldRenderContext context, BlockPos pos, Color color) {
         World world = context.world();
-        if (world == null) return;
+        if (world == null || color == null) return;
 
         Camera camera = context.camera();
         MatrixStack matrices = context.matrixStack();
         Vec3d cameraPos = camera.getPos();
 
         matrices.push();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableDepthTest();
+        RenderSystem.lineWidth(1.5f);
+
         try {
             matrices.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z); // Apply camera offset
 
@@ -93,6 +95,10 @@ public class ESPOverlayRenderer implements ClientModInitializer {
 
             BufferRenderer.drawWithGlobalProgram(buffer.end());
         } finally {
+            // Always restore render state regardless of what happens
+            RenderSystem.disableBlend();
+            RenderSystem.enableDepthTest();
+            RenderSystem.lineWidth(1.0f);
             matrices.pop();
         }
     }
@@ -107,7 +113,7 @@ public class ESPOverlayRenderer implements ClientModInitializer {
     }
 
     public static void drawTracers(WorldRenderContext context, Vec3d targetPos, Color color) {
-        if (mc.player == null || targetPos == null) return;
+        if (mc.player == null || targetPos == null || color == null) return;
 
         PlayerEntity player = mc.player;
         Camera camera = context.camera();
@@ -126,8 +132,15 @@ public class ESPOverlayRenderer implements ClientModInitializer {
 
         // Start matrix stack transformations
         matrices.push();
+
+        // Set up rendering properties
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableDepthTest();
+        RenderSystem.lineWidth(1.5f);
+
         try {
-            matrices.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z); // WORKS GREAT JUST ADD A SETTING INSIDE OF THE IMGUI CONFIG FOR TRACERS OR NOT TRACERS
+            matrices.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
             MatrixStack.Entry entry = matrices.peek();
             Matrix4f matrix = entry.getPositionMatrix();
@@ -135,10 +148,6 @@ public class ESPOverlayRenderer implements ClientModInitializer {
             // Set up rendering properties
             Tessellator tessellator = Tessellator.getInstance();
             RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.disableDepthTest();
-            RenderSystem.lineWidth(1.5f);
 
             // Start the buffer and begin drawing lines
             BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
@@ -152,12 +161,16 @@ public class ESPOverlayRenderer implements ClientModInitializer {
             // Finish drawing with the shader
             BufferRenderer.drawWithGlobalProgram(buffer.end());
         } finally {
+            // Always restore render state
+            RenderSystem.disableBlend();
+            RenderSystem.enableDepthTest();
+            RenderSystem.lineWidth(1.0f);
             matrices.pop();
         }
     }
 
     public static void drawGroupedTracers(WorldRenderContext context, List<BlockPos> blocks, Color color) {
-        if (blocks.isEmpty()) return;
+        if (blocks.isEmpty() || color == null) return;
 
         List<List<BlockPos>> groups = new ArrayList<>();
         Set<BlockPos> processed = new HashSet<>();
@@ -207,10 +220,20 @@ public class ESPOverlayRenderer implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
-            if (client.player == null || client.world == null || !drawBlocks || !oreSim) return;
+            // Only run if ESP is enabled and conditions are met
+            if (client.player == null || client.world == null || !cfg.advancedEsp || cfg.espBlockList.isEmpty()) {
+                // Create a new buffer instance instead of just clearing
+                synchronized (renderBuffer) {
+                    renderBuffer.clear();
+                    foundPositions.clear();
+                    lastSearchPos = null; // Reset search state too
+                }
+                return;
+            }
 
             BlockPos currentPos = client.player.getBlockPos();
-            updateOffsetsIfNeeded(RADIUS);
+            updateOffsetsIfNeeded(cfg.RADIUS);
+
             if (shouldStartNewSearch(currentPos)) {
                 startNewSearch(currentPos);
             }
@@ -219,33 +242,57 @@ public class ESPOverlayRenderer implements ClientModInitializer {
         });
 
         WorldRenderEvents.AFTER_ENTITIES.register(context -> {
-            if (cfg.drawBlocks && advancedEsp) try {
+            if (cfg.drawBlocks) {
                 Map<Color, List<BlockPos>> colorGroups = new HashMap<>();
 
-                try {
-                    for (BlockPos pos : renderBuffer) {
-                            Block block = context.world().getBlockState(pos).getBlock();
-                            Color color = getBlockColor(block);
+                // Use a local copy to avoid concurrent modification issues
+                List<BlockPos> localCopy;
+                synchronized (renderBuffer) {
+                    localCopy = new ArrayList<>(renderBuffer);
+                }
 
+                for (BlockPos pos : localCopy) {
+                    try {
+                        if (context.world() == null) continue;
+                        BlockState state = context.world().getBlockState(pos);
+                        if (state == null) continue;
+
+                        Block block = state.getBlock();
+                        Color color = getBlockColor(block);
+                        if (color != null) {
                             drawEspPos(context, pos, color);
                             colorGroups.computeIfAbsent(color, k -> new ArrayList<>()).add(pos);
+                        }
+                    } catch (Exception e) {
+                        // Log exception but continue processing
+                        System.err.println("Error rendering ESP for block: " + e.getMessage());
                     }
-                } catch (Exception ignored) {}
+                }
 
                 if (cfg.drawBlockTracer) {
                     try {
-                        for (Map.Entry<Color, List<BlockPos>> entry : colorGroups.entrySet())
-                            drawGroupedTracers(context, entry.getValue(), entry.getKey());
-                    } catch (Exception ignored) {}
+                        for (Map.Entry<Color, List<BlockPos>> entry : colorGroups.entrySet()) {
+                            if (entry.getKey() != null && !entry.getValue().isEmpty()) {
+                                drawGroupedTracers(context, entry.getValue(), entry.getKey());
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error rendering tracers: " + e.getMessage());
+                    }
                 }
+            }
 
-            } catch (Exception ignored) {}
             if (cfg.oreSim) {
                 for (Map.Entry<Long, Set<Vec3d>> entry : OreSimulator.chunkDebrisPositions.entrySet()) {
                     for (Vec3d pos : entry.getValue()) {
-                        BlockPos seedPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
-                        if (mc.world.getBlockState(seedPos).isOpaque())
-                            drawEspPos(context, seedPos, oreSimColor);
+                        try {
+                            BlockPos seedPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
+                            if (mc.world != null && mc.world.getBlockState(seedPos).isOpaque()) {
+                                drawEspPos(context, seedPos, cfg.oreSimColor);
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Error rendering ore simulation: " + e.getMessage());
+                        }
                     }
                 }
             }
@@ -253,24 +300,18 @@ public class ESPOverlayRenderer implements ClientModInitializer {
     }
 
     private Color getBlockColor(Block block) {
+        if (block == null || cfg.espBlockList == null) return null;
+
         for (BlockColor blockColor : cfg.espBlockList) {
-            if (blockColor.getBlock().equals(block)) {
+            if (!blockColor.isEnabled()) continue; // Skip disabled blocks
+            if (blockColor.getBlock() != null && blockColor.getBlock().equals(block)) {
                 return blockColor.getColor();
             }
         }
         return null;
     }
 
-
     private int lastRadius = -1;
-
-    private void updateOffsetsIfNeeded(int currentRadius) {
-        if (currentRadius != lastRadius) {
-            cachedOffsets.clear();
-            initializeOffsets(currentRadius);
-            lastRadius = currentRadius;
-        }
-    }
 
     private void initializeOffsets(int radius) {
         int radiusSq = radius * radius;
@@ -288,8 +329,8 @@ public class ESPOverlayRenderer implements ClientModInitializer {
     private boolean shouldStartNewSearch(BlockPos currentPos) {
         if (lastSearchPos == null) return true;
         long timeSinceLast = System.currentTimeMillis() - lastSearchTime;
-        return timeSinceLast > SEARCH_INTERVAL ||
-                currentPos.getSquaredDistance(lastSearchPos) > ((double) RADIUS /2) * ((double) RADIUS /2);
+        return timeSinceLast > cfg.SEARCH_INTERVAL ||
+                currentPos.getSquaredDistance(lastSearchPos) > ((double) cfg.RADIUS /2) * ((double) cfg.RADIUS /2);
     }
 
     private void startNewSearch(BlockPos currentPos) {
@@ -302,29 +343,47 @@ public class ESPOverlayRenderer implements ClientModInitializer {
     private void processSearchBatch(MinecraftClient client, BlockPos currentPos) {
         if (currentBatch >= cachedOffsets.size()) return;
 
-        int endIndex = Math.min(currentBatch + BATCH_SIZE, cachedOffsets.size());
+        int endIndex = Math.min(currentBatch + cfg.BATCH_SIZE, cachedOffsets.size());
         ClientWorld world = client.world;
+        if (world == null) return;
 
         for (int i = currentBatch; i < endIndex; i++) {
             BlockPos offset = cachedOffsets.get(i);
-            BlockPos targetPos = currentPos.add(offset.getX(), offset.getY(), offset.getZ());
+            BlockPos targetPos = currentPos.add(offset);
 
             if (!world.isChunkLoaded(targetPos)) continue;
 
-            for (BlockColor block : cfg.espBlockList) {
-                if (block.getBlock().equals(world.getBlockState(targetPos).getBlock()) && !foundPositions.contains(targetPos)) {
+            BlockState state = world.getBlockState(targetPos);
+            Block block = state.getBlock();
+
+            // Check if block is in our ESP list
+            for (BlockColor espBlock : cfg.espBlockList) {
+                if (!espBlock.isEnabled()) continue;
+                if (espBlock.getBlock().equals(block) && !foundPositions.contains(targetPos)) {
                     foundPositions.add(targetPos);
-                    break;
+                    break; // No need to check other blocks once found
                 }
             }
         }
 
         currentBatch = endIndex;
 
+        // Update render buffer when search completes
         if (currentBatch >= cachedOffsets.size()) {
-            renderBuffer.clear();
-            renderBuffer.addAll(foundPositions);
-            foundPositions.clear();
+            synchronized (renderBuffer) {
+                renderBuffer.clear();
+                renderBuffer.addAll(foundPositions);
+                foundPositions.clear();
+            }
+        }
+    }
+
+    // Other helper methods remain the same:
+    private void updateOffsetsIfNeeded(int currentRadius) {
+        if (currentRadius != lastRadius) {
+            cachedOffsets.clear();
+            initializeOffsets(currentRadius);
+            lastRadius = currentRadius;
         }
     }
 }

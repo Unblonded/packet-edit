@@ -24,7 +24,8 @@
 			"unblonded.packets.cheats.InteractionCanceler",
 			"unblonded.packets.util.Keybinds",
 			"unblonded.packets.cheats.BedrockScanner",
-			"unblonded.packets.cheats.AutoAnchor"
+			"unblonded.packets.cheats.AutoAnchor",
+			"unblonded.packets.cheats.AutoTotem"
 		]
 	},
 	"mixins": [

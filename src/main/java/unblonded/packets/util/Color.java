@@ -58,4 +58,14 @@ public class Color {
     public float G() { return green; }
     public float B() { return blue; }
     public float A() { return alpha; }
+
+    @Override
+    public String toString() {
+        return "Color{" +
+                "red=" + red +
+                ", green=" + green +
+                ", blue=" + blue +
+                ", alpha=" + alpha +
+                '}';
+    }
 }
