@@ -9,13 +9,12 @@ import net.minecraft.util.math.BlockPos;
 import org.lwjgl.glfw.GLFW;
 import unblonded.packets.Packetedit;
 
-public class BedrockScanner implements ClientModInitializer {
+public class BedrockScanner {
 
-    private final MinecraftClient client = MinecraftClient.getInstance();
-    private boolean keyPressed = false;
+    private static final MinecraftClient client = MinecraftClient.getInstance();
+    private static boolean keyPressed = false;
 
-    @Override
-    public void onInitializeClient() {
+    public static void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             if (client.player == null || client.world == null) return;
 
@@ -30,7 +29,7 @@ public class BedrockScanner implements ClientModInitializer {
         });
     }
 
-    private void scanForBedrock() {
+    private static void scanForBedrock() {
         BlockPos playerPos = client.player.getBlockPos();
         int radius = 100;
 

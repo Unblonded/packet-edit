@@ -13,32 +13,40 @@ import unblonded.packets.util.Color;
 import unblonded.packets.util.util;
 
 import java.io.*;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
+import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class cfg {
+    private static final MinecraftClient mc = MinecraftClient.getInstance();
     private static Socket socket;
     private static BufferedReader in;
     private static PrintWriter out;
     public static boolean safe = false;
     private static Thread connectionThread;
+    private static int currentPort = 1337;
+    private static final String CONFIG_FILENAME = "packetedit-port.json";
+    public static boolean isReady = false;
 
     public static void init() {
+        // Try to find an available port starting from 1337
+        currentPort = findAvailablePort(1337);
+
         connectionThread = new Thread(() -> {
             while (socket == null && !Thread.currentThread().isInterrupted()) {
                 try {
-                    socket = new Socket("127.0.0.1", 1337);
+                    socket = new Socket("127.0.0.1", currentPort);
                     in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     out = new PrintWriter(socket.getOutputStream(), true);
                     safe = true;
-                    System.out.println("Connected to C++ server.");
                     MinecraftClient client = MinecraftClient.getInstance();
-                    client.getWindow().setTitle("Packet Edit v3 - Ready");
+                    client.getWindow().setTitle("Packet Edit v3 - Ready (Port: " + currentPort + ")");
                 } catch (IOException e) {
-                    //System.out.println("Waiting for injection...");
                     try {
+                        isReady = true;
                         Thread.sleep(100);
                     } catch (InterruptedException ignored) {
                         Thread.currentThread().interrupt();
@@ -48,6 +56,89 @@ public class cfg {
         });
         connectionThread.start();
     }
+
+    private static Path getConfigPath() throws IOException {
+        Path minecraftDir = Paths.get(System.getenv("APPDATA"), ".minecraft");
+
+        if (!Files.exists(minecraftDir)) {
+            Files.createDirectories(minecraftDir);
+        }
+
+        return minecraftDir.resolve(CONFIG_FILENAME);
+    }
+
+    private static int findAvailablePort(int startingPort) {
+        try {
+            Path configPath = getConfigPath();
+
+            // Read existing config if present
+            if (Files.exists(configPath)) {
+                try {
+                    String content = Files.readString(configPath);
+                    JsonObject json = new Gson().fromJson(content, JsonObject.class);
+                    if (json != null && json.has("port")) {
+                        int savedPort = json.get("port").getAsInt();
+                        if (isPortAvailable(savedPort)) {
+                            return savedPort;
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error reading port config: " + e.getMessage());
+                    try {
+                        Files.delete(configPath);
+                    } catch (IOException deleteEx) {
+                        System.err.println("Couldn't delete invalid config: " + deleteEx.getMessage());
+                    }
+                }
+            }
+
+            // Find next available port
+            int port = startingPort;
+            while (port < 65535) {
+                if (isPortAvailable(port)) {
+                    // Port is available - save to config
+                    try {
+                        JsonObject json = new JsonObject();
+                        json.addProperty("port", port);
+
+                        Files.writeString(configPath, new Gson().toJson(json),
+                                StandardOpenOption.CREATE,
+                                StandardOpenOption.TRUNCATE_EXISTING);
+
+                        System.out.println("Found and saved available port: " + port);
+                        return port;
+                    } catch (IOException e) {
+                        System.err.println("Error saving port config: " + e.getMessage());
+                        // If we can't save the config, still return the port
+                        return port;
+                    }
+                }
+                port++;
+            }
+
+            System.err.println("No available ports found, using default");
+            return startingPort;
+        } catch (Exception e) {
+            System.err.println("Critical error finding available port: " + e.getMessage());
+            e.printStackTrace();
+            return startingPort;
+        }
+    }
+
+    /**
+     * Checks if a specific port is available
+     */
+    private static boolean isPortAvailable(int port) {
+        // Only check if we can bind to the port as a server
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            serverSocket.setReuseAddress(true);
+            return true;
+        } catch (IOException e) {
+            // Port is in use or not available
+            return false;
+        }
+    }
+
 
     private static long lastOreSimSeed = -1;
     private static int lastOreSimDistance = -1;
@@ -77,6 +168,15 @@ public class cfg {
     public static boolean autoTotem = false;
     public static int autoTotemDelay = 50;
     public static int autoTotemHumanity = 0;
+    public static boolean triggerAutoSell = false;
+    public static int autoSellDelay = 300;
+    public static String autoSellPrice = "0";
+    public static int[] autoSellEndpoints = {0, 8};
+    public static boolean autoDcPrimed = false;
+    public static float autoDcProximity = 30.0f;
+    public static int filterMode = -1;
+    public static boolean chatFilter = false;
+    public static String blockMsg = "";
 
     public static void readConfig() {
         if (!safe || out == null || in == null) {
@@ -130,6 +230,16 @@ public class cfg {
             autoTotem = json.get("autoTotem").getAsBoolean();
             autoTotemDelay = json.get("autoTotemDelay").getAsInt();
             autoTotemHumanity = json.get("autoTotemHumanity").getAsInt();
+            triggerAutoSell = json.get("triggerAutoSell").getAsBoolean();
+            autoSellDelay = json.get("autoSellDelay").getAsInt();
+            autoSellPrice = json.get("autoSellPrice").getAsString();
+            autoSellEndpoints[0] = json.get("autoSellEndpointStart").getAsInt();
+            autoSellEndpoints[1] = json.get("autoSellEndpointStop").getAsInt();
+            autoDcPrimed = json.get("autoDcPrimed").getAsBoolean();
+            autoDcProximity = json.get("autoDcCondition").getAsFloat();
+            filterMode = json.get("filterMode").getAsInt();
+            chatFilter = json.get("chatFilter").getAsBoolean();
+            blockMsg = json.get("blockMsg").getAsString();
 
             JsonArray oreSimColArr = json.get("oreSimColor").getAsJsonArray();
             oreSimColor = new Color(
@@ -315,5 +425,16 @@ public class cfg {
             System.err.println("Failed to send tunnel block status: " + e.getMessage());
             safe = false;
         }
+    }
+
+    public static void sendAutoDcFlag(boolean flag) {
+        try {
+            if (out == null) return;
+
+            JsonObject json = new JsonObject();
+            json.addProperty("autoDcPrimedDisable", flag);
+            out.println("autoDcPrimedDisable " + json);
+            out.flush();
+        } catch (Exception e) { safe = false; }
     }
 }

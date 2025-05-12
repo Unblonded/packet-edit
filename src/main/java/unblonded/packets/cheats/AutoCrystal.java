@@ -29,17 +29,16 @@ import net.minecraft.world.RaycastContext;
 
 import java.util.*;
 
-public class AutoCrystal implements ClientModInitializer {
+public class AutoCrystal {
     private static final MinecraftClient mc = MinecraftClient.getInstance();
     private static boolean enabled = true;
-    private PlayerEntity target = null;
-    private BlockPos targetPos = null;
-    private int actionDelay = 0;
-    private int placeAttempts = 0;
-    private final Random random = new Random();
+    private static PlayerEntity target = null;
+    private static BlockPos targetPos = null;
+    private static int actionDelay = 0;
+    private static int placeAttempts = 0;
+    private static final Random random = new Random();
 
-    @Override
-    public void onInitializeClient() {
+    public static void onInitializeClient() {
         // Trigger on player attack
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
             if (enabled && entity instanceof PlayerEntity && isHoldingWeapon()) {
@@ -82,7 +81,7 @@ public class AutoCrystal implements ClientModInitializer {
         });
     }
 
-    private BlockPos findBestPosition(BlockPos center) {
+    private static BlockPos findBestPosition(BlockPos center) {
         BlockPos.Mutable pos = new BlockPos.Mutable();
         BlockPos closest = null;
         double minDist = Double.MAX_VALUE;
@@ -107,7 +106,7 @@ public class AutoCrystal implements ClientModInitializer {
         return closest;
     }
 
-    private boolean isValidCrystalPos(BlockPos pos) {
+    private static boolean isValidCrystalPos(BlockPos pos) {
         BlockState base = mc.world.getBlockState(pos);
         BlockState above = mc.world.getBlockState(pos.up());
 
@@ -116,7 +115,7 @@ public class AutoCrystal implements ClientModInitializer {
                 hasLineOfSight(pos.up());
     }
 
-    private boolean tryPlaceCrystal() {
+    private static boolean tryPlaceCrystal() {
         if (!mc.player.getMainHandStack().isOf(Items.END_CRYSTAL)) {
             int crystalSlot = findCrystalSlot();
             if (crystalSlot == -1) return false;
@@ -153,7 +152,7 @@ public class AutoCrystal implements ClientModInitializer {
         return true;
     }
 
-    private Entity findCrystalEntity() {
+    private static Entity findCrystalEntity() {
         Box searchBox = new Box(targetPos.up()).expand(0.5);
         for (Entity entity : mc.world.getEntitiesByClass(EndCrystalEntity.class, searchBox, e -> true)) {
             return entity;
@@ -162,7 +161,7 @@ public class AutoCrystal implements ClientModInitializer {
     }
 
     // Helper methods
-    private boolean hasLineOfSight(BlockPos pos) {
+    private static boolean hasLineOfSight(BlockPos pos) {
         Vec3d start = mc.player.getEyePos();
         Vec3d end = Vec3d.ofCenter(pos);
         return mc.world.raycast(new RaycastContext(
@@ -170,7 +169,7 @@ public class AutoCrystal implements ClientModInitializer {
         )).getType() == HitResult.Type.MISS;
     }
 
-    private int findCrystalSlot() {
+    private static int findCrystalSlot() {
         for (int i = 0; i < 9; i++) {
             if (mc.player.getInventory().getStack(i).isOf(Items.END_CRYSTAL)) {
                 return i;
@@ -179,12 +178,12 @@ public class AutoCrystal implements ClientModInitializer {
         return -1;
     }
 
-    private boolean isHoldingWeapon() {
+    private static boolean isHoldingWeapon() {
         Item item = mc.player.getMainHandStack().getItem();
         return item instanceof SwordItem || item instanceof AxeItem;
     }
 
-    private void reset() {
+    private static void reset() {
         target = null;
         targetPos = null;
         placeAttempts = 0;

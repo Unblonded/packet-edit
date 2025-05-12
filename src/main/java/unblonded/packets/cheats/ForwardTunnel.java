@@ -14,7 +14,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import unblonded.packets.util.GameModeAccessor;
 
-public class ForwardTunnel implements ClientModInitializer {
+public class ForwardTunnel {
 
     private static final MinecraftClient client = MinecraftClient.getInstance();
     private static boolean enabled = true;
@@ -23,8 +23,7 @@ public class ForwardTunnel implements ClientModInitializer {
     private static final float SMOOTHING_SPEED = 1.0f;
     private static String blockStatus = "";
 
-    @Override
-    public void onInitializeClient() {
+    public static void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             if (!enabled || client.player == null || client.world == null) return;
 
@@ -70,7 +69,7 @@ public class ForwardTunnel implements ClientModInitializer {
     /**
      * Checks if the block ahead and its surroundings are safe for mining and walking into.
      */
-    private boolean isTunnelPathSafe(PlayerEntity player, BlockPos target, Vec3d lookVec) {
+    private static boolean isTunnelPathSafe(PlayerEntity player, BlockPos target, Vec3d lookVec) {
         // Blocks directly in the path
         for (int i = 0; i <= 2; i++) {
             Vec3d offset = lookVec.multiply(i + 1);
@@ -96,7 +95,7 @@ public class ForwardTunnel implements ClientModInitializer {
     /**
      * Determines if the block at a given position is dangerous.
      */
-    private boolean isDangerousBlock(BlockPos pos) {
+    private static boolean isDangerousBlock(BlockPos pos) {
         BlockState state = client.world.getBlockState(pos);
         return state.isAir()
                 || state.isOf(Blocks.LAVA)

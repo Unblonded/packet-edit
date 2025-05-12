@@ -27,14 +27,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class ESPOverlayRenderer implements ClientModInitializer {
+public class ESPOverlayRenderer {
     private static final MinecraftClient mc = MinecraftClient.getInstance();
-    private List<BlockPos> cachedOffsets = new ArrayList<>();
-    private int currentBatch = 0;
-    private BlockPos lastSearchPos = null;
-    private long lastSearchTime = 0;
-    private final Set<BlockPos> foundPositions = ConcurrentHashMap.newKeySet();
-    private final CopyOnWriteArrayList<BlockPos> renderBuffer = new CopyOnWriteArrayList<>();
+    private static List<BlockPos> cachedOffsets = new ArrayList<>();
+    private static int currentBatch = 0;
+    private static BlockPos lastSearchPos = null;
+    private static long lastSearchTime = 0;
+    private static final Set<BlockPos> foundPositions = ConcurrentHashMap.newKeySet();
+    private static final CopyOnWriteArrayList<BlockPos> renderBuffer = new CopyOnWriteArrayList<>();
 
     public static void drawEspPos(WorldRenderContext context, BlockPos pos, Color color) {
         World world = context.world();
@@ -217,8 +217,7 @@ public class ESPOverlayRenderer implements ClientModInitializer {
         buffer.vertex(matrix, (float)x2, (float)y2, (float)z2).color(color.R(), color.G(), color.B(), color.A());
     }
 
-    @Override
-    public void onInitializeClient() {
+    public static void onInitializeClient() {
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             // Only run if ESP is enabled and conditions are met
             if (client.player == null || client.world == null || !cfg.advancedEsp || cfg.espBlockList.isEmpty()) {
@@ -299,7 +298,7 @@ public class ESPOverlayRenderer implements ClientModInitializer {
         });
     }
 
-    private Color getBlockColor(Block block) {
+    private static Color getBlockColor(Block block) {
         if (block == null || cfg.espBlockList == null) return null;
 
         for (BlockColor blockColor : cfg.espBlockList) {
@@ -311,9 +310,9 @@ public class ESPOverlayRenderer implements ClientModInitializer {
         return null;
     }
 
-    private int lastRadius = -1;
+    private static int lastRadius = -1;
 
-    private void initializeOffsets(int radius) {
+    private static void initializeOffsets(int radius) {
         int radiusSq = radius * radius;
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dy = -radius; dy <= radius; dy++) {
@@ -326,21 +325,21 @@ public class ESPOverlayRenderer implements ClientModInitializer {
         }
     }
 
-    private boolean shouldStartNewSearch(BlockPos currentPos) {
+    private static boolean shouldStartNewSearch(BlockPos currentPos) {
         if (lastSearchPos == null) return true;
         long timeSinceLast = System.currentTimeMillis() - lastSearchTime;
         return timeSinceLast > cfg.SEARCH_INTERVAL ||
                 currentPos.getSquaredDistance(lastSearchPos) > ((double) cfg.RADIUS /2) * ((double) cfg.RADIUS /2);
     }
 
-    private void startNewSearch(BlockPos currentPos) {
+    private static void startNewSearch(BlockPos currentPos) {
         lastSearchPos = currentPos.toImmutable();
         lastSearchTime = System.currentTimeMillis();
         currentBatch = 0;
         foundPositions.clear();
     }
 
-    private void processSearchBatch(MinecraftClient client, BlockPos currentPos) {
+    private static void processSearchBatch(MinecraftClient client, BlockPos currentPos) {
         if (currentBatch >= cachedOffsets.size()) return;
 
         int endIndex = Math.min(currentBatch + cfg.BATCH_SIZE, cachedOffsets.size());
@@ -379,7 +378,7 @@ public class ESPOverlayRenderer implements ClientModInitializer {
     }
 
     // Other helper methods remain the same:
-    private void updateOffsetsIfNeeded(int currentRadius) {
+    private static void updateOffsetsIfNeeded(int currentRadius) {
         if (currentRadius != lastRadius) {
             cachedOffsets.clear();
             initializeOffsets(currentRadius);

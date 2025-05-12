@@ -17,51 +17,29 @@ import unblonded.packets.util.util;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class AutoTotem implements ClientModInitializer {
+public class AutoTotem {
     private static final MinecraftClient MC = MinecraftClient.getInstance();
-    private KeyBinding toggleBinding;
 
     // Simple boolean toggle
     private static boolean enabled = true;
 
     // Track totem state
-    private boolean hadTotemLastTick = false;
-    private boolean intentionalSwitch = false;
-    private boolean justSwitchedItem = false;
+    private static boolean hadTotemLastTick = false;
+    private static boolean intentionalSwitch = false;
+    private static boolean justSwitchedItem = false;
 
     // Timer for reequipping totems
-    private Timer reequipTimer;
-    private boolean reequipScheduled = false;
+    private static Timer reequipTimer;
+    private static boolean reequipScheduled = false;
 
     // Delay in milliseconds (500ms = 0.5 seconds by default)
     private static long reequipDelayMs = 500;
 
     // Last health tracking for more accurate totem pop detection
-    private float lastHealth = 0;
+    private static float lastHealth = 0;
 
-    @Override
-    public void onInitializeClient() {
-        // Register keybinding for toggling
-        toggleBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.autototem.toggle",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_H,
-                "key.categories.autototem"
-        ));
-
-        // Register tick event
+    public static void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            // Check for toggle key press
-            if (toggleBinding.wasPressed()) {
-                enabled = !enabled;
-
-                if (MC.player != null) {
-                    MC.player.sendMessage(Text.literal("Auto Totem: " +
-                            (enabled ? "§aEnabled" : "§cDisabled")), true);
-                }
-            }
-
-            // Handle player interaction with inventory
             if (MC.player != null) {
                 if (MC.options.useKey.wasPressed() || MC.options.attackKey.wasPressed() ||
                         MC.options.pickItemKey.wasPressed() || MC.options.swapHandsKey.wasPressed()) {
@@ -74,7 +52,7 @@ public class AutoTotem implements ClientModInitializer {
         });
     }
 
-    private void tickAutoTotem() {
+    private static void tickAutoTotem() {
         // Check if feature is enabled and player exists
         if (!enabled ||
                 MC.player == null ||
@@ -124,7 +102,7 @@ public class AutoTotem implements ClientModInitializer {
         }
     }
 
-    private void scheduleTotemReequip() {
+    private static void scheduleTotemReequip() {
         // Cancel any previous timer
         if (reequipTimer != null) {
             reequipTimer.cancel();
@@ -151,7 +129,7 @@ public class AutoTotem implements ClientModInitializer {
         }, reequipDelayMs);
     }
 
-    private void tryReequipTotem() {
+    private static void tryReequipTotem() {
         if (MC.player == null) return;
 
         ItemStack offhandStack = MC.player.getStackInHand(Hand.OFF_HAND);
@@ -174,7 +152,7 @@ public class AutoTotem implements ClientModInitializer {
         }
     }
 
-    private int findTotemInInventory() {
+    private static int findTotemInInventory() {
         // Search player inventory for totems
         for (int i = 0; i < MC.player.getInventory().size(); i++) {
             ItemStack stack = MC.player.getInventory().getStack(i);
@@ -185,7 +163,7 @@ public class AutoTotem implements ClientModInitializer {
         return -1; // No totem found
     }
 
-    private void moveTotemToOffhand(int totemSlot) {
+    private static void moveTotemToOffhand(int totemSlot) {
         // Make sure we're not in a container
         if (MC.interactionManager != null && MC.player.currentScreenHandler == MC.player.playerScreenHandler) {
             // Click on the totem slot
@@ -210,7 +188,12 @@ public class AutoTotem implements ClientModInitializer {
 
     public static void setState(boolean state, int delayMs, int humanityMs) {
         enabled = state;
-        if (humanityMs != 0) reequipDelayMs = delayMs + util.rndInt(humanityMs);
+        if (humanityMs != 0){
+            int delay = util.rndInt(humanityMs);
+            if (delayMs + delay <= 0)
+                reequipDelayMs = delayMs + delay + 10;
+            else reequipDelayMs = delayMs + delay;
+        }
         else reequipDelayMs = delayMs;
     }
 }

@@ -8,11 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Comparator;
 
-public class PlayerTracker implements ClientModInitializer {
+public class PlayerTracker {
     private static final ArrayList<String> nearbyPlayers = new ArrayList<>();
 
-    @Override
-    public void onInitializeClient() {
+    public static void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player != null && client.world != null) {
                 nearbyPlayers.clear();
@@ -41,6 +40,13 @@ public class PlayerTracker implements ClientModInitializer {
 
     public static List<String> getNearbyPlayers() {
         return new ArrayList<>(nearbyPlayers);
+    }
+
+    public static float closestPlayerDistance() {
+        if (nearbyPlayers.isEmpty()) return Float.MAX_VALUE;
+        String closestPlayer = nearbyPlayers.get(0);
+        String[] parts = closestPlayer.split(" - ");
+        return Float.parseFloat(parts[1].replace("m", ""));
     }
 
     private static class PlayerDistance {

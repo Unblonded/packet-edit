@@ -11,7 +11,7 @@ import net.minecraft.util.math.Box;
 import java.util.Arrays;
 import java.util.List;
 
-public class InteractionCanceler implements ClientModInitializer {
+public class InteractionCanceler {
     private static boolean enabled = true;
 
     private static final List<EntityType<?>> GHOST_ENTITIES = Arrays.asList(
@@ -28,8 +28,7 @@ public class InteractionCanceler implements ClientModInitializer {
             EntityType.COMMAND_BLOCK_MINECART
     );
 
-    @Override
-    public void onInitializeClient() {
+    public static void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (!enabled || client.world == null) return;
 

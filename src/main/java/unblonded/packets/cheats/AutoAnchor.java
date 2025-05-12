@@ -17,18 +17,17 @@ import unblonded.packets.util.util;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class AutoAnchor implements ClientModInitializer {
+public class AutoAnchor {
     private static final MinecraftClient client = MinecraftClient.getInstance();
 
-    private BlockPos anchorPos = null;
-    private int glowstoneSlot = -1;
-    private int stage = 0;
-    private int tickDelay = 0;
-    private boolean processing = false;
+    private static BlockPos anchorPos = null;
+    private static int glowstoneSlot = -1;
+    private static int stage = 0;
+    private static int tickDelay = 0;
+    private static boolean processing = false;
     private static boolean enabled = false;
 
-    @Override
-    public void onInitializeClient() {
+    public static void onInitializeClient() {
         // Listen for anchor placement
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
             if (!world.isClient || hand != Hand.MAIN_HAND || !enabled) return ActionResult.PASS;
@@ -79,7 +78,7 @@ public class AutoAnchor implements ClientModInitializer {
         });
     }
 
-    private void interactWithBlock(BlockPos pos) {
+    private static void interactWithBlock(BlockPos pos) {
         BlockHitResult hitResult = new BlockHitResult(
                 Vec3d.ofCenter(pos), // Use the block center instead of eye pos
                 Direction.UP,
@@ -91,7 +90,7 @@ public class AutoAnchor implements ClientModInitializer {
         client.player.swingHand(Hand.MAIN_HAND);
     }
 
-    private int findHotbarSlot(Item item) {
+    private static int findHotbarSlot(Item item) {
         for (int i = 0; i < 9; i++) {
             if (client.player.getInventory().getStack(i).isOf(item)) return i;
         }
