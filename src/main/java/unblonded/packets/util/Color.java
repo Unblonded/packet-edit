@@ -59,6 +59,15 @@ public class Color {
     public float B() { return blue; }
     public float A() { return alpha; }
 
+    public int asHex() {
+        int a = Math.round(alpha * 255);
+        int r = Math.round(red * 255);
+        int g = Math.round(green * 255);
+        int b = Math.round(blue * 255);
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+
     @Override
     public String toString() {
         return "Color{" +

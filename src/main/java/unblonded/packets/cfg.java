@@ -177,7 +177,18 @@ public class cfg {
     public static int filterMode = -1;
     public static boolean chatFilter = false;
     public static String blockMsg = "";
+    public static boolean storageScan = false;
+    public static String storageScanSearch = "";
+    public static Color storageScanColor = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+    public static boolean storageScanShowInGui = false;
     public static boolean aimAssistToggle = false;
+    public static int aimAssistFov = 0;
+    public static int aimAssistRange = 0;
+    public static int aimAssistSmoothness = 0;
+    public static int aimAssistMinSpeed = 0;
+    public static int aimAssistMaxSpeed = 0;
+    public static int aimAssistUpdateRate = 0;
+    public static boolean aimAssistVisibility = false;
 
     public static void readConfig() {
         if (!safe || out == null || in == null) {
@@ -227,6 +238,7 @@ public class cfg {
             oreSimSeed = json.get("oreSimSeed").getAsLong();
             oreSimDistance = json.get("oreSimDistance").getAsInt();
             oreSim = json.get("oreSim").getAsBoolean();
+            oreSimColor = util.colorFromJson(json.get("oreSimColor").getAsJsonArray());
             autoTotem = json.get("autoTotem").getAsBoolean();
             autoTotemDelay = json.get("autoTotemDelay").getAsInt();
             autoTotemHumanity = json.get("autoTotemHumanity").getAsInt();
@@ -240,15 +252,18 @@ public class cfg {
             filterMode = json.get("filterMode").getAsInt();
             chatFilter = json.get("chatFilter").getAsBoolean();
             blockMsg = json.get("blockMsg").getAsString();
+            storageScan = json.get("storageScan").getAsBoolean();
+            storageScanSearch = json.get("storageScanSearch").getAsString();
+            storageScanShowInGui = json.get("storageScanShowInGui").getAsBoolean();
+            storageScanColor = util.colorFromJson(json.get("storageScanColor").getAsJsonArray());
             aimAssistToggle = json.get("aimAssistToggle").getAsBoolean();
-
-            JsonArray oreSimColArr = json.get("oreSimColor").getAsJsonArray();
-            oreSimColor = new Color(
-                    oreSimColArr.get(0).getAsFloat(),
-                    oreSimColArr.get(1).getAsFloat(),
-                    oreSimColArr.get(2).getAsFloat(),
-                    oreSimColArr.get(3).getAsFloat()
-            );
+            aimAssistRange = json.get("aimAssistRange").getAsInt();
+            aimAssistFov = json.get("aimAssistFov").getAsInt();
+            aimAssistSmoothness = json.get("aimAssistSmoothness").getAsInt();
+            aimAssistMinSpeed = json.get("aimAssistMinSpeed").getAsInt();
+            aimAssistMaxSpeed = json.get("aimAssistMaxSpeed").getAsInt();
+            aimAssistUpdateRate = json.get("aimAssistUpdateRate").getAsInt();
+            aimAssistVisibility = json.get("aimAssistVisibility").getAsBoolean();
 
             if (oreSim) {
                 if (MinecraftClient.getInstance().world != null && (oreSimSeed != lastOreSimSeed || oreSimDistance != lastOreSimDistance)) {
@@ -292,12 +307,7 @@ public class cfg {
                         continue;
                     }
 
-                    Color blockColor = new Color(
-                            colorArray.get(0).getAsFloat(),
-                            colorArray.get(1).getAsFloat(),
-                            colorArray.get(2).getAsFloat(),
-                            colorArray.get(3).getAsFloat()
-                    );
+                    Color blockColor = util.colorFromJson(colorArray);
 
                     // 4. Get enabled state (default to true if not specified)
                     boolean enabled = !blockObj.has("enabled") || blockObj.get("enabled").getAsBoolean();
@@ -435,6 +445,17 @@ public class cfg {
             JsonObject json = new JsonObject();
             json.addProperty("autoDcPrimedDisable", flag);
             out.println("autoDcPrimedDisable " + json);
+            out.flush();
+        } catch (Exception e) { safe = false; }
+    }
+
+    public static void sendGuiStorageScanner(boolean flag) {
+        try {
+            if (out == null) return;
+
+            JsonObject json = new JsonObject();
+            json.addProperty("sendGuiStorageScanner", flag);
+            out.println("sendGuiStorageScanner " + json);
             out.flush();
         } catch (Exception e) { safe = false; }
     }

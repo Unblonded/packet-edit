@@ -4,143 +4,112 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Direction;
+import net.minecraft.client.network.ClientPlayerInteractionManager;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.RaycastContext;
-import unblonded.packets.util.GameModeAccessor;
 
 public class ForwardTunnel {
 
     private static final MinecraftClient client = MinecraftClient.getInstance();
-    private static boolean enabled = true;
+    private static boolean enabled = false;
     private static boolean keyReset = false;
-    private static float targetYaw = -1f;
-    private static final float SMOOTHING_SPEED = 1.0f;
     private static String blockStatus = "";
+    private static int miningTicks = 0;
 
     public static void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             if (!enabled || client.player == null || client.world == null) return;
 
-            PlayerEntity player = client.player;
-            if (!player.isAlive() || player.isSpectator()) return;
-
-            setHeadPos();
-            updateHeadRotation();
-
-            Vec3d start = player.getEyePos();
-            Vec3d look = player.getRotationVec(1.0f).normalize();
-            Vec3d end = start.add(look.multiply(5.0));
-
-            BlockHitResult hit = client.world.raycast(new RaycastContext(
-                    start, end,
-                    RaycastContext.ShapeType.OUTLINE,
-                    RaycastContext.FluidHandling.NONE,
-                    player
-            ));
-
-            GameModeAccessor accessor = (GameModeAccessor) client.interactionManager;
-            BlockPos pos = accessor.getDestroyBlockPos();
-            float progress = accessor.getDestroyProgress();
-
-            if (client.world.getBlockState(pos).getBlock() != Blocks.AIR)
-                blockStatus = "Mining -> " + client.world.getBlockState(pos).getBlock().getName().getString() + " | " + String.format("%.0f", progress * 100) + "%";
-
-            if (hit != null && hit.getType() == HitResult.Type.BLOCK) {
-                BlockPos targetPos = hit.getBlockPos();
-
-                if (!isTunnelPathSafe(player, targetPos, look)) {
-                    disable();
-                    return;
-                }
-
-                KeyBinding.setKeyPressed(client.options.forwardKey.getDefaultKey(), true); // Start moving forward
-                client.interactionManager.updateBlockBreakingProgress(targetPos, hit.getSide());
-                player.swingHand(player.getActiveHand());
+            ClientPlayerEntity player = client.player;
+            if (!player.isAlive() || player.isSpectator()) {
+                disable();
+                return;
             }
+
+            // Reset status each tick
+            blockStatus = "Mining...";
+
+            // Snap to cardinal direction (even when in GUI)
+            snapToCardinalDirection(player);
+
+            // Check if tunneling path is safe
+            if (!isTunnelPathSafe(player)) {
+                disable();
+                return;
+            }
+
+            // Look down at a smart angle to hit both eye and floor level blocks
+            player.setPitch(35f);
+
+            // Force forward movement directly instead of just pressing keys
+            Vec3d forward = Vec3d.fromPolar(0, player.getYaw());
+            player.setVelocity(forward.x * 0.1, player.getVelocity().y, forward.z * 0.1);
+
+            // Handle mining/attacking directly
+            mineBlocks(player);
         });
     }
 
-    /**
-     * Checks if the block ahead and its surroundings are safe for mining and walking into.
-     */
-    private static boolean isTunnelPathSafe(PlayerEntity player, BlockPos target, Vec3d lookVec) {
-        // Blocks directly in the path
-        for (int i = 0; i <= 2; i++) {
-            Vec3d offset = lookVec.multiply(i + 1);
-            BlockPos ahead = target.add((int) offset.x, (int) offset.y, (int) offset.z);
+    private static void mineBlocks(ClientPlayerEntity player) {
+        if (client.interactionManager == null) return;
 
-            if (isDangerousBlock(ahead)) return false;
+        Direction facing = player.getHorizontalFacing();
+        BlockPos playerPos = player.getBlockPos();
 
-            // Ensure the block below is not air or liquid
-            BlockPos below = ahead.down();
-            BlockState belowState = client.world.getBlockState(below);
-            if (belowState.isAir() || isDangerousBlock(below)) return false;
-        }
+        // Mine at eye level
+        BlockPos eyePos = playerPos.offset(facing).up();
+        attemptMineBlock(eyePos);
 
-        // Prevent falling into holes
-        BlockPos afterBreak = target.offset(player.getHorizontalFacing().getOpposite());
-        BlockPos belowAfterBreak = afterBreak.down();
-        BlockState stateBelow = client.world.getBlockState(belowAfterBreak);
-        if (stateBelow.isAir() || isDangerousBlock(belowAfterBreak)) return false;
-
-        return true;
+        // Mine at foot level
+        BlockPos footPos = playerPos.offset(facing);
+        attemptMineBlock(footPos);
     }
 
-    /**
-     * Determines if the block at a given position is dangerous.
-     */
-    private static boolean isDangerousBlock(BlockPos pos) {
+    private static void attemptMineBlock(BlockPos pos) {
+        if (client.world == null || client.interactionManager == null) return;
+
         BlockState state = client.world.getBlockState(pos);
-        return state.isAir()
-                || state.isOf(Blocks.LAVA)
-                || state.isOf(Blocks.WATER)
-                || state.isOf(Blocks.FIRE)
-                || state.isOf(Blocks.CACTUS)
-                || state.isOf(Blocks.MAGMA_BLOCK)
-                || state.isOf(Blocks.VOID_AIR);
-    }
+        if (!state.isAir() && !state.getFluidState().isStill()) {
+            // Create hit vector targeting center of block
+            Vec3d hitVec = new Vec3d(
+                    pos.getX() + 0.5,
+                    pos.getY() + 0.5,
+                    pos.getZ() + 0.5
+            );
 
-    public static void setState(boolean state) {
-        if (state) keyReset = false;
-        enabled = state;
-        if (!state) disable();
-    }
+            Direction side = Direction.UP; // Default side
 
-    public static void updateHeadRotation() {
-        if (client.player == null) return;
+            // Calculate side based on player position
+            Vec3d playerPos = client.player.getPos();
+            if (playerPos.x < pos.getX()) side = Direction.WEST;
+            else if (playerPos.x > pos.getX()) side = Direction.EAST;
+            else if (playerPos.z < pos.getZ()) side = Direction.NORTH;
+            else if (playerPos.z > pos.getZ()) side = Direction.SOUTH;
 
-        if (targetYaw == -1f) return; // No target set
+            BlockHitResult hit = new BlockHitResult(hitVec, side, pos, false);
 
-        float currentYaw = normalizeYaw(client.player.getYaw());
+            // Start breaking and continue breaking regardless of GUI state
+            if (miningTicks == 0) {
+                client.interactionManager.attackBlock(pos, side);
+            }
 
-        float delta = getShortestAngleDiff(currentYaw, targetYaw);
-
-        // Stop rotating if close enough
-        if (Math.abs(delta) < 1.0f) {
-            client.player.setYaw(targetYaw);
-            client.player.setHeadYaw(targetYaw);
-            targetYaw = -1f;
-            return;
+            // Continue to mine by simulating progression
+            client.interactionManager.updateBlockBreakingProgress(pos, side);
+            miningTicks = (miningTicks + 1) % 5; // Reset periodically to ensure continuous mining
         }
-
-        // Interpolate yaw
-        float newYaw = normalizeYaw(currentYaw + Math.signum(delta) * Math.min(SMOOTHING_SPEED, Math.abs(delta)));
-        client.player.setYaw(newYaw);
-        client.player.setHeadYaw(newYaw);
     }
 
-    public static void setHeadPos() {
-        if (client.player == null) return;
+    private static void snapToCardinalDirection(PlayerEntity player) {
+        float yaw = (player.getYaw() % 360 + 360) % 360;
 
-        float yaw = normalizeYaw(client.player.getYaw());
-
-        // Snap to nearest cardinal direction
         float snappedYaw;
         if (yaw >= 45 && yaw < 135) {
             snappedYaw = 90; // East
@@ -152,28 +121,73 @@ public class ForwardTunnel {
             snappedYaw = 0; // North
         }
 
-        targetYaw = snappedYaw;
+        player.setYaw(snappedYaw);
+        player.setHeadYaw(snappedYaw);
     }
 
-    // Utility to wrap yaw to 0–360
-    private static float normalizeYaw(float yaw) {
-        return (yaw % 360 + 360) % 360;
+    private static boolean isTunnelPathSafe(PlayerEntity player) {
+        Direction facing = player.getHorizontalFacing();
+        BlockPos playerPos = player.getBlockPos();
+
+        for (int i = 1; i <= 2; i++) {
+            BlockPos ahead = playerPos.offset(facing, i);
+
+            // Danger check
+            if (isDangerousBlock(ahead.up())) {
+                blockStatus = "Danger block ahead!";
+                return false;
+            }
+
+            // Floor check
+            BlockPos below = ahead.down();
+            BlockState belowState = client.world.getBlockState(below);
+            if (belowState.isAir() || !belowState.getFluidState().isEmpty()) {
+                blockStatus = "No floor!";
+                return false;
+            }
+        }
+
+        return true;
     }
 
-    // Get shortest angle difference (-180 to 180)
-    private static float getShortestAngleDiff(float from, float to) {
-        float diff = (to - from + 540) % 360 - 180;
-        return diff;
+    private static boolean isDangerousBlock(BlockPos pos) {
+        BlockState state = client.world.getBlockState(pos);
+        return state.isOf(Blocks.LAVA) ||
+                state.isOf(Blocks.FIRE) ||
+                state.isOf(Blocks.SOUL_FIRE) ||
+                state.isOf(Blocks.MAGMA_BLOCK);
+    }
+
+    public static void toggle() {
+        setState(!enabled);
+    }
+
+    public static void setState(boolean state) {
+        enabled = state;
+        keyReset = false;
+        miningTicks = 0;
+
+        if (enabled) {
+            blockStatus = "ForwardTunnel enabled.";
+        } else {
+            disable();
+        }
     }
 
     public static void disable() {
         if (!enabled) return;
         enabled = false;
+        blockStatus = "ForwardTunnel disabled.";
 
-        if (!keyReset) {
+        if (!keyReset && client.options != null) {
             KeyBinding.setKeyPressed(client.options.forwardKey.getDefaultKey(), false);
+            KeyBinding.setKeyPressed(client.options.attackKey.getDefaultKey(), false);
             keyReset = true;
         }
+    }
+
+    public static boolean isEnabled() {
+        return enabled;
     }
 
     public static String getBlockStatus() {

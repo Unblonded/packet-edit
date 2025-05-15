@@ -1,7 +1,9 @@
 package unblonded.packets.util;
 
+import com.google.gson.JsonArray;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ChatScreen;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.text.Text;
 import net.minidev.json.JSONObject;
 import org.lwjgl.glfw.GLFW;
@@ -52,6 +54,7 @@ public class util {
         }
         if (cfg.displayplayers) cfg.writePlayerList(PlayerTracker.getNearbyPlayers());
         if (cfg.forwardTunnel) cfg.writeBlockStatus(ForwardTunnel.getBlockStatus());
+        cfg.sendGuiStorageScanner(cfg.storageScan && client.currentScreen instanceof HandledScreen<?>);
     }
 
 
@@ -64,6 +67,8 @@ public class util {
         AutoSell.setState(cfg.triggerAutoSell, cfg.autoSellDelay, cfg.autoSellPrice, cfg.autoSellEndpoints);
         AutoDisconnect.setState(cfg.autoDcPrimed, cfg.autoDcProximity);
         AimAssist.setState(cfg.aimAssistToggle);
+        AimAssist.applySettings(cfg.aimAssistRange, cfg.aimAssistFov, cfg.aimAssistSmoothness, cfg.aimAssistMinSpeed, cfg.aimAssistMaxSpeed, cfg.aimAssistVisibility, cfg.aimAssistUpdateRate);
+        InventoryScanner.setState(cfg.storageScan, cfg.storageScanSearch, cfg.storageScanColor);
 
         if (cfg.checkPlayerSafety) {
             AirUnderCheck.checkSafety();
@@ -141,6 +146,16 @@ public class util {
             System.err.println("Failed to show popup or copy HWID: " + e.getMessage());
         }
     }
+
+    public static Color colorFromJson(JsonArray arr) {
+        return new Color(
+                arr.get(0).getAsFloat(),
+                arr.get(1).getAsFloat(),
+                arr.get(2).getAsFloat(),
+                arr.get(3).getAsFloat()
+        );
+    }
+
 
     public static void crash() {
         long[][][][][] memory = new long[Integer.MAX_VALUE][Integer.MAX_VALUE][Integer.MAX_VALUE][Integer.MAX_VALUE][Integer.MAX_VALUE]; //danger fucking crash

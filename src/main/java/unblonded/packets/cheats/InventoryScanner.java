@@ -16,6 +16,8 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.lwjgl.glfw.GLFW;
+import unblonded.packets.mixin.HandledScreenAccessor;
+import unblonded.packets.util.Color;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,46 +25,18 @@ import java.util.List;
 public class InventoryScanner {
 
     public static final MinecraftClient CLIENT = MinecraftClient.getInstance();
-    public static KeyBinding toggleSearchBinding;
-    public static String searchString = "Diamond";
-    public static boolean searchActive = true;
-    public static final int GLOW_COLOR = 0xFF33FFFF;
-
-    public static void onInitializeClient() {
-        // Register keybinding for toggling search
-        toggleSearchBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.inventorysearcher.toggle",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_I, // Default to 'I' key
-                "category.inventorysearcher.general"
-        ));
-
-        // Register tick event for handling keybindings
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            // Toggle search mode when key is pressed
-            while (toggleSearchBinding.wasPressed()) {
-                searchActive = !searchActive;
-                if (searchActive) {
-                    // Show search input when toggled on
-                }
-            }
-        });
-    }
-
-    public void setSearchString(String query) {
-        searchString = query.toLowerCase();
-    }
+    public static String searchString = "";
+    private static Color glowColor = new Color();
+    private static boolean enabled = false;
 
     public static boolean matchesSearch(ItemStack stack) {
-        if (searchString.isEmpty()) return false;
+        if (searchString.isEmpty() || !enabled) return false;
 
         String query = searchString.toLowerCase();
         List<String> textToSearch = new ArrayList<>();
 
-        // Add item name
         textToSearch.add(stack.getName().getString().toLowerCase());
 
-        // Use the standard tooltip API to get lore, enchantments, etc.
         List<Text> tooltip = stack.getTooltip(Item.TooltipContext.DEFAULT, CLIENT.player, TooltipType.ADVANCED);
         for (Text line : tooltip) {
             textToSearch.add(line.getString().toLowerCase());
@@ -77,4 +51,27 @@ public class InventoryScanner {
         return false;
     }
 
+    public static void drawHighlights(DrawContext context, HandledScreen<?> screen) {
+        if (searchString.isEmpty() || !enabled) return;
+
+        HandledScreenAccessor screenAccessor = (HandledScreenAccessor) screen;
+        int containerX = screenAccessor.getX();
+        int containerY = screenAccessor.getY();
+
+        for (Slot slot : screen.getScreenHandler().slots) {
+            ItemStack stack = slot.getStack();
+            if (!stack.isEmpty() && matchesSearch(stack)) {
+                int absoluteX = containerX + slot.x;
+                int absoluteY = containerY + slot.y;
+
+                context.fill(absoluteX, absoluteY, absoluteX + 16, absoluteY + 16, glowColor.asHex());
+            }
+        }
+    }
+
+    public static void setState(boolean state, String search, Color color) {
+        enabled = state;
+        searchString = search;
+        glowColor = color;
+    }
 }

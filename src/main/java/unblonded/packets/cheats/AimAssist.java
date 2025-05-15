@@ -33,7 +33,6 @@ public class AimAssist {
     private static float minSpeed = 90f;           // Minimum speed of aim adjustment
     private static float maxSpeed = 100f;           // Maximum speed of aim adjustment
     private static boolean visibilityCheck = true;  // Only target visible players
-    private static boolean teamCheck = true;        // Don't target teammates
     private static int updateRate = 10;             // Timer update rate in milliseconds
 
     // Internal state
@@ -257,11 +256,6 @@ public class AimAssist {
             return false;
         }
 
-        // Don't target teammates if team check is enabled
-        if (teamCheck && mc.player.isTeammate(entity)) {
-            return false;
-        }
-
         // Check if target is visible
         if (visibilityCheck && !canSee(entity)) {
             return false;
@@ -291,9 +285,16 @@ public class AimAssist {
     }
 
     // Getters and setters for configurable parameters
-
-    public static boolean isEnabled() {
-        return enabled;
+    public static void applySettings(float newRange, float newFov, float newSmoothness,
+                                     float newMinSpeed, float newMaxSpeed, boolean newVisibilityCheck,
+                                     int newUpdateRate) {
+        range = newRange;
+        fov = newFov;
+        smoothness = newSmoothness;
+        minSpeed = newMinSpeed;
+        maxSpeed = newMaxSpeed;
+        visibilityCheck = newVisibilityCheck;
+        updateRate = newUpdateRate;
     }
 
     public static void setState(boolean enabled) {
@@ -302,6 +303,17 @@ public class AimAssist {
         AimAssist.enabled = enabled;
 
         if (enabled) {
+            // Pull live values from UI or config before activating
+            applySettings(
+                    range,
+                    fov,
+                    smoothness,
+                    minSpeed,
+                    maxSpeed,
+                    visibilityCheck,
+                    updateRate
+            );
+
             AimAssist.lastUpdateTime = System.currentTimeMillis();
             if (currentTarget != null && !timerRunning) {
                 startTimer();
@@ -309,40 +321,4 @@ public class AimAssist {
         }
     }
 
-    public static void setRange(float range) {
-        AimAssist.range = range;
-    }
-
-    public static void setFov(float fov) {
-        AimAssist.fov = fov;
-    }
-
-    public static void setSmoothness(float smoothness) {
-        AimAssist.smoothness = Math.max(0.1f, smoothness);
-    }
-
-    public static void setMinSpeed(float minSpeed) {
-        AimAssist.minSpeed = minSpeed;
-    }
-
-    public static void setMaxSpeed(float maxSpeed) {
-        AimAssist.maxSpeed = maxSpeed;
-    }
-
-    public static boolean isVisibilityCheck() {
-        return visibilityCheck;
-    }
-
-    public static void setVisibilityCheck(boolean visibilityCheck) {
-        AimAssist.visibilityCheck = visibilityCheck;
-    }
-
-    public static void setUpdateRate(int updateRate) {
-        // Ensure update rate is at least 1ms and not more than 50ms
-        AimAssist.updateRate = MathHelper.clamp(updateRate, 1, 50);
-        if (timerRunning) {
-            stopTimer();
-            startTimer();
-        }
-    }
 }
