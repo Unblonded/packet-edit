@@ -9,10 +9,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.AxeItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.item.SwordItem;
+import net.minecraft.item.*;
 import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
@@ -25,25 +22,29 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
-
-
-import java.util.*;
+import unblonded.packets.cfg;
 
 public class AutoCrystal {
     private static final MinecraftClient mc = MinecraftClient.getInstance();
     private static boolean enabled = true;
     private static PlayerEntity target = null;
     private static BlockPos targetPos = null;
-    private static int actionDelay = 0;
     private static int placeAttempts = 0;
-    private static final Random random = new Random();
+    private static boolean attackLanded = false;
+    private static boolean crystalPlaced = false;
+    private static long attackTime = 0;
+    private static long lastActionTime = 0;
+    private static int oldSlot = 0;
+    private static boolean wasEnabled = false;
+
 
     public static void onInitializeClient() {
         // Trigger on player attack
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
             if (enabled && entity instanceof PlayerEntity && isHoldingWeapon()) {
                 target = (PlayerEntity) entity;
-                actionDelay = 3 + random.nextInt(3); // Random initial delay
+                attackLanded = true;
+                attackTime = System.currentTimeMillis();
             }
             return ActionResult.PASS;
         });
@@ -51,34 +52,68 @@ public class AutoCrystal {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (!enabled || mc.player == null || target == null) return;
 
-            // Action pacing system
-            if (actionDelay > 0) {
-                actionDelay--;
+            long now = System.currentTimeMillis();
+
+            // If target is invalid, reset
+            if (!isValidTarget(target)) {
+                reset();
                 return;
             }
 
-            // Find valid position (once per target)
-            if (targetPos == null) {
-                targetPos = findBestPosition(target.getBlockPos());
-                if (targetPos == null) {
-                    reset();
-                    return;
+            // Crystal placement phase
+            if (attackLanded && !crystalPlaced) {
+                // Predict knockback position
+                if (targetPos == null && now - attackTime >= cfg.crystalPlaceTime) {
+                    targetPos = findBestPosition(predictKnockbackPosition(target));
+                    if (targetPos == null) {
+                        reset();
+                        return;
+                    }
                 }
-                placeAttempts = 0;
+
+                // Try placing crystal
+                if (targetPos != null && now - lastActionTime >= cfg.crystalPlaceTime) {
+                    if (tryPlaceCrystal()) {
+                        crystalPlaced = true;
+                        lastActionTime = now;
+                    } else {
+                        placeAttempts++;
+                        if (placeAttempts >= 3) {
+                            reset();
+                        } else {
+                            targetPos = findBestPosition(predictKnockbackPosition(target));
+                            lastActionTime = now;
+                        }
+                    }
+                }
             }
 
-            // Crystal placement logic
-            if (placeAttempts < 3) { // Max 3 attempts
-                if (tryPlaceCrystal()) {
-                    placeAttempts++;
-                    actionDelay = 2 + random.nextInt(4); // Random delay between actions
+            // Crystal detonation phase
+            else if (crystalPlaced && now - lastActionTime >= cfg.crystalAttackTime) {
+                if (detonateCrystal()) {
+                    reset();
                 } else {
                     reset();
                 }
-            } else {
-                reset();
             }
         });
+    }
+
+    private static BlockPos predictKnockbackPosition(PlayerEntity player) {
+        // Calculate predicted position based on player's velocity and knockback
+        // This assumes the player is being knocked upward slightly and backward
+        Vec3d velocity = player.getVelocity();
+        double yOffset = 0.5; // Estimated vertical knockback
+
+        // Get player facing direction to estimate knockback direction
+        Vec3d playerLook = mc.player.getRotationVec(1.0F);
+
+        // Calculate predicted position
+        return new BlockPos(
+                (int) (player.getX() - playerLook.x * 1.5), // Knocked away from attacker
+                (int) (player.getY() + yOffset),           // Knocked upward
+                (int) (player.getZ() - playerLook.z * 1.5)  // Knocked away from attacker
+        );
     }
 
     private static BlockPos findBestPosition(BlockPos center) {
@@ -88,7 +123,7 @@ public class AutoCrystal {
 
         // Search in 4 block radius
         for (int x = -4; x <= 4; x++) {
-            for (int y = -1; y <= 1; y++) {
+            for (int y = -2; y <= 1; y++) {
                 for (int z = -4; z <= 4; z++) {
                     pos.set(center.getX() + x, center.getY() + y, center.getZ() + z);
 
@@ -112,6 +147,7 @@ public class AutoCrystal {
 
         return (base.isOf(Blocks.OBSIDIAN) || base.isOf(Blocks.BEDROCK)) &&
                 above.isAir() &&
+                mc.world.getBlockState(pos.up(2)).isAir() && // Ensure 2 blocks above are clear
                 hasLineOfSight(pos.up());
     }
 
@@ -120,42 +156,62 @@ public class AutoCrystal {
             int crystalSlot = findCrystalSlot();
             if (crystalSlot == -1) return false;
             mc.player.getInventory().selectedSlot = crystalSlot;
-            actionDelay = 1; // Small delay after switching
             return false;
         }
 
-        // Create fake interaction packet
+        // Create hit interaction
         BlockHitResult hit = new BlockHitResult(
-                Vec3d.ofCenter(targetPos.up()),
+                Vec3d.ofCenter(targetPos),
                 Direction.UP,
                 targetPos,
                 false
         );
 
-        // Send place packet directly (bypasses client-side checks)
+        // Send place packet
         mc.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(
                 Hand.MAIN_HAND,
                 hit,
                 0
         ));
 
-        // Small random delay before detonation
-        actionDelay = 1 + random.nextInt(2);
-
-        // Schedule detonation
+        // Swing hand for visual feedback
         mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
-        Entity crystal = findCrystalEntity();
-        if (crystal != null)
-            mc.getNetworkHandler().sendPacket(PlayerInteractEntityC2SPacket.attack(crystal, false));
-
-
         return true;
     }
 
+    private static boolean detonateCrystal() {
+        Entity crystal = findCrystalEntity();
+        if (crystal != null) {
+            // Switch to weapon if needed
+            ensureWeaponSelected();
+
+            // Attack the crystal
+            mc.getNetworkHandler().sendPacket(PlayerInteractEntityC2SPacket.attack(crystal, false));
+            mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
+            return true;
+        }
+        return false;
+    }
+
+    private static void ensureWeaponSelected() {
+        if (!isHoldingWeapon()) {
+            for (int i = 0; i < 9; i++) {
+                ItemStack stack = mc.player.getInventory().getStack(i);
+                if (stack.getItem() instanceof SwordItem || stack.getItem() instanceof AxeItem) {
+                    mc.player.getInventory().selectedSlot = i;
+                    break;
+                }
+            }
+        }
+    }
+
     private static Entity findCrystalEntity() {
-        Box searchBox = new Box(targetPos.up()).expand(0.5);
+        // Search in a small area around the target position
+        Box searchBox = new Box(targetPos).expand(2);
         for (Entity entity : mc.world.getEntitiesByClass(EndCrystalEntity.class, searchBox, e -> true)) {
-            return entity;
+            if (hasLineOfSight(entity.getBlockPos())) {
+                return entity;
+            }
         }
         return null;
     }
@@ -172,6 +228,7 @@ public class AutoCrystal {
     private static int findCrystalSlot() {
         for (int i = 0; i < 9; i++) {
             if (mc.player.getInventory().getStack(i).isOf(Items.END_CRYSTAL)) {
+                oldSlot = mc.player.getInventory().selectedSlot;
                 return i;
             }
         }
@@ -180,16 +237,30 @@ public class AutoCrystal {
 
     private static boolean isHoldingWeapon() {
         Item item = mc.player.getMainHandStack().getItem();
-        return item instanceof SwordItem || item instanceof AxeItem;
+        return item instanceof SwordItem || item instanceof AxeItem || item instanceof EndCrystalItem;
+    }
+
+    private static boolean isValidTarget(PlayerEntity player) {
+        return player != null && player.isAlive() &&
+                player.distanceTo(mc.player) <= 15 && // Within reasonable range
+                !player.isSpectator();
     }
 
     private static void reset() {
         target = null;
         targetPos = null;
         placeAttempts = 0;
+        attackLanded = false;
+        crystalPlaced = false;
+        if (mc.player != null)
+            mc.player.getInventory().selectedSlot = oldSlot;
     }
 
     public static void setState(boolean state) {
+        if (!state && wasEnabled) {
+            reset(); // Only reset when turning off
+        }
         enabled = state;
+        wasEnabled = state;
     }
 }

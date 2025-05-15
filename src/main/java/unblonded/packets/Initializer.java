@@ -21,5 +21,7 @@ public class Initializer implements ClientModInitializer {
         AutoTotem.onInitializeClient();
         AutoSell.onInitializeClient();
         AutoDisconnect.onInitializeClient();
+        InventoryScanner.onInitializeClient();
+        AimAssist.onInitializeClient();
     }
 }

@@ -62,7 +62,7 @@ publishing {
 loom {
 	runs {
 		client {
-			programArgs '--username', 'Unblonded'
+			programArgs '--username', 'Dev'
 		}
 	}
 }

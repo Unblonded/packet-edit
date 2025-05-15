@@ -10,6 +10,5 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ChatMixin {
     @Inject(method = "sendMessage", at = @At("HEAD"), cancellable = true)
     private void onSend(String chatText, boolean addToHistory, CallbackInfo ci) {
-
     }
 }

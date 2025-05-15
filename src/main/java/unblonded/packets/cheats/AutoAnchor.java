@@ -80,7 +80,7 @@ public class AutoAnchor {
 
     private static void interactWithBlock(BlockPos pos) {
         BlockHitResult hitResult = new BlockHitResult(
-                Vec3d.ofCenter(pos), // Use the block center instead of eye pos
+                Vec3d.ofCenter(pos),
                 Direction.UP,
                 pos,
                 false

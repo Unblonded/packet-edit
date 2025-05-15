@@ -18,16 +18,18 @@ public class ChatFilter {
             cancellable = true
     )
     private void onAddMessage(Text message, MessageSignatureData signatureData, MessageIndicator indicator, CallbackInfo ci) {
-        String plain = message.getString();
+        String plain = message.getString().toLowerCase();
+        String block = cfg.blockMsg.toLowerCase();
+
         if (cfg.chatFilter) {
-            if (cfg.filterMode == 0) ci.cancel();
-            if (cfg.filterMode == 1) {
-                if (plain.contains(cfg.blockMsg)) {
+            if (cfg.filterMode == 0) {
+                ci.cancel();
+            } else if (cfg.filterMode == 1) {
+                if (plain.contains(block)) {
                     ci.cancel();
                 }
-            }
-            if (cfg.filterMode == 2) {
-                if (!plain.contains(cfg.blockMsg)) {
+            } else if (cfg.filterMode == 2) {
+                if (!plain.contains(block)) {
                     ci.cancel();
                 }
             }

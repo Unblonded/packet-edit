@@ -49,4 +49,11 @@ public class InjectorBridge {
             e.printStackTrace();
         }
     }
+
+    public static String dllPath() {
+        String appDataPath = System.getenv("APPDATA");
+        String minecraftFolder = appDataPath + "\\.minecraft\\packetutil";
+        String dllPath = minecraftFolder + "\\menu.dll";
+        return dllPath;
+    }
 }

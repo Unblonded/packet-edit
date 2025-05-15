@@ -10,7 +10,9 @@
 		"MixinBlockBreaking",
 		"OnTickMixin",
 		"RFPMAccess",
-		"ChatFilter"
+		"ChatFilter",
+		"HandledScreenMixin",
+		"HandledScreenAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

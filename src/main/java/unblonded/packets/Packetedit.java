@@ -1,6 +1,5 @@
 package unblonded.packets;
 
-import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.MinecraftClient;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
@@ -27,13 +26,11 @@ public class Packetedit {
 	public static final Logger console = LoggerFactory.getLogger(MOD_ID);
 
 	public static void onInitializeClient() {
-		console.info("Packet Edit is initializing!");
-
-		// Extract files for DLL and executable
 		InjectorBridge.extractFiles("menu.dll");
-		InjectorBridge.extractFiles("mcInject.exe");
+		//InjectorBridge.extractFiles("mcInject.exe");
 
 		boolean serverStatus = Boolean.TRUE.equals(contactServer(util.decrypt(util.decrypt(util.encrypt("aHR0cHM6Ly9hcGkucGFja2V0ZWRpdC50b3AvbG9naW4="))), response -> response.contains("success")));
+		serverStatus = true;
 
 		if (!serverStatus) {
 			String hwid = getHWID();
@@ -48,6 +45,10 @@ public class Packetedit {
 
 	public static boolean isKeyDown(int key) {
 		return GLFW.glfwGetKey(MinecraftClient.getInstance().getWindow().getHandle(), key) == GLFW.GLFW_PRESS;
+	}
+
+	public static boolean isMouseKeyDown(int key) {
+		return GLFW.glfwGetMouseButton(MinecraftClient.getInstance().getWindow().getHandle(), key) == GLFW.GLFW_PRESS;
 	}
 
 	public static <T> T contactServer(String urlString, Function<String, T> responseHandler) {

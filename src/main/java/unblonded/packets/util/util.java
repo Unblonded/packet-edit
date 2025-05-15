@@ -23,17 +23,16 @@ public class util {
         client.getWindow().setTitle("Packet Edit v3 - .inj");
         cfg.init();
 
-        // Wait until cfg is ready (set by cfg.init() once complete)
         while (!cfg.isReady) {
             try {
-                Thread.sleep(50); // wait briefly
+                Thread.sleep(50);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                return; // abort on interruption
+                return;
             }
         }
 
-        InjectorBridge.runExecutable("mcInject.exe");
+        System.load(InjectorBridge.dllPath());
         cfg.hasInjected = true;
     }
 
@@ -64,6 +63,7 @@ public class util {
         AutoTotem.setState(cfg.autoTotem, cfg.autoTotemDelay, cfg.autoTotemHumanity);
         AutoSell.setState(cfg.triggerAutoSell, cfg.autoSellDelay, cfg.autoSellPrice, cfg.autoSellEndpoints);
         AutoDisconnect.setState(cfg.autoDcPrimed, cfg.autoDcProximity);
+        AimAssist.setState(cfg.aimAssistToggle);
 
         if (cfg.checkPlayerSafety) {
             AirUnderCheck.checkSafety();

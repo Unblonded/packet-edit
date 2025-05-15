@@ -177,6 +177,7 @@ public class cfg {
     public static int filterMode = -1;
     public static boolean chatFilter = false;
     public static String blockMsg = "";
+    public static boolean aimAssistToggle = false;
 
     public static void readConfig() {
         if (!safe || out == null || in == null) {
@@ -206,7 +207,6 @@ public class cfg {
             }
 
             JsonReader reader = new JsonReader(new StringReader(response));
-            reader.setStrictness(Strictness.LENIENT); // requires Gson 2.10+
             JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
 
 
@@ -240,6 +240,7 @@ public class cfg {
             filterMode = json.get("filterMode").getAsInt();
             chatFilter = json.get("chatFilter").getAsBoolean();
             blockMsg = json.get("blockMsg").getAsString();
+            aimAssistToggle = json.get("aimAssistToggle").getAsBoolean();
 
             JsonArray oreSimColArr = json.get("oreSimColor").getAsJsonArray();
             oreSimColor = new Color(
