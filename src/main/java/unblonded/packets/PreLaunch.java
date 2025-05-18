@@ -2,6 +2,8 @@ package unblonded.packets;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
@@ -35,7 +37,6 @@ public class PreLaunch implements PreLaunchEntrypoint {
             }
         }).start();
     }
-
 
     private String fetchLatestVersion() throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(GITHUB_API).openConnection();

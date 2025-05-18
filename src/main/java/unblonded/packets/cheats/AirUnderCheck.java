@@ -12,9 +12,9 @@ public class AirUnderCheck {
     public static String playerAirSafety = "";
     public static boolean isSafe = false;
 
-    public static void checkSafety() {
+    public static String checkSafety() {
         PlayerEntity player = mc.player;
-        if (player == null) return;
+        if (player == null) return null;
 
         BlockPos playerPos = player.getBlockPos();
 
@@ -30,5 +30,6 @@ public class AirUnderCheck {
         String state = notAir ? "Yes" : "No";
 
         playerAirSafety = ("Safe? -> "+ state + " | Y -> " + (int)player.getY());
+        return state;
     }
 }

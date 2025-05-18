@@ -14,13 +14,15 @@ import unblonded.packets.cheats.*;
 
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static unblonded.packets.cfg.writePlayerSaftey;
-
 public class util {
+    private static Thread updateThread;
+    private static volatile boolean running = false;
+
     public static void inject(MinecraftClient client) {
         client.getWindow().setTitle("Packet Edit v3 - .inj");
         cfg.init();
@@ -47,17 +49,29 @@ public class util {
     }
 
     public static void updateUI(MinecraftClient client) {
-        if (cfg.safe) {
-            cfg.readConfig();
-            boolean worldLoaded = client.world != null;
-            cfg.writeRenderFlag(client.currentScreen instanceof GuiBackground, worldLoaded);
-        }
-        if (cfg.displayplayers) cfg.writePlayerList(PlayerTracker.getNearbyPlayers());
-        if (cfg.forwardTunnel) cfg.writeBlockStatus(ForwardTunnel.getBlockStatus());
-        cfg.sendGuiStorageScanner(cfg.storageScan && client.currentScreen instanceof HandledScreen<?>);
-        cfg.sendCrosshairDraw(client.currentScreen == null || client.currentScreen instanceof GuiBackground);
-    }
+        if (!cfg.safe) return;
 
+        cfg.readConfig();
+
+        boolean worldLoaded = client.world != null;
+        boolean shouldRender = client.currentScreen instanceof GuiBackground;
+        boolean guiStorageScanner = cfg.storageScan && client.currentScreen instanceof HandledScreen<?>;
+        boolean crosshairDraw = client.currentScreen == null || client.currentScreen instanceof GuiBackground;
+
+        List<String> players = cfg.displayplayers ? PlayerTracker.getNearbyPlayers() : List.of();
+        String playerSafety = cfg.checkPlayerSafety ? AirUnderCheck.checkSafety() : "";
+        String blockStatus = cfg.forwardTunnel ? ForwardTunnel.getBlockStatus() : "";
+
+        cfg.sendCombinedStatus(
+                shouldRender,
+                worldLoaded,
+                players,
+                playerSafety,
+                blockStatus,
+                guiStorageScanner,
+                crosshairDraw
+        );
+    }
 
     public static void updateStates() {
         ForwardTunnel.setState(cfg.forwardTunnel);
@@ -71,12 +85,28 @@ public class util {
         AimAssist.applySettings(cfg.aimAssistRange, cfg.aimAssistFov, cfg.aimAssistSmoothness, cfg.aimAssistMinSpeed, cfg.aimAssistMaxSpeed, cfg.aimAssistVisibility, cfg.aimAssistUpdateRate);
         InventoryScanner.setState(cfg.storageScan, cfg.storageScanSearch, cfg.storageScanColor);
         CrystalSpam.setState(cfg.crystalSpam, cfg.crystalSpamSearchRadius, cfg.crystalSpamBreakDelay);
-
-        if (cfg.checkPlayerSafety) {
-            AirUnderCheck.checkSafety();
-            writePlayerSaftey(AirUnderCheck.playerAirSafety);
-        }
     }
+
+    public static void startUpdateThread(MinecraftClient client) {
+        if (updateThread != null && updateThread.isAlive()) return; // already running
+
+        running = true;
+        updateThread = new Thread(() -> {
+            while (running) {
+                updateUI(client);
+                updateStates();
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }, "Util-Update-Thread");
+        updateThread.setDaemon(true);
+        updateThread.start();
+    }
+
     public static void updateOreSim(MinecraftClient client) {
         if (client.world != null && client.player.age % 20 == 0) {
             OreSimulator.recalculateChunks();

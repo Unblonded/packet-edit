@@ -1,5 +1,6 @@
 package unblonded.packets;
 
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.minecraft.client.MinecraftClient;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;

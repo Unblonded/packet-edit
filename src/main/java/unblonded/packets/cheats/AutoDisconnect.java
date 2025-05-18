@@ -7,6 +7,7 @@ import unblonded.packets.cfg;
 
 public class AutoDisconnect {
     private static boolean primed = false;
+    public static boolean dePrime = false;
     private static float proximity = 10;
 
     public static void onInitializeClient() {

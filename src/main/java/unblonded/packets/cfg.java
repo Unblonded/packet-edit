@@ -370,82 +370,6 @@ public class cfg {
         socket = null;
     }
 
-
-    public static void writeRenderFlag(boolean shouldRender, boolean worldReady) {
-        try {
-            if (out == null) {
-                System.err.println("Output stream is null, cannot send render flag.");
-                return;
-            }
-
-            JsonObject json = new JsonObject();
-            json.addProperty("shouldRender", shouldRender);
-            json.addProperty("worldReady", worldReady);
-            out.println("RENDER_FLAG " + json);
-            out.flush();
-        } catch (Exception e) {
-            System.err.println("Failed to send render flag: " + e.getMessage());
-            safe = false;
-        }
-    }
-
-
-    public static void writePlayerList(List<String> players) {
-        try {
-            // Safety check before sending data through the output stream
-            if (out != null) {
-                JsonObject json = new JsonObject();
-                JsonArray playerArray = new JsonArray();
-                for (String player : players) playerArray.add(player);
-
-                json.add("PLAYERS", playerArray);
-
-                out.println("PLAYERS " + json);
-                out.flush();
-            } else {
-                System.err.println("Output stream is null, cannot send player list.");
-                safe = false;
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to send player list: " + e.getMessage());
-            safe = false;
-        }
-    }
-
-    public static void writePlayerSaftey(String safety) {
-        try {
-            if (out == null) {
-                System.err.println("Output stream is null, cannot send render flag.");
-                return;
-            }
-
-            JsonObject json = new JsonObject();
-            json.addProperty("playerAirSafety", safety);
-            out.println("playerAirSafety " + json);
-            out.flush();
-        } catch (Exception e) {
-            System.err.println("Failed to send player safety: " + e.getMessage());
-            safe = false;
-        }
-    }
-
-    public static void writeBlockStatus(String blkSts) {
-        try {
-            if (out == null) {
-                System.err.println("Output stream is null, cannot send render flag.");
-                return;
-            }
-
-            JsonObject json = new JsonObject();
-            json.addProperty("tunnelBlockStatus", blkSts);
-            out.println("tunnelBlockStatus " + json);
-            out.flush();
-        } catch (Exception e) {
-            System.err.println("Failed to send tunnel block status: " + e.getMessage());
-            safe = false;
-        }
-    }
-
     public static void sendAutoDcFlag(boolean flag) {
         try {
             if (out == null) return;
@@ -457,25 +381,41 @@ public class cfg {
         } catch (Exception e) { safe = false; }
     }
 
-    public static void sendGuiStorageScanner(boolean flag) {
+
+    public static void sendCombinedStatus(
+            boolean shouldRender,
+            boolean worldReady,
+            List<String> players,
+            String safety,
+            String blockStatus,
+            boolean guiStorageScanner,
+            boolean crosshairDraw
+    ) {
         try {
-            if (out == null) return;
+            if (out == null) {
+                System.err.println("Output stream is null, cannot send combined status.");
+                return;
+            }
 
             JsonObject json = new JsonObject();
-            json.addProperty("sendGuiStorageScanner", flag);
-            out.println("sendGuiStorageScanner " + json);
-            out.flush();
-        } catch (Exception e) { safe = false; }
-    }
 
-    public static void sendCrosshairDraw(boolean flag) {
-        try {
-            if (out == null) return;
+            json.addProperty("shouldRender", shouldRender);
+            json.addProperty("worldReady", worldReady);
 
-            JsonObject json = new JsonObject();
-            json.addProperty("sendCrosshairDraw", flag);
-            out.println("sendCrosshairDraw " + json);
+            JsonArray playerArray = new JsonArray();
+            for (String player : players) playerArray.add(player);
+            json.add("players", playerArray);
+
+            json.addProperty("playerAirSafety", safety);
+            json.addProperty("tunnelBlockStatus", blockStatus);
+            json.addProperty("sendGuiStorageScanner", guiStorageScanner);
+            json.addProperty("sendCrosshairDraw", crosshairDraw);
+
+            out.println("COMBINED_STATUS " + json);
             out.flush();
-        } catch (Exception e) { safe = false; }
+        } catch (Exception e) {
+            System.err.println("Failed to send combined status: " + e.getMessage());
+            safe = false;
+        }
     }
 }
