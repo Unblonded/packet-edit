@@ -189,6 +189,10 @@ public class cfg {
     public static int aimAssistMaxSpeed = 0;
     public static int aimAssistUpdateRate = 0;
     public static boolean aimAssistVisibility = false;
+    public static boolean crystalSpam = false;
+    public static int crystalSpamSearchRadius = 5;
+    public static int crystalSpamBreakDelay = 10;
+    public static boolean drawCustomCrosshair = false;
 
     public static void readConfig() {
         if (!safe || out == null || in == null) {
@@ -264,6 +268,10 @@ public class cfg {
             aimAssistMaxSpeed = json.get("aimAssistMaxSpeed").getAsInt();
             aimAssistUpdateRate = json.get("aimAssistUpdateRate").getAsInt();
             aimAssistVisibility = json.get("aimAssistVisibility").getAsBoolean();
+            crystalSpam = json.get("crystalSpam").getAsBoolean();
+            crystalSpamSearchRadius = json.get("crystalSpamSearchRadius").getAsInt();
+            crystalSpamBreakDelay = json.get("crystalSpamBreakDelay").getAsInt();
+            drawCustomCrosshair = json.get("nightFx").getAsBoolean();
 
             if (oreSim) {
                 if (MinecraftClient.getInstance().world != null && (oreSimSeed != lastOreSimSeed || oreSimDistance != lastOreSimDistance)) {
@@ -456,6 +464,17 @@ public class cfg {
             JsonObject json = new JsonObject();
             json.addProperty("sendGuiStorageScanner", flag);
             out.println("sendGuiStorageScanner " + json);
+            out.flush();
+        } catch (Exception e) { safe = false; }
+    }
+
+    public static void sendCrosshairDraw(boolean flag) {
+        try {
+            if (out == null) return;
+
+            JsonObject json = new JsonObject();
+            json.addProperty("sendCrosshairDraw", flag);
+            out.println("sendCrosshairDraw " + json);
             out.flush();
         } catch (Exception e) { safe = false; }
     }

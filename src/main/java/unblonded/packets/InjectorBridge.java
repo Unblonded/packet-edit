@@ -56,4 +56,11 @@ public class InjectorBridge {
         String dllPath = minecraftFolder + "\\menu.dll";
         return dllPath;
     }
+
+    public static String updPath() {
+        String appDataPath = System.getenv("APPDATA");
+        String minecraftFolder = appDataPath + "\\.minecraft\\packetutil";
+        String updPath = minecraftFolder + "\\updater.exe";
+        return updPath;
+    }
 }

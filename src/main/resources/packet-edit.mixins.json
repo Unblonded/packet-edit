@@ -12,7 +12,8 @@
 		"RFPMAccess",
 		"ChatFilter",
 		"HandledScreenMixin",
-		"HandledScreenAccessor"
+		"HandledScreenAccessor",
+		"CrosshairMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -8,6 +8,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import unblonded.packets.InjectorBridge;
 import unblonded.packets.cfg;
+import unblonded.packets.cheats.CrystalSpam;
+import unblonded.packets.cheats.KillAura;
 import unblonded.packets.util.util;
 
 @Mixin(MinecraftClient.class)
@@ -17,11 +19,14 @@ public abstract class OnTickMixin {
     @Inject(method = "tick", at = @At("HEAD"))
     private void onTick(CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
+        if (tickCount > Integer.MAX_VALUE - 100) tickCount = 0;
         if (!cfg.hasInjected && tickCount++ > 40) util.inject(client);
         util.handleKeyInputs(client);
         util.updateUI(client);
         util.updateOreSim(client);
         util.setTitle(client);
         util.updateStates();
+        KillAura.tick();
+        CrystalSpam.start();
     }
 }

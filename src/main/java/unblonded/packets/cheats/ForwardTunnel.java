@@ -22,7 +22,9 @@ public class ForwardTunnel {
     private static boolean enabled = false;
     private static boolean keyReset = false;
     private static String blockStatus = "";
-    private static int miningTicks = 0;
+    private static BlockPos currentMiningPos = null;
+    private static Direction currentMiningSide = null;
+
 
     public static void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
@@ -59,52 +61,65 @@ public class ForwardTunnel {
     }
 
     private static void mineBlocks(ClientPlayerEntity player) {
-        if (client.interactionManager == null) return;
+        if (client.interactionManager == null || client.world == null) return;
 
         Direction facing = player.getHorizontalFacing();
         BlockPos playerPos = player.getBlockPos();
 
-        // Mine at eye level
         BlockPos eyePos = playerPos.offset(facing).up();
-        attemptMineBlock(eyePos);
-
-        // Mine at foot level
         BlockPos footPos = playerPos.offset(facing);
-        attemptMineBlock(footPos);
+
+        if (currentMiningPos != null) {
+            // Keep mining until the block is broken
+            if (client.world.getBlockState(currentMiningPos).isAir()) {
+                currentMiningPos = null; // Reset when mined
+            } else {
+                client.interactionManager.updateBlockBreakingProgress(currentMiningPos, currentMiningSide);
+                return; // Don’t start a new one yet
+            }
+        }
+
+        // Try to start mining a new block (top then bottom)
+        if (tryStartMining(eyePos, player)) return;
+        if (tryStartMining(footPos, player)) return;
     }
 
-    private static void attemptMineBlock(BlockPos pos) {
-        if (client.world == null || client.interactionManager == null) return;
-
+    private static boolean tryStartMining(BlockPos pos, ClientPlayerEntity player) {
         BlockState state = client.world.getBlockState(pos);
-        if (!state.isAir() && !state.getFluidState().isStill()) {
-            // Create hit vector targeting center of block
-            Vec3d hitVec = new Vec3d(
-                    pos.getX() + 0.5,
-                    pos.getY() + 0.5,
-                    pos.getZ() + 0.5
-            );
+        if (state.isAir() || state.getFluidState().isStill()) return false;
 
-            Direction side = Direction.UP; // Default side
+        // Determine side to hit from player position
+        Direction side = Direction.UP;
+        Vec3d playerPos = player.getPos();
+        if (playerPos.x < pos.getX()) side = Direction.WEST;
+        else if (playerPos.x > pos.getX()) side = Direction.EAST;
+        else if (playerPos.z < pos.getZ()) side = Direction.NORTH;
+        else if (playerPos.z > pos.getZ()) side = Direction.SOUTH;
 
-            // Calculate side based on player position
-            Vec3d playerPos = client.player.getPos();
-            if (playerPos.x < pos.getX()) side = Direction.WEST;
-            else if (playerPos.x > pos.getX()) side = Direction.EAST;
-            else if (playerPos.z < pos.getZ()) side = Direction.NORTH;
-            else if (playerPos.z > pos.getZ()) side = Direction.SOUTH;
+        // Start mining
+        client.interactionManager.attackBlock(pos, side);
+        currentMiningPos = pos;
+        currentMiningSide = side;
+        return true;
+    }
 
-            BlockHitResult hit = new BlockHitResult(hitVec, side, pos, false);
-
-            // Start breaking and continue breaking regardless of GUI state
-            if (miningTicks == 0) {
-                client.interactionManager.attackBlock(pos, side);
-            }
-
-            // Continue to mine by simulating progression
-            client.interactionManager.updateBlockBreakingProgress(pos, side);
-            miningTicks = (miningTicks + 1) % 5; // Reset periodically to ensure continuous mining
+    private static void startMining(BlockPos pos, Direction direction) {
+        if (!pos.equals(currentMiningPos)) {
+            client.interactionManager.attackBlock(pos, direction);
+            client.player.swingHand(Hand.MAIN_HAND);
+            currentMiningPos = pos;
         }
+
+        client.interactionManager.updateBlockBreakingProgress(pos, direction);
+    }
+
+    private static void stopMining() {
+        currentMiningPos = null;
+    }
+
+    private static boolean shouldMine(BlockPos pos) {
+        BlockState state = client.world.getBlockState(pos);
+        return !state.isAir() && state.getHardness(client.world, pos) >= 0;
     }
 
     private static void snapToCardinalDirection(PlayerEntity player) {
@@ -158,14 +173,9 @@ public class ForwardTunnel {
                 state.isOf(Blocks.MAGMA_BLOCK);
     }
 
-    public static void toggle() {
-        setState(!enabled);
-    }
-
     public static void setState(boolean state) {
         enabled = state;
         keyReset = false;
-        miningTicks = 0;
 
         if (enabled) {
             blockStatus = "ForwardTunnel enabled.";

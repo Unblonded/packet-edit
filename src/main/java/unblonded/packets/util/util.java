@@ -55,6 +55,7 @@ public class util {
         if (cfg.displayplayers) cfg.writePlayerList(PlayerTracker.getNearbyPlayers());
         if (cfg.forwardTunnel) cfg.writeBlockStatus(ForwardTunnel.getBlockStatus());
         cfg.sendGuiStorageScanner(cfg.storageScan && client.currentScreen instanceof HandledScreen<?>);
+        cfg.sendCrosshairDraw(client.currentScreen == null || client.currentScreen instanceof GuiBackground);
     }
 
 
@@ -69,6 +70,7 @@ public class util {
         AimAssist.setState(cfg.aimAssistToggle);
         AimAssist.applySettings(cfg.aimAssistRange, cfg.aimAssistFov, cfg.aimAssistSmoothness, cfg.aimAssistMinSpeed, cfg.aimAssistMaxSpeed, cfg.aimAssistVisibility, cfg.aimAssistUpdateRate);
         InventoryScanner.setState(cfg.storageScan, cfg.storageScanSearch, cfg.storageScanColor);
+        CrystalSpam.setState(cfg.crystalSpam, cfg.crystalSpamSearchRadius, cfg.crystalSpamBreakDelay);
 
         if (cfg.checkPlayerSafety) {
             AirUnderCheck.checkSafety();
@@ -155,6 +157,11 @@ public class util {
                 arr.get(3).getAsFloat()
         );
     }
+
+    public static double signedRandom(double max) {
+        return (Math.random() * max) * (Math.random() < 0.5 ? -1 : 1);
+    }
+
 
 
     public static void crash() {
