@@ -204,7 +204,6 @@ public class cfg {
         try {
             // Check if socket is still connected
             if (socket == null || socket.isClosed() || !socket.isConnected()) {
-                safe = false;
                 System.out.println("Check 2 failed: Socket not connected");
                 return;
             }
@@ -218,7 +217,6 @@ public class cfg {
             String response = in.readLine();
             if (response == null) {
                 System.out.println("Connection closed by server");
-                safe = false;
                 return;
             }
 
@@ -338,14 +336,11 @@ public class cfg {
 
         } catch (SocketTimeoutException e) {
             System.err.println("Timeout waiting for server response");
-            safe = false;
         } catch (SocketException e) {
             System.err.println("Socket error: " + e.getMessage());
-            safe = false;
             cleanupConnection(); // Ensure the socket is cleaned up if an error occurs
         } catch (Exception e) {
             System.err.println("Error in readConfig: " + e.getClass().getSimpleName() + ": " + e.getMessage());
-            safe = false;
             cleanupConnection();
         } finally {
             try {
@@ -379,7 +374,9 @@ public class cfg {
             json.addProperty("autoDcPrimedDisable", flag);
             out.println("autoDcPrimedDisable " + json);
             out.flush();
-        } catch (Exception e) { safe = false; }
+        } catch (Exception e) {
+            System.err.println("Failed to send autoDc flag: " + e.getMessage());
+        }
     }
 
     public static void sendCombinedStatus(
@@ -436,7 +433,6 @@ public class cfg {
             out.flush();
         } catch (Exception e) {
             System.err.println("Failed to send combined status: " + e.getMessage());
-            safe = false;
         }
     }
 }
