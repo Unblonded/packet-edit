@@ -418,6 +418,10 @@ public class cfg {
 
                 pObj.addProperty("mainhand", p.mainhand != null ? p.mainhand : "");
                 pObj.addProperty("offhand", p.offhand != null ? p.offhand : "");
+                pObj.addProperty("health", p.health);
+                pObj.addProperty("armorTuffness", p.armorTuffness);
+                pObj.addProperty("isSneaking", p.isSneaking);
+                pObj.addProperty("isSprinting", p.isSprinting);
 
                 playerArray.add(pObj);
             }
