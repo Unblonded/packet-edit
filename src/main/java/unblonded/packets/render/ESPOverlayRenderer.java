@@ -342,38 +342,49 @@ public class ESPOverlayRenderer {
     private static void processSearchBatch(MinecraftClient client, BlockPos currentPos) {
         if (currentBatch >= cachedOffsets.size()) return;
 
-        int endIndex = Math.min(currentBatch + cfg.BATCH_SIZE, cachedOffsets.size());
+        // Create a snapshot of the list to avoid concurrent modification
+        List<BlockPos> offsetSnapshot;
+        synchronized (cachedOffsets) {
+            offsetSnapshot = new ArrayList<>(cachedOffsets);
+        }
+
+        // Check if batch is still valid after taking snapshot
+        if (currentBatch >= offsetSnapshot.size()) return;
+
+        int endIndex = Math.min(currentBatch + cfg.BATCH_SIZE, offsetSnapshot.size());
         ClientWorld world = client.world;
         if (world == null) return;
 
         for (int i = currentBatch; i < endIndex; i++) {
-            BlockPos offset = cachedOffsets.get(i);
+            BlockPos offset = offsetSnapshot.get(i);
             BlockPos targetPos = currentPos.add(offset);
-
             if (!world.isChunkLoaded(targetPos)) continue;
-
             BlockState state = world.getBlockState(targetPos);
             Block block = state.getBlock();
 
             // Check if block is in our ESP list
-            for (BlockColor espBlock : cfg.espBlockList) {
-                if (!espBlock.isEnabled()) continue;
-                if (espBlock.getBlock().equals(block) && !foundPositions.contains(targetPos)) {
-                    foundPositions.add(targetPos);
-                    break; // No need to check other blocks once found
+            try {
+                List<BlockColor> espBlockListCopy = new ArrayList<>(cfg.espBlockList);
+                for (BlockColor espBlock : espBlockListCopy) {
+                    if (!espBlock.isEnabled()) continue;
+                    if (espBlock.getBlock().equals(block) && !foundPositions.contains(targetPos)) {
+                        foundPositions.add(targetPos);
+                        break;
+                    }
                 }
-            }
+            } catch (Exception ignored) {}
         }
 
         currentBatch = endIndex;
 
         // Update render buffer when search completes
-        if (currentBatch >= cachedOffsets.size()) {
+        if (currentBatch >= offsetSnapshot.size()) {
             synchronized (renderBuffer) {
                 renderBuffer.clear();
                 renderBuffer.addAll(foundPositions);
                 foundPositions.clear();
             }
+            currentBatch = 0; // Reset for next search cycle
         }
     }
 

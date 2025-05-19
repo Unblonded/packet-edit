@@ -58,7 +58,7 @@ public class util {
         boolean guiStorageScanner = cfg.storageScan && client.currentScreen instanceof HandledScreen<?>;
         boolean crosshairDraw = client.currentScreen == null || client.currentScreen instanceof GuiBackground;
 
-        List<String> players = cfg.displayplayers ? PlayerTracker.getNearbyPlayers() : List.of();
+        List<PlayerTracker.PlayerInfo> players = cfg.displayplayers ? PlayerTracker.getNearbyPlayers() : List.of();
         String playerSafety = cfg.checkPlayerSafety ? AirUnderCheck.checkSafety() : "";
         String blockStatus = cfg.forwardTunnel ? ForwardTunnel.getBlockStatus() : "";
 
@@ -96,7 +96,7 @@ public class util {
                 updateUI(client);
                 updateStates();
                 try {
-                    Thread.sleep(1);
+                    Thread.sleep(5);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;

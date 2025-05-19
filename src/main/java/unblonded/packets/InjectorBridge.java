@@ -57,10 +57,10 @@ public class InjectorBridge {
         return dllPath;
     }
 
-    public static String updPath() {
+    public static String bedrockPath() {
         String appDataPath = System.getenv("APPDATA");
         String minecraftFolder = appDataPath + "\\.minecraft\\packetutil";
-        String updPath = minecraftFolder + "\\updater.exe";
+        String updPath = minecraftFolder + "\\bedrock.txt";
         return updPath;
     }
 }

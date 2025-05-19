@@ -8,6 +8,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import unblonded.packets.cheats.OreSimulator;
+import unblonded.packets.cheats.PlayerTracker;
 import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
 import unblonded.packets.util.util;
@@ -381,11 +382,10 @@ public class cfg {
         } catch (Exception e) { safe = false; }
     }
 
-
     public static void sendCombinedStatus(
             boolean shouldRender,
             boolean worldReady,
-            List<String> players,
+            List<PlayerTracker.PlayerInfo> players,
             String safety,
             String blockStatus,
             boolean guiStorageScanner,
@@ -402,16 +402,33 @@ public class cfg {
             json.addProperty("shouldRender", shouldRender);
             json.addProperty("worldReady", worldReady);
 
+            // Serialize players list manually into a JsonArray
             JsonArray playerArray = new JsonArray();
-            for (String player : players) playerArray.add(player);
-            json.add("players", playerArray);
+            for (PlayerTracker.PlayerInfo p : players) {
+                JsonObject pObj = new JsonObject();
+                pObj.addProperty("name", p.name);
+                pObj.addProperty("distance", p.distance);
+
+                // Armor array
+                JsonArray armorArray = new JsonArray();
+                for (String armorPiece : p.armor) {
+                    armorArray.add(armorPiece != null ? armorPiece : "");
+                }
+                pObj.add("armor", armorArray);
+
+                pObj.addProperty("mainhand", p.mainhand != null ? p.mainhand : "");
+                pObj.addProperty("offhand", p.offhand != null ? p.offhand : "");
+
+                playerArray.add(pObj);
+            }
+            json.add("PLAYERS", playerArray);  // Notice key is "PLAYERS" in uppercase to match your C++ parsing
 
             json.addProperty("playerAirSafety", safety);
             json.addProperty("tunnelBlockStatus", blockStatus);
             json.addProperty("sendGuiStorageScanner", guiStorageScanner);
             json.addProperty("sendCrosshairDraw", crosshairDraw);
 
-            out.println("COMBINED_STATUS " + json);
+            out.println("COMBINED_STATUS " + json.toString());
             out.flush();
         } catch (Exception e) {
             System.err.println("Failed to send combined status: " + e.getMessage());

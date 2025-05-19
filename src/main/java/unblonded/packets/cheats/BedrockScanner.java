@@ -1,13 +1,17 @@
 package unblonded.packets.cheats;
 
-import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import org.lwjgl.glfw.GLFW;
+import unblonded.packets.InjectorBridge;
 import unblonded.packets.Packetedit;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class BedrockScanner {
 
@@ -32,8 +36,9 @@ public class BedrockScanner {
     private static void scanForBedrock() {
         BlockPos playerPos = client.player.getBlockPos();
         int radius = 100;
-
         int y = 4;
+
+        StringBuilder sb = new StringBuilder();
         int count = 0;
 
         for (int x = -radius; x <= radius; x++) {
@@ -41,12 +46,33 @@ public class BedrockScanner {
                 BlockPos checkPos = new BlockPos(playerPos.getX() + x, y, playerPos.getZ() + z);
                 if (client.world.getBlockState(checkPos).isOf(Blocks.BEDROCK)) {
                     count++;
-                    String coord = "(" + checkPos.getX() + ", " + y + ", " + checkPos.getZ() + ")";
-                    client.player.sendMessage(Text.of("Bedrock at: " + coord), false);
+                    sb.append(checkPos.getX()).append(" ")
+                            .append(y).append(" ")
+                            .append(checkPos.getZ()).append(" Bedrock\n");
                 }
             }
         }
 
-        client.player.sendMessage(Text.of("Scan complete. Found " + count + " bedrock blocks at Y=4."), false);
+        String result = sb.toString();
+        if (!result.isEmpty()) {
+            try {
+                String filePath = InjectorBridge.bedrockPath();
+
+                // Create directories if they don't exist
+                File file = new File(filePath);
+                file.getParentFile().mkdirs();
+
+                // Write to file
+                FileWriter writer = new FileWriter(file);
+                writer.write(result);
+                writer.close();
+
+                client.player.sendMessage(Text.of("Saved " + count + " bedrock coordinates to " + filePath), false);
+            } catch (IOException e) {
+                client.player.sendMessage(Text.of("Failed to save file: " + e.getMessage()), false);
+            }
+        } else {
+            client.player.sendMessage(Text.of("No bedrock found at Y=4 within radius."), false);
+        }
     }
 }
