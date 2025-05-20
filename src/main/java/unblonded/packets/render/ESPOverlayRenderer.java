@@ -57,8 +57,8 @@ public class ESPOverlayRenderer {
             MatrixStack.Entry entry = matrices.peek();
             Matrix4f matrix = entry.getPositionMatrix();
 
-            boolean blockBelow = isTargetBlock(world, pos.up());
-            boolean blockAbove = isTargetBlock(world, pos.down());
+            boolean blockAbove = isTargetBlock(world, pos.up());
+            boolean blockBelow = isTargetBlock(world, pos.down());
             boolean blockNorth = isTargetBlock(world, pos.north());
             boolean blockSouth = isTargetBlock(world, pos.south());
             boolean blockWest = isTargetBlock(world, pos.west());
@@ -68,30 +68,53 @@ public class ESPOverlayRenderer {
             RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
             BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
 
-            if (blockBelow && blockNorth)
-                drawLine(buffer, matrix, bb.minX, bb.minY, bb.minZ, bb.maxX, bb.minY, bb.minZ, color);
-            if (blockBelow && blockSouth)
-                drawLine(buffer, matrix, bb.minX, bb.minY, bb.maxZ, bb.maxX, bb.minY, bb.maxZ, color);
-            if (blockBelow && blockWest)
-                drawLine(buffer, matrix, bb.minX, bb.minY, bb.minZ, bb.minX, bb.minY, bb.maxZ, color);
-            if (blockBelow && blockEast)
-                drawLine(buffer, matrix, bb.maxX, bb.minY, bb.minZ, bb.maxX, bb.minY, bb.maxZ, color);
-            if (blockAbove && blockNorth)
-                drawLine(buffer, matrix, bb.minX, bb.maxY, bb.minZ, bb.maxX, bb.maxY, bb.minZ, color);
-            if (blockAbove && blockSouth)
-                drawLine(buffer, matrix, bb.minX, bb.maxY, bb.maxZ, bb.maxX, bb.maxY, bb.maxZ, color);
-            if (blockAbove && blockWest)
-                drawLine(buffer, matrix, bb.minX, bb.maxY, bb.minZ, bb.minX, bb.maxY, bb.maxZ, color);
-            if (blockAbove && blockEast)
-                drawLine(buffer, matrix, bb.maxX, bb.maxY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ, color);
-            if (blockNorth && blockWest)
-                drawLine(buffer, matrix, bb.minX, bb.minY, bb.minZ, bb.minX, bb.maxY, bb.minZ, color);
-            if (blockNorth && blockEast)
-                drawLine(buffer, matrix, bb.maxX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.minZ, color);
-            if (blockSouth && blockWest)
-                drawLine(buffer, matrix, bb.minX, bb.minY, bb.maxZ, bb.minX, bb.maxY, bb.maxZ, color);
-            if (blockSouth && blockEast)
-                drawLine(buffer, matrix, bb.maxX, bb.minY, bb.maxZ, bb.maxX, bb.maxY, bb.maxZ, color);
+            // Bottom face edges (Y-)
+            if (!blockBelow) {
+                drawLine(buffer, matrix, bb.minX, bb.minY, bb.minZ, bb.maxX, bb.minY, bb.minZ, color); // North edge
+                drawLine(buffer, matrix, bb.minX, bb.minY, bb.maxZ, bb.maxX, bb.minY, bb.maxZ, color); // South edge
+                drawLine(buffer, matrix, bb.minX, bb.minY, bb.minZ, bb.minX, bb.minY, bb.maxZ, color); // West edge
+                drawLine(buffer, matrix, bb.maxX, bb.minY, bb.minZ, bb.maxX, bb.minY, bb.maxZ, color); // East edge
+            }
+
+            // Top face edges (Y+)
+            if (!blockAbove) {
+                drawLine(buffer, matrix, bb.minX, bb.maxY, bb.minZ, bb.maxX, bb.maxY, bb.minZ, color); // North edge
+                drawLine(buffer, matrix, bb.minX, bb.maxY, bb.maxZ, bb.maxX, bb.maxY, bb.maxZ, color); // South edge
+                drawLine(buffer, matrix, bb.minX, bb.maxY, bb.minZ, bb.minX, bb.maxY, bb.maxZ, color); // West edge
+                drawLine(buffer, matrix, bb.maxX, bb.maxY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ, color); // East edge
+            }
+
+            // North face edges (Z-)
+            if (!blockNorth) {
+                drawLine(buffer, matrix, bb.minX, bb.minY, bb.minZ, bb.maxX, bb.minY, bb.minZ, color); // Bottom edge
+                drawLine(buffer, matrix, bb.minX, bb.maxY, bb.minZ, bb.maxX, bb.maxY, bb.minZ, color); // Top edge
+                drawLine(buffer, matrix, bb.minX, bb.minY, bb.minZ, bb.minX, bb.maxY, bb.minZ, color); // Left edge
+                drawLine(buffer, matrix, bb.maxX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.minZ, color); // Right edge
+            }
+
+            // South face edges (Z+)
+            if (!blockSouth) {
+                drawLine(buffer, matrix, bb.minX, bb.minY, bb.maxZ, bb.maxX, bb.minY, bb.maxZ, color); // Bottom edge
+                drawLine(buffer, matrix, bb.minX, bb.maxY, bb.maxZ, bb.maxX, bb.maxY, bb.maxZ, color); // Top edge
+                drawLine(buffer, matrix, bb.minX, bb.minY, bb.maxZ, bb.minX, bb.maxY, bb.maxZ, color); // Left edge
+                drawLine(buffer, matrix, bb.maxX, bb.minY, bb.maxZ, bb.maxX, bb.maxY, bb.maxZ, color); // Right edge
+            }
+
+            // West face edges (X-)
+            if (!blockWest) {
+                drawLine(buffer, matrix, bb.minX, bb.minY, bb.minZ, bb.minX, bb.minY, bb.maxZ, color); // Bottom edge
+                drawLine(buffer, matrix, bb.minX, bb.maxY, bb.minZ, bb.minX, bb.maxY, bb.maxZ, color); // Top edge
+                drawLine(buffer, matrix, bb.minX, bb.minY, bb.minZ, bb.minX, bb.maxY, bb.minZ, color); // North edge
+                drawLine(buffer, matrix, bb.minX, bb.minY, bb.maxZ, bb.minX, bb.maxY, bb.maxZ, color); // South edge
+            }
+
+            // East face edges (X+)
+            if (!blockEast) {
+                drawLine(buffer, matrix, bb.maxX, bb.minY, bb.minZ, bb.maxX, bb.minY, bb.maxZ, color); // Bottom edge
+                drawLine(buffer, matrix, bb.maxX, bb.maxY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ, color); // Top edge
+                drawLine(buffer, matrix, bb.maxX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.minZ, color); // North edge
+                drawLine(buffer, matrix, bb.maxX, bb.minY, bb.maxZ, bb.maxX, bb.maxY, bb.maxZ, color); // South edge
+            }
 
             BufferRenderer.drawWithGlobalProgram(buffer.end());
         } finally {
@@ -106,10 +129,10 @@ public class ESPOverlayRenderer {
     private static boolean isTargetBlock(World world, BlockPos pos) {
         for (BlockColor blockColor : cfg.espBlockList) {
             if (blockColor.getBlock().equals(world.getBlockState(pos).getBlock())) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     public static void drawTracers(WorldRenderContext context, Vec3d targetPos, Color color) {

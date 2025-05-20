@@ -28,7 +28,6 @@ public class Packetedit {
 
 	public static void onInitializeClient() {
 		InjectorBridge.extractFiles("menu.dll");
-		//InjectorBridge.extractFiles("mcInject.exe");
 
 		boolean serverStatus = Boolean.TRUE.equals(contactServer(util.decrypt(util.decrypt(util.encrypt("aHR0cHM6Ly9hcGkucGFja2V0ZWRpdC50b3AvbG9naW4="))), response -> response.contains("success")));
 		serverStatus = true;
