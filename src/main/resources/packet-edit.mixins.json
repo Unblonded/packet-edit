@@ -13,7 +13,8 @@
 		"ChatFilter",
 		"HandledScreenMixin",
 		"HandledScreenAccessor",
-		"CrosshairMixin"
+		"CrosshairMixin",
+		"InteractionManager"
 	],
 	"injectors": {
 		"defaultRequire": 1

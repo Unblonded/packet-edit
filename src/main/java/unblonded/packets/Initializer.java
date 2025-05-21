@@ -22,5 +22,6 @@ public class Initializer implements ClientModInitializer {
         AutoSell.onInitializeClient();
         AutoDisconnect.onInitializeClient();
         AimAssist.onInitializeClient();
+        SelfCrystal.onInitializeClient();
     }
 }

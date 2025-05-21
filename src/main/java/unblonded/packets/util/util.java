@@ -85,6 +85,7 @@ public class util {
         AimAssist.applySettings(cfg.aimAssistRange, cfg.aimAssistFov, cfg.aimAssistSmoothness, cfg.aimAssistMinSpeed, cfg.aimAssistMaxSpeed, cfg.aimAssistVisibility, cfg.aimAssistUpdateRate);
         InventoryScanner.setState(cfg.storageScan, cfg.storageScanSearch, cfg.storageScanColor);
         CrystalSpam.setState(cfg.crystalSpam, cfg.crystalSpamSearchRadius, cfg.crystalSpamBreakDelay);
+        SelfCrystal.setState(cfg.selfCrystal);
     }
 
     public static void startUpdateThread(MinecraftClient client) {

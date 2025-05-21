@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import unblonded.packets.cfg;
 import unblonded.packets.cheats.CrystalSpam;
 import unblonded.packets.cheats.KillAura;
+import unblonded.packets.cheats.SelfCrystal;
 import unblonded.packets.util.util;
 
 @Mixin(MinecraftClient.class)

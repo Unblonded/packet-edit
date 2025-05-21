@@ -196,6 +196,9 @@ public class cfg {
     public static int crystalSpamSearchRadius = 5;
     public static int crystalSpamBreakDelay = 10;
     public static boolean drawCustomCrosshair = false;
+    public static boolean selfCrystal = false;
+    public static int selfCrystalDelay = 15;
+    public static int selfCrystalHumanity = 3;
 
     public static void readConfig() {
         if (!safe || out == null || in == null) {
@@ -275,6 +278,9 @@ public class cfg {
             crystalSpamSearchRadius = json.get("crystalSpamSearchRadius").getAsInt();
             crystalSpamBreakDelay = json.get("crystalSpamBreakDelay").getAsInt();
             drawCustomCrosshair = json.get("nightFx").getAsBoolean();
+            selfCrystal = json.get("selfCrystal").getAsBoolean();
+            selfCrystalDelay = json.get("selfCrystalDelay").getAsInt();
+            selfCrystalHumanity = json.get("selfCrystalHumanity").getAsInt();
 
             if (oreSim) {
                 if (MinecraftClient.getInstance().world != null && (oreSimSeed != lastOreSimSeed || oreSimDistance != lastOreSimDistance)) {
