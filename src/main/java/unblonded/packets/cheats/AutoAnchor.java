@@ -12,6 +12,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import unblonded.packets.cfg;
 import unblonded.packets.util.util;
 
 import java.util.Timer;
@@ -60,7 +61,7 @@ public class AutoAnchor {
                         });
                     }
 
-                    Thread.sleep(5 + util.rndInt(3));
+                    Thread.sleep(cfg.autoAnchorDelay + util.rndInt(cfg.autoAnchorHumanity));
                     client.execute(() -> {
                         int anchorSlot = findHotbarSlot(Items.RESPAWN_ANCHOR);
                         if (anchorSlot != -1) {

@@ -162,6 +162,8 @@ public class cfg {
     public static int crystalPlaceTime = 20;
     public static boolean cancelInteraction = false;
     public static boolean autoAnchor = false;
+    public static int autoAnchorDelay = 15;
+    public static int autoAnchorHumanity = 3;
     static long oreSimSeed = 0;
     public static boolean oreSim = false;
     static int oreSimDistance = 0;
@@ -238,6 +240,8 @@ public class cfg {
             crystalPlaceTime = json.get("crystalPlaceTime").getAsInt();
             cancelInteraction = json.get("cancelInteraction").getAsBoolean();
             autoAnchor = json.get("autoAnchor").getAsBoolean();
+            autoAnchorDelay = json.get("autoAnchorDelay").getAsInt();
+            autoAnchorHumanity = json.get("autoAnchorHumanity").getAsInt();
             oreSimSeed = json.get("oreSimSeed").getAsLong();
             oreSimDistance = json.get("oreSimDistance").getAsInt();
             oreSim = json.get("oreSim").getAsBoolean();
