@@ -51,7 +51,7 @@ public class ESPOverlayRenderer {
         RenderSystem.lineWidth(1.5f);
 
         try {
-            matrices.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z); // Apply camera offset
+            matrices.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
             Box bb = new Box(pos);
             MatrixStack.Entry entry = matrices.peek();

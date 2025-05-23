@@ -23,7 +23,7 @@ public abstract class OnTickMixin {
         if (!cfg.hasInjected && tickCount++ > 40) util.inject(client);
         util.handleKeyInputs(client);
         util.updateOreSim(client);
-        util.setTitle(client);
+        //util.setTitle(client);
         KillAura.tick();
         CrystalSpam.start();
 

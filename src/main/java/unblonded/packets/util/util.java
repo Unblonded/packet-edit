@@ -3,6 +3,7 @@ package unblonded.packets.util;
 import com.google.gson.JsonArray;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ChatScreen;
+import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.text.Text;
 import net.minidev.json.JSONObject;
@@ -27,24 +28,12 @@ public class util {
         client.getWindow().setTitle("Packet Edit v3 - .inj");
         cfg.init();
 
-        while (!cfg.isReady) {
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-        }
-
         System.load(InjectorBridge.dllPath());
         cfg.hasInjected = true;
     }
 
     public static void handleKeyInputs(MinecraftClient client) {
-        if (Packetedit.isKeyDown(GLFW.GLFW_KEY_PERIOD) && client.currentScreen == null)
-            client.setScreen(new ChatScreen("."));
-
-        if (Keybinds.openGui.wasPressed() && client.world != null && client.currentScreen == null)
+        if (Keybinds.openGui.wasPressed() && (client.currentScreen == null))
             client.setScreen(new GuiBackground(Text.of("Packet Edit")));
     }
 
@@ -115,15 +104,17 @@ public class util {
     }
 
     public static void setTitle(MinecraftClient client) {
-        if (client.world != null) {
-            String suffix = " - Packet Edit v3 by Unblonded";
-            String title = client.world.getRegistryKey().getValue().getPath();
-            String formattedTitle = Arrays.stream(title.split("_"))
-                    .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
-                    .collect(Collectors.joining(" "));
-            client.getWindow().setTitle(formattedTitle+suffix);
-        } else {
-            client.getWindow().setTitle("Packet Edit v3 by Unblonded");
+        if (cfg.isReady) {
+            if (client.world != null) {
+                String suffix = " - Packet Edit v3 by Unblonded";
+                String title = client.world.getRegistryKey().getValue().getPath();
+                String formattedTitle = Arrays.stream(title.split("_"))
+                        .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
+                        .collect(Collectors.joining(" "));
+                client.getWindow().setTitle(formattedTitle + suffix);
+            } else {
+                client.getWindow().setTitle("Packet Edit v3 by Unblonded");
+            }
         }
     }
 

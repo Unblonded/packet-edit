@@ -1,5 +1,7 @@
 package unblonded.packets.cheats;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.registry.RegistryKey;
@@ -277,9 +279,11 @@ public class OreSimulator {
 
 	// New: Cached block state checking for consistency
 	private static boolean isOpaqueBlock(ClientWorld world, BlockPos pos) {
-		return blockStateCache.computeIfAbsent(pos, p -> {
-			return world.getBlockState(p).isOpaque();
-		});
+		return blockStateCache.computeIfAbsent(pos, p -> world.getBlockState(p).isOpaque());
+	}
+
+	private static boolean isAncientDebris(ClientWorld world, BlockPos pos) {
+		return blockStateCache.computeIfAbsent(pos, p -> world.getBlockState(p).isOf(Blocks.ANCIENT_DEBRIS));
 	}
 
 	private static ArrayList<Vec3d> generateNormal(ClientWorld world, ChunkRandom random, BlockPos blockPos, int veinSize, float discardOnAir) {
