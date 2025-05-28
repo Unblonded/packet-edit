@@ -1,29 +1,19 @@
 package unblonded.packets.util;
 
-import com.google.gson.JsonArray;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.text.Text;
 import net.minidev.json.JSONObject;
-import org.lwjgl.glfw.GLFW;
-import unblonded.packets.InjectorBridge;
 import unblonded.packets.Packetedit;
 import unblonded.packets.cfg;
 import unblonded.packets.cheats.*;
 
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class util {
-    private static Thread updateThread;
-    private static volatile boolean running = false;
-
     public static void handleKeyInputs(MinecraftClient client) {
         if (Keybinds.openGui.wasPressed() && (client.currentScreen == null))
             client.setScreen(new GuiBackground(Text.of("Packet Edit")));

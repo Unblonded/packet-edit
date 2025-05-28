@@ -1,10 +1,7 @@
 package unblonded.packets;
 
-import imgui.ImVec4;
 import imgui.type.*;
-import unblonded.packets.cheats.PlayerTracker;
 import unblonded.packets.util.BlockColor;
-import unblonded.packets.util.Color;
 
 import java.util.*;
 

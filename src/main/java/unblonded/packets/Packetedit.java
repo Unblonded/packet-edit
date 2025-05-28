@@ -6,6 +6,7 @@ import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import unblonded.packets.imgui.ImGuiManager;
+import unblonded.packets.util.ConfigManager;
 import unblonded.packets.util.util;
 
 import java.io.InputStream;
@@ -40,6 +41,11 @@ public class Packetedit {
 
 		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
 			ImGuiManager.getInstance().init();
+			ConfigManager.loadConfig();
+		});
+
+		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+			ConfigManager.saveConfig();
 		});
 
 		console.info("Authentication successful!");
