@@ -1,17 +1,13 @@
 package unblonded.packets.cheats;
 
-import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
-import net.minecraft.registry.Registries;
 import net.minecraft.enchantment.Enchantment;
 
 import java.util.*;

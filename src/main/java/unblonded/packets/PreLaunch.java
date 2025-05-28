@@ -21,7 +21,6 @@ public class PreLaunch implements PreLaunchEntrypoint {
 
     @Override
     public void onPreLaunch() {
-        InjectorBridge.extractFiles("updater.exe");
         new Thread(() -> {
             try {
                 String latest = fetchLatestVersion();

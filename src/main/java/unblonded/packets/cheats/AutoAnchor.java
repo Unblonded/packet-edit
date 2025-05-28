@@ -61,7 +61,7 @@ public class AutoAnchor {
                         });
                     }
 
-                    Thread.sleep(cfg.autoAnchorDelay + util.rndInt(cfg.autoAnchorHumanity));
+                    Thread.sleep(cfg.autoAnchorDelay[0] + util.rndInt(cfg.autoAnchorHumanity[0]));
                     client.execute(() -> {
                         int anchorSlot = findHotbarSlot(Items.RESPAWN_ANCHOR);
                         if (anchorSlot != -1) {

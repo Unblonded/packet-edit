@@ -19,9 +19,9 @@ public class ChatFilter {
     )
     private void onAddMessage(Text message, MessageSignatureData signatureData, MessageIndicator indicator, CallbackInfo ci) {
         String plain = message.getString().toLowerCase();
-        String block = cfg.blockMsg.toLowerCase();
+        String block = cfg.blockMsg.get().toLowerCase();
 
-        if (cfg.chatFilter) {
+        if (cfg.chatFilter.get()) {
             if (cfg.filterMode == 0) {
                 ci.cancel();
             } else if (cfg.filterMode == 1) {

@@ -6,10 +6,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import unblonded.packets.cfg;
 import unblonded.packets.cheats.CrystalSpam;
 import unblonded.packets.cheats.KillAura;
-import unblonded.packets.cheats.SelfCrystal;
 import unblonded.packets.util.util;
 
 @Mixin(MinecraftClient.class)
@@ -20,13 +18,11 @@ public abstract class OnTickMixin {
     private void onTick(CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (tickCount > Integer.MAX_VALUE - 100) tickCount = 0;
-        if (!cfg.hasInjected && tickCount++ > 40) util.inject(client);
         util.handleKeyInputs(client);
         util.updateOreSim(client);
-        //util.setTitle(client);
+        util.updateStates();
+        util.setTitle(client);
         KillAura.tick();
         CrystalSpam.start();
-
-        util.startUpdateThread(client);
     }
 }

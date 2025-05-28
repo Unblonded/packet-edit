@@ -14,7 +14,8 @@
 		"HandledScreenMixin",
 		"HandledScreenAccessor",
 		"CrosshairMixin",
-		"InteractionManager"
+		"InteractionManager",
+		"GameRenderMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

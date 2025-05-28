@@ -24,7 +24,7 @@ public class AutoDisconnect {
             if (PlayerTracker.closestPlayerDistance() < proximity) {
                 mc.getNetworkHandler().getConnection().disconnect(Text.of("Player Proximity Check Triggered! Threshold: <" + proximity));
                 primed = false;
-                cfg.sendAutoDcFlag(false);
+                cfg.autoDcPrimed = false;
             }
         });
     }

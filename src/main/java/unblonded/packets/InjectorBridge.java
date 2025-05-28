@@ -28,35 +28,6 @@ public class InjectorBridge {
         }
     }
 
-    public static void extractFiles(String fileName) {
-        String appDataPath = System.getenv("APPDATA");
-        String minecraftFolder = appDataPath + "\\.minecraft\\packetutil";
-
-        File directory = new File(minecraftFolder);
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-
-        try (InputStream inputStream = InjectorBridge.class.getResourceAsStream("/" + fileName)) {
-            if (inputStream == null) {
-                System.out.println("Resource not found in JAR: " + fileName);
-                return;
-            }
-
-            Files.copy(inputStream, Paths.get(minecraftFolder, fileName), StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("File extracted to: " + minecraftFolder);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static String dllPath() {
-        String appDataPath = System.getenv("APPDATA");
-        String minecraftFolder = appDataPath + "\\.minecraft\\packetutil";
-        String dllPath = minecraftFolder + "\\menu.dll";
-        return dllPath;
-    }
-
     public static String bedrockPath() {
         String appDataPath = System.getenv("APPDATA");
         String minecraftFolder = appDataPath + "\\.minecraft\\packetutil";

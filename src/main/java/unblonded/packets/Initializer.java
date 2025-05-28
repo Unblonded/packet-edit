@@ -12,7 +12,6 @@ public class Initializer implements ClientModInitializer {
         Packetedit.onInitializeClient();
         PlayerTracker.onInitializeClient();
         ESPOverlayRenderer.onInitializeClient();
-        ForwardTunnel.onInitializeClient();
         AutoCrystal.onInitializeClient();
         InteractionCanceler.onInitializeClient();
         Keybinds.onInitializeClient();

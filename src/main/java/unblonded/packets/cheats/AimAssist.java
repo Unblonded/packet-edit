@@ -299,11 +299,11 @@ public class AimAssist {
 
     public static void setState(boolean enabled) {
         if (AimAssist.enabled == enabled) return;
-
         AimAssist.enabled = enabled;
 
+        System.out.println("AimAssist " + (enabled ? "enabled" : "disabled"));
+
         if (enabled) {
-            // Pull live values from UI or config before activating
             applySettings(
                     range,
                     fov,

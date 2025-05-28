@@ -26,6 +26,10 @@ public class BlockColor {
         return color;
     }
 
+    public float[] getColorF() {
+        return new float[] {color.R(), color.G(), color.B(), color.A()};
+    }
+
     public boolean isEnabled() {
         return enabled;
     }

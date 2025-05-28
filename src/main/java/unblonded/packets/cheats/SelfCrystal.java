@@ -31,7 +31,7 @@ public class SelfCrystal {
         CrystalInfo() {
             this.placedTime = System.currentTimeMillis();
             this.ticksWaited = 0;
-            this.attackDelay = cfg.selfCrystalDelay + util.rndInt(cfg.autoAnchorHumanity);
+            this.attackDelay = cfg.selfCrystalDelay[0] + util.rndInt(cfg.autoAnchorHumanity[0]);
             this.readyToAttack = false;
         }
     }

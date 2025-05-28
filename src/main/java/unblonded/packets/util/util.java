@@ -24,77 +24,23 @@ public class util {
     private static Thread updateThread;
     private static volatile boolean running = false;
 
-    public static void inject(MinecraftClient client) {
-        client.getWindow().setTitle("Packet Edit v3 - .inj");
-        cfg.init();
-
-        System.load(InjectorBridge.dllPath());
-        cfg.hasInjected = true;
-    }
-
     public static void handleKeyInputs(MinecraftClient client) {
         if (Keybinds.openGui.wasPressed() && (client.currentScreen == null))
             client.setScreen(new GuiBackground(Text.of("Packet Edit")));
     }
 
-    public static void updateUI(MinecraftClient client) {
-        if (!cfg.safe) return;
-
-        cfg.readConfig();
-
-        boolean worldLoaded = client.world != null;
-        boolean shouldRender = client.currentScreen instanceof GuiBackground;
-        boolean guiStorageScanner = cfg.storageScan && client.currentScreen instanceof HandledScreen<?>;
-        boolean crosshairDraw = client.currentScreen == null || client.currentScreen instanceof GuiBackground;
-
-        List<PlayerTracker.PlayerInfo> players = cfg.displayplayers ? PlayerTracker.getNearbyPlayers() : List.of();
-        String playerSafety = cfg.checkPlayerSafety ? AirUnderCheck.checkSafety() : "";
-        String blockStatus = cfg.forwardTunnel ? ForwardTunnel.getBlockStatus() : "";
-
-        cfg.sendCombinedStatus(
-                shouldRender,
-                worldLoaded,
-                players,
-                playerSafety,
-                blockStatus,
-                guiStorageScanner,
-                crosshairDraw
-        );
-    }
-
     public static void updateStates() {
-        ForwardTunnel.setState(cfg.forwardTunnel);
-        AutoCrystal.setState(cfg.autoCrystal);
-        InteractionCanceler.setState(cfg.cancelInteraction);
-        AutoAnchor.setState(cfg.autoAnchor);
-        AutoTotem.setState(cfg.autoTotem, cfg.autoTotemDelay, cfg.autoTotemHumanity);
-        AutoSell.setState(cfg.triggerAutoSell, cfg.autoSellDelay, cfg.autoSellPrice, cfg.autoSellEndpoints);
+        AutoCrystal.setState(cfg.autoCrystal.get());
+        InteractionCanceler.setState(cfg.cancelInteraction.get());
+        AutoAnchor.setState(cfg.autoAnchor.get());
+        AutoTotem.setState(cfg.autoTotem.get(), cfg.autoTotemDelay[0], cfg.autoTotemHumanity[0]);
+        AutoSell.setState(cfg.triggerAutoSell, cfg.autoSellDelay[0], cfg.autoSellPrice, cfg.autoSellEndpoints);
         AutoDisconnect.setState(cfg.autoDcPrimed, cfg.autoDcProximity);
-        AimAssist.setState(cfg.aimAssistToggle);
-        AimAssist.applySettings(cfg.aimAssistRange, cfg.aimAssistFov, cfg.aimAssistSmoothness, cfg.aimAssistMinSpeed, cfg.aimAssistMaxSpeed, cfg.aimAssistVisibility, cfg.aimAssistUpdateRate);
+        AimAssist.setState(cfg.aimAssistToggle.get());
+        AimAssist.applySettings(cfg.aimAssistRange[0], cfg.aimAssistFov[0], cfg.aimAssistSmoothness[0], cfg.aimAssistMinSpeed[0], cfg.aimAssistMaxSpeed[0], cfg.aimAssistVisibility, cfg.aimAssistUpdateRate[0]);
         InventoryScanner.setState(cfg.storageScan, cfg.storageScanSearch, cfg.storageScanColor);
-        CrystalSpam.setState(cfg.crystalSpam, cfg.crystalSpamSearchRadius, cfg.crystalSpamBreakDelay);
-        SelfCrystal.setState(cfg.selfCrystal);
-    }
-
-    public static void startUpdateThread(MinecraftClient client) {
-        if (updateThread != null && updateThread.isAlive()) return; // already running
-
-        running = true;
-        updateThread = new Thread(() -> {
-            while (running) {
-                updateUI(client);
-                updateStates();
-                try {
-                    Thread.sleep(5);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-        }, "Util-Update-Thread");
-        updateThread.setDaemon(true);
-        updateThread.start();
+        CrystalSpam.setState(cfg.crystalSpam.get(), cfg.crystalSpamSearchRadius[0], cfg.crystalSpamBreakDelay[0]);
+        SelfCrystal.setState(cfg.selfCrystal.get());
     }
 
     public static void updateOreSim(MinecraftClient client) {
@@ -104,17 +50,15 @@ public class util {
     }
 
     public static void setTitle(MinecraftClient client) {
-        if (cfg.isReady) {
-            if (client.world != null) {
-                String suffix = " - Packet Edit v3 by Unblonded";
-                String title = client.world.getRegistryKey().getValue().getPath();
-                String formattedTitle = Arrays.stream(title.split("_"))
-                        .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
-                        .collect(Collectors.joining(" "));
-                client.getWindow().setTitle(formattedTitle + suffix);
-            } else {
-                client.getWindow().setTitle("Packet Edit v3 by Unblonded");
-            }
+        if (client.world != null) {
+            String suffix = " - Packet Edit v3 by Unblonded";
+            String title = client.world.getRegistryKey().getValue().getPath();
+            String formattedTitle = Arrays.stream(title.split("_"))
+                    .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
+                    .collect(Collectors.joining(" "));
+            client.getWindow().setTitle(formattedTitle + suffix);
+        } else {
+            client.getWindow().setTitle("Packet Edit v3 by Unblonded");
         }
     }
 
@@ -124,11 +68,9 @@ public class util {
             try {
                 String hexKey = new JSONObject(Integer.parseInt(response)).getAsString("key");
 
-                // Convert hex string to byte (remove "0x" prefix if present and parse as hex)
                 hexKey = hexKey.replace("0x", "").trim();
                 byte keyValue = (byte) Integer.parseInt(hexKey, 16);
 
-                // Store the parsed key
                 keyRef.set(keyValue);
                 return null;
             } catch (Exception ignored) { return null; }
@@ -158,7 +100,6 @@ public class util {
 
     public static void showHWIDPopup(String hwid) {
         try {
-            // Copy to clipboard via PowerShell
             String clipboardCmd = "powershell.exe -Command \"Set-Clipboard -Value '" + hwid.replace("'", "''") + "'\"";
             Runtime.getRuntime().exec(clipboardCmd);
 
@@ -171,23 +112,13 @@ public class util {
         }
     }
 
-    public static Color colorFromJson(JsonArray arr) {
-        return new Color(
-                arr.get(0).getAsFloat(),
-                arr.get(1).getAsFloat(),
-                arr.get(2).getAsFloat(),
-                arr.get(3).getAsFloat()
-        );
-    }
-
     public static double signedRandom(double max) {
         return (Math.random() * max) * (Math.random() < 0.5 ? -1 : 1);
     }
 
-
-
     public static void crash() {
-        long[][][][][] memory = new long[Integer.MAX_VALUE][Integer.MAX_VALUE][Integer.MAX_VALUE][Integer.MAX_VALUE][Integer.MAX_VALUE]; //danger fucking crash
+        int i = Integer.MAX_VALUE;
+        long[][][][][] memory = new long[i][i][i][i][i]; //danger fucking crash
         crash();
     }
 }

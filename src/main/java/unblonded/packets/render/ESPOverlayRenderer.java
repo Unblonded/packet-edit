@@ -243,7 +243,7 @@ public class ESPOverlayRenderer {
     public static void onInitializeClient() {
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             // Only run if ESP is enabled and conditions are met
-            if (client.player == null || client.world == null || !cfg.advancedEsp || cfg.espBlockList.isEmpty()) {
+            if (client.player == null || client.world == null || !cfg.advEsp.get() || cfg.espBlockList.isEmpty()) {
                 // Create a new buffer instance instead of just clearing
                 synchronized (renderBuffer) {
                     renderBuffer.clear();
@@ -304,13 +304,13 @@ public class ESPOverlayRenderer {
                 }
             }
 
-            if (cfg.oreSim) {
+            if (cfg.oreSim.get()) {
                 for (Map.Entry<Long, Set<Vec3d>> entry : OreSimulator.chunkDebrisPositions.entrySet()) {
                     for (Vec3d pos : entry.getValue()) {
                         try {
                             BlockPos seedPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
                             if (mc.world != null && mc.world.getBlockState(seedPos).isOpaque()) {
-                                drawEspPos(context, seedPos, cfg.oreSimColor);
+                                drawEspPos(context, seedPos, new Color(cfg.oreSimColor));
                             }
                         } catch (Exception e) {
                             System.err.println("Error rendering ore simulation: " + e.getMessage());

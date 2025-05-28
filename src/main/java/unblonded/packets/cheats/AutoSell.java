@@ -1,5 +1,7 @@
 package unblonded.packets.cheats;
 
+import imgui.type.ImInt;
+import imgui.type.ImString;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
@@ -157,12 +159,12 @@ public class AutoSell {
         return -1;
     }
 
-    public static void setState(boolean state, int delay, String targetPrice, int[] endpoints) {
+    public static void setState(boolean state, int delay, ImString targetPrice, ImInt[] endpoints) {
         if (state) {
             triggerActivated = true;
             DELAY_MS = delay;
-            price = targetPrice;
-            autoSellEndpoints = endpoints;
+            price = targetPrice.get();
+            autoSellEndpoints = new int[]{endpoints[0].get(), endpoints[1].get()};
         }
     }
 }

@@ -5,6 +5,7 @@ import net.minecraft.client.MinecraftClient;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import unblonded.packets.imgui.ImGuiManager;
 import unblonded.packets.util.util;
 
 import java.io.InputStream;
@@ -27,7 +28,6 @@ public class Packetedit {
 	public static final Logger console = LoggerFactory.getLogger(MOD_ID);
 
 	public static void onInitializeClient() {
-		InjectorBridge.extractFiles("menu.dll");
 		boolean serverStatus = Boolean.TRUE.equals(contactServer(util.decrypt(util.decrypt(util.encrypt("aHR0cHM6Ly9hcGkucGFja2V0ZWRpdC50b3AvbG9naW4="))), response -> response.contains("success")));
 
 		if (!serverStatus) {
@@ -37,6 +37,10 @@ public class Packetedit {
 			util.showHWIDPopup(hwid);
 			util.crash();
 		}
+
+		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
+			ImGuiManager.getInstance().init();
+		});
 
 		console.info("Authentication successful!");
 	}

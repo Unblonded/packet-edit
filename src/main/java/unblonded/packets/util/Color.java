@@ -47,6 +47,13 @@ public class Color {
         this.alpha = 1.0f;
     }
 
+    public Color(float[] rgba) {
+        this.red = rgba[0];
+        this.green = rgba[1];
+        this.blue = rgba[2];
+        this.alpha = rgba.length > 3 ? rgba[3] : 1.0f;
+    }
+
     public Color(float r, float g, float b, float a) {
         this.red = r;
         this.green = g;
