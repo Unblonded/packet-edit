@@ -34,7 +34,9 @@ public class GameRenderMixin {
                 ImVec2 windowSize = ImGui.getIO().getDisplaySize();
                 float scale = Math.max(1.2f, (windowSize.x / 1920.0f) * 0.85f);
                 ImGui.getIO().setFontGlobalScale(scale);
-            } else ImGui.getIO().setFontGlobalScale(cfg.fontSize[0]);
+            } else {
+                ImGui.getIO().setFontGlobalScale(cfg.fontSize[0]);
+            }
 
             cfg.showMenu = client.currentScreen instanceof GuiBackground;
             cfg.showAll = client.world != null;

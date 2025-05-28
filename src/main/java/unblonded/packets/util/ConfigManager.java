@@ -81,6 +81,10 @@ public class ConfigManager {
                 configDir.mkdirs();
             }
 
+            //THINGS TO SET FALSE
+            cfg.triggerAutoSell = false;
+            cfg.autoDcPrimed.set(false);
+
             File configFile = new File(configDir, CONFIG_FILE);
             JsonObject configJson = new JsonObject();
 
