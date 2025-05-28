@@ -264,8 +264,6 @@ public class Menu {
                 ImGui.pushStyleColor(ImGuiCol.WindowBg, new ImVec4(0.05f, 0.03f, 0.08f, 0.95f));
                 ImGui.begin("Seed-Ray Config", cfg.oreSimCfg);
 
-                renderDebrisGraphAnimated();
-
                 ImGui.textColored(neon_blue, "Seed-Ray is " + (cfg.oreSim.get() ? "enabled" : "disabled"));
                 if (cfg.oreSimDistance[0] > 8)
                     ImGui.textColored(neon_pink, "Warning: High render distance may use lots of CPU");
@@ -283,6 +281,8 @@ public class Menu {
                 }
 
                 ImGui.colorEdit4("ESP Color", cfg.oreSimColor);
+
+                renderDebrisGraphAnimated();
                 ImGui.end();
                 ImGui.popStyleColor();
             }
@@ -488,35 +488,39 @@ public class Menu {
 
     // Store previous densities to build a time graph
     private static final int GRAPH_HISTORY_SIZE = 100;
+    private static final int POINT_REPEAT = 3;
     private static final Deque<Float> debrisHistory = new ArrayDeque<>();
+    private static float lastAverageDensity = -1f;
 
     public static void renderDebrisGraphAnimated() {
-        ImGui.begin("Debris Density Graph");
-
-        // Calculate total debris and normalize by radius
         int totalDebris = OreSimulator.chunkDebrisPositions.values().stream()
-                .mapToInt(Set::size)
-                .sum();
+                .mapToInt(Set::size).sum();
+        float averageDensity = OreSimulator.horizontalRadius == 0
+                ? 0f
+                : totalDebris / (float) OreSimulator.horizontalRadius;
 
-        float averageDensity = OreSimulator.horizontalRadius == 0 ? 0 :
-                totalDebris / (float) OreSimulator.horizontalRadius;
-
-        // Keep a moving history buffer
-        if (debrisHistory.size() >= GRAPH_HISTORY_SIZE)
-            debrisHistory.pollFirst();
-
-        debrisHistory.addLast(averageDensity);
-
-        // Convert to float[] for plotting
-        float[] historyArray = new float[debrisHistory.size()];
-        int i = 0;
-        for (Float f : debrisHistory) {
-            historyArray[i++] = f;
+        // Only add points when value changes
+        if (averageDensity != lastAverageDensity) {
+            for (int j = 0; j < POINT_REPEAT; j++) {
+                if (debrisHistory.size() >= GRAPH_HISTORY_SIZE) debrisHistory.pollFirst();
+                debrisHistory.addLast(averageDensity);
+            }
+            lastAverageDensity = averageDensity;
         }
 
-        ImGui.plotLines("Avg Debris Density", historyArray, historyArray.length, 0,
-                "density", 0f, 30f, new ImVec2(400, 100));
+        // Fill remaining space with last known value to keep animation flowing
+        while (debrisHistory.size() < GRAPH_HISTORY_SIZE) {
+            debrisHistory.addLast(lastAverageDensity);
+        }
 
-        ImGui.end();
+        // Copy to array for ImGui
+        float[] historyArray = new float[debrisHistory.size()];
+        int i = 0;
+        for (Float f : debrisHistory) historyArray[i++] = f;
+
+        // Plot using full content width
+        float graphWidth = ImGui.getContentRegionAvailX();
+        ImGui.plotLines("##DebrisDensity", historyArray, historyArray.length, 0,
+                "Debris Density (dynamic)", 0f, 30f, new ImVec2(graphWidth, 100));
     }
 }
