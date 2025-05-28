@@ -2,9 +2,16 @@ package unblonded.packets.imgui;
 
 import imgui.*;
 import imgui.flag.*;
+import imgui.type.ImBoolean;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 import unblonded.packets.cfg;
+import unblonded.packets.cheats.AirUnderCheck;
 import unblonded.packets.cheats.PlayerTracker;
 import unblonded.packets.util.BlockColor;
+import unblonded.packets.util.Color;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,16 +20,15 @@ public class Menu {
     private static List<PlayerTracker.PlayerInfo> frozenPlayerList = null;
 
     public static void render() {
-        //if (!cfg.showAll) return;
+        if (!cfg.showAll) return;
 
         float pulse_speed = 3.5f;
         float pulse = (float) (0.5f + 0.5f * Math.sin((ImGui.getTime()) * pulse_speed));
-        float pulse_alt = (float) (0.5f + 0.5f * Math.cos(ImGui.getTime() * pulse_speed * 0.8f));
         ImVec4 neon_pink = new ImVec4(1.0f, 0.1f, 0.6f, 1.0f);
         ImVec4 neon_blue = new ImVec4(0.1f, 0.9f, 1.0f, 1.0f);
         ImVec4 neon_purple = new ImVec4(0.7f, 0.3f, 1.0f, 1.0f);
 
-        if (true) {
+        if (cfg.showMenu) {
             ImGui.pushStyleColor(ImGuiCol.Border, new ImVec4(
                     neon_purple.x * pulse,
                     neon_purple.y * pulse,
@@ -88,7 +94,7 @@ public class Menu {
                     ImGui.sameLine();
                     if (ImGui.button(icons.GEARS + "##advesp")) cfg.advEspcfg.set(!cfg.advEspcfg.get());
 
-                    ImGui.checkbox(icons.IMAGE + " Show Background Effects", cfg.backgroundFx);
+                    //ImGui.checkbox(icons.IMAGE + " Show Background Effects", cfg.backgroundFx);
 
                     ImGui.checkbox(icons.STAR + " Show Cosmic Crosshair", cfg.nightFx);
                     ImGui.sameLine();
@@ -106,7 +112,7 @@ public class Menu {
                     ImGui.sameLine();
                     if (ImGui.button(icons.GEARS + "##autodc")) cfg.autoDccfg.set(!cfg.autoDccfg.get());
 
-                    ImGui.checkbox(icons.DOLLAR_SIGN + " Auto Sell", cfg.autoSell);
+                    ImGui.checkbox(icons.MONEY_CHECK_DOLLAR + " Auto Sell", cfg.autoSell);
                     ImGui.sameLine();
                     if (ImGui.button(icons.GEARS + "##autosell")) cfg.autoSellcfg.set(!cfg.autoSellcfg.get());
 
@@ -128,7 +134,7 @@ public class Menu {
                     ImGui.sameLine();
                     if (ImGui.button(icons.GEARS + "##digsafety")) cfg.checkPlayerAirSafetycfg.set(!cfg.checkPlayerAirSafetycfg.get());
 
-                    ImGui.checkbox(icons.ROUTE + " Straight Tunnel", cfg.forwardTunnel);
+                    //ImGui.checkbox(icons.ROUTE + " Straight Tunnel", cfg.forwardTunnel);
 
                     ImGui.checkbox(icons.SEEDLING + " Seed-Ray", cfg.oreSim);
                     ImGui.sameLine();
@@ -203,7 +209,10 @@ public class Menu {
 
             if (cfg.chatFiltercfg.get()) {
                 ImGui.begin("Chat Filter", cfg.chatFiltercfg);
-                if (cfg.filterMode != 0) ImGui.text("Block Chat If: ");
+                if (cfg.filterMode > 0) ImGui.text("Block Chat If: ");
+
+                if (cfg.filterMode < 0 || cfg.filterMode >= cfg.chatFilterItems.length) cfg.filterMode = 0;
+
                 if (ImGui.beginCombo("Filter Mode", cfg.chatFilterItems[cfg.filterMode])) {
                     for (int n = 0; n < cfg.chatFilterItems.length; n++) {
                         boolean isSelected = (cfg.filterMode == n);
@@ -213,7 +222,7 @@ public class Menu {
                     ImGui.endCombo();
                 }
 
-                if (cfg.filterMode != 0)
+                if (cfg.filterMode > 0)
                     ImGui.inputText("Message", cfg.blockMsg);
                 ImGui.end();
             }
@@ -221,8 +230,8 @@ public class Menu {
             if (cfg.autoDccfg.get()) {
                 ImGui.begin("Auto Disconnect", cfg.autoDccfg);
                 ImGui.text("Player Proximity Condition");
-                ImGui.inputFloat("##prox", cfg.autoDcCondition, 0, 0);
-                if (ImGui.button(cfg.autoDcPrimed ? "Primed, Disconnect Ready" : "Not Primed!")) cfg.autoDcPrimed = !cfg.autoDcPrimed;
+                ImGui.inputFloat("##prox", cfg.autoDcProximity, 0, 0);
+                if (ImGui.button(cfg.autoDcPrimed.get() ? "Primed, Disconnect Ready" : "Not Primed!")) cfg.autoDcPrimed.set(!cfg.autoDcPrimed.get());
                 ImGui.end();
             }
 
@@ -254,26 +263,15 @@ public class Menu {
                 ImGui.pushStyleColor(ImGuiCol.WindowBg, new ImVec4(0.05f, 0.03f, 0.08f, 0.95f));
                 ImGui.begin("Seed-Ray Config", cfg.oreSimcfg);
 
-                ImDrawList draw_list = ImGui.getWindowDrawList();
-                ImVec2 p_min = ImGui.getWindowPos();
-                ImVec2 p_max = new ImVec2(p_min.x + ImGui.getWindowWidth(), p_min.y + ImGui.getWindowHeight());
-                for (float y = p_min.y; y < p_max.y; y += 3.0f) {
-                    draw_list.addLine(
-                            new ImVec2(p_min.x, y),
-                            new ImVec2(p_max.x, y),
-                            ImGui.colorConvertFloat4ToU32(0, 255, 255, (10 + (int)(5 * pulse)))
-                    );
-                }
-
                 ImGui.textColored(neon_blue, "Seed-Ray is " + (cfg.oreSim.get() ? "enabled" : "disabled"));
-                if (cfg.oreSimDistance > 8)
+                if (cfg.oreSimDistance[0] > 8)
                     ImGui.textColored(neon_pink, "Warning: High render distance may use lots of CPU");
 
                 // Animated slider
                 ImGui.pushStyleColor(ImGuiCol.FrameBg, new ImVec4(0.12f, 0.08f, 0.18f, 0.8f));
                 ImGui.pushStyleColor(ImGuiCol.FrameBgHovered, new ImVec4(0.18f, 0.12f, 0.24f, 0.8f));
                 ImGui.pushStyleColor(ImGuiCol.SliderGrab, neon_purple);
-                ImGui.sliderInt("Render Distance", new int[]{cfg.oreSimDistance}, 0, 32);
+                ImGui.sliderInt("Render Distance", cfg.oreSimDistance, 0, 32);
                 ImGui.popStyleColor(3);
 
                 ImGui.inputScalar("Seed", cfg.oreSimSeed);
@@ -295,9 +293,10 @@ public class Menu {
             }
 
             if (cfg.checkPlayerAirSafetycfg.get()) {
-                ImGui.begin("Player Dig Safety", cfg.checkPlayerAirSafetycfg);
+                ImGui.begin("Player Dig Safety");
                 ImGui.text("Player Dig Safety is " + (cfg.checkPlayerAirSafety.get() ? "enabled" : "disabled"));
                 ImGui.checkbox("Show Status In-Game", cfg.isPlayerAirSafeShowStatus);
+
                 ImGui.end();
             }
 
@@ -311,21 +310,33 @@ public class Menu {
                 ImGui.sliderInt("Search Time (sec)", cfg.espSearchTime, 0, 20);
 
                 ImGui.checkbox("Draw Blocks", cfg.drawBlocks);
-                if (cfg.drawBlocks) {
-                    ImGui.checkbox("Draw Tracers", cfg.drawBlockTracer);
-                }
+                if (cfg.drawBlocks.get()) ImGui.checkbox("Draw Tracers", cfg.drawBlockTracer);
 
                 // Add new block input
-                ImGui.inputText("Block Name", cfg.blockName, ImGuiInputTextFlags.None);
+                ImGui.inputText("Block Name", cfg.blockName);
                 ImGui.colorEdit4("Block Color", cfg.blockColor);
 
                 if (ImGui.button("Add Block to ESP")) {
-                    //boolean exists = cfg.espBlockList.stream()
-                            //.anyMatch(block -> block.name.equals(cfg.blockName.get()));
+                    String blockName = cfg.blockName.get().trim();
 
-                    //if (!exists) {
-                        //cfg.espBlockList.add(new BlockColor(cfg.blockName.get(), cfg.blockColor.clone(), true));
-                    //}
+                    if (!blockName.isEmpty()) {
+                        Identifier blockId = Identifier.tryParse(blockName.contains(":") ? blockName : "minecraft:" + blockName);
+                        if (blockId != null) {
+                            Block block = Registries.BLOCK.get(blockId);
+
+                            if (!block.equals(Blocks.AIR)) {
+                                boolean exists = cfg.espBlockList.stream()
+                                        .anyMatch(blockColor -> blockColor.getBlock().equals(block));
+
+                                if (!exists) {
+                                    cfg.espBlockList.add(new BlockColor(block, new Color(cfg.blockColor), true));
+                                    cfg.blockName.set("");
+                                }
+                            } else {
+                                System.out.println("Invalid block name: " + blockName);
+                            }
+                        }
+                    }
                 }
 
                 ImGui.separator();
@@ -333,18 +344,35 @@ public class Menu {
                 ImGui.beginChild("BlockListChild", 0, 150, true);
 
                 for (int i = 0; i < cfg.espBlockList.size(); i++) {
-                    BlockColor block = cfg.espBlockList.get(i);
+                    BlockColor blockColor = cfg.espBlockList.get(i);
                     ImGui.pushID(i);
 
-                    ImGui.checkbox("##enabled", block.isEnabled());
+                    // Checkbox for enable/disable
+                    ImBoolean enabled = new ImBoolean(blockColor.isEnabled());
+                    if (ImGui.checkbox("##enabled", enabled)) {
+                        blockColor.setEnabled(enabled.get());
+                    }
+
                     ImGui.sameLine();
-                    ImGui.colorEdit4("##color", block.getColorF(), ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.NoLabel);
+
+                    // Color editor
+                    float[] color = blockColor.getColorF();
+                    if (ImGui.colorEdit4("##color", color, ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.NoLabel)) {
+                        blockColor.setColor(new Color(color[0], color[1], color[2], color[3]));
+                    }
+
                     ImGui.sameLine();
-                    ImGui.textUnformatted(block.getBlock().toString());
+
+                    // Block name display
+                    String blockName = Registries.BLOCK.getId(blockColor.getBlock()).toString();
+                    ImGui.textUnformatted(blockName);
+
                     ImGui.sameLine(ImGui.getWindowWidth() - 120);
+
+                    // Remove button
                     if (ImGui.smallButton("Remove")) {
                         cfg.espBlockList.remove(i);
-                        i--;
+                        i--; // Adjust index after removal
                     }
 
                     ImGui.popID();
@@ -355,7 +383,7 @@ public class Menu {
             }
         }
 
-        if (cfg.storageScancfg.get() || (cfg.storageScanShow && cfg.storageScanShowInGui)) {
+        if (cfg.storageScancfg.get() || (cfg.storageScanShow && cfg.storageScanShowInGui.get())) {
             if (!cfg.showMenu) cfg.storageScancfg.set(false);
             ImGui.begin("Storage Scan", cfg.storageScancfg);
             ImGui.text("Storage Scan is " + (cfg.storageScan.get() ? "enabled" : "disabled"));
@@ -430,9 +458,21 @@ public class Menu {
             ImGui.end();
         }
 
-        if (cfg.checkPlayerAirSafety.get() && cfg.isPlayerAirSafeShowStatus) {
+        if (cfg.checkPlayerAirSafety.get() && cfg.isPlayerAirSafeShowStatus.get()) {
+            // Update safety status
+            AirUnderCheck.checkSafety();
+
             ImGui.begin("Dig Safety");
-            ImGui.text(cfg.isPlayerAirSafe);
+
+            // Add color coding for better visibility
+            if (!AirUnderCheck.isSafe)
+                ImGui.textColored(0.0f, 1.0f, 0.0f, 1.0f, "Status: SAFE");
+            else
+                ImGui.textColored(1.0f, 0.0f, 0.0f, 1.0f, "Status: DANGER!");
+
+            ImGui.sameLine();
+            ImGui.text(AirUnderCheck.playerAirSafety);
+
             ImGui.end();
         }
 

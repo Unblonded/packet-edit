@@ -27,9 +27,8 @@ public class ImGuiManager {
         ImGui.createContext();
         ImGuiIO io = ImGui.getIO();
 
-        io.setIniFilename(null);
+        io.setIniFilename("menu.ini");
         io.addConfigFlags(ImGuiConfigFlags.NavEnableKeyboard);
-        io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
         io.setConfigViewportsNoTaskBarIcon(true);
 
         imGuiImplGlfw = new ImGuiImplGlfw();

@@ -25,11 +25,11 @@ public class AirUnderCheck {
         BlockState blockStateUnderBlockUnderPlayer = player.getWorld().getBlockState(blockUnderBlockUnderPlayer);
 
         boolean notAir = blockStateUnderBlockUnderPlayer.getBlock() != Blocks.AIR &&
-                         blockStateUnderBlockUnderPlayer.getBlock() != Blocks.LAVA;
+                blockStateUnderBlockUnderPlayer.getBlock() != Blocks.LAVA;
         isSafe = !notAir;
         String state = notAir ? "Yes" : "No";
 
-        playerAirSafety = ("Safe? -> "+ state + " | Y -> " + (int)player.getY());
+        playerAirSafety = (" | Y -> " + (int)player.getY());
         return state;
     }
 }

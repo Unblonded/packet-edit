@@ -35,12 +35,19 @@ public class util {
         AutoAnchor.setState(cfg.autoAnchor.get());
         AutoTotem.setState(cfg.autoTotem.get(), cfg.autoTotemDelay[0], cfg.autoTotemHumanity[0]);
         AutoSell.setState(cfg.triggerAutoSell, cfg.autoSellDelay[0], cfg.autoSellPrice, cfg.autoSellEndpoints);
-        AutoDisconnect.setState(cfg.autoDcPrimed, cfg.autoDcProximity);
+        AutoDisconnect.setState(cfg.autoDcPrimed.get(), cfg.autoDcProximity.get());
         AimAssist.setState(cfg.aimAssistToggle.get());
         AimAssist.applySettings(cfg.aimAssistRange[0], cfg.aimAssistFov[0], cfg.aimAssistSmoothness[0], cfg.aimAssistMinSpeed[0], cfg.aimAssistMaxSpeed[0], cfg.aimAssistVisibility, cfg.aimAssistUpdateRate[0]);
         InventoryScanner.setState(cfg.storageScan, cfg.storageScanSearch, cfg.storageScanColor);
         CrystalSpam.setState(cfg.crystalSpam.get(), cfg.crystalSpamSearchRadius[0], cfg.crystalSpamBreakDelay[0]);
         SelfCrystal.setState(cfg.selfCrystal.get());
+
+        if (cfg.oreSim.get()) {
+            OreSimulator.setWorldSeed(cfg.oreSimSeed.get());
+            OreSimulator.setHorizontalRadius(cfg.oreSimDistance[0]);
+        }
+
+        if (cfg.checkPlayerAirSafety.get()) AirUnderCheck.checkSafety();
     }
 
     public static void updateOreSim(MinecraftClient client) {

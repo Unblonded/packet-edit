@@ -1,9 +1,10 @@
 package unblonded.packets.imgui;
 
-import imgui.ImGui;
-import imgui.ImGuiStyle;
-import imgui.ImVec4;
+import imgui.*;
 import imgui.flag.ImGuiCol;
+import unblonded.packets.cfg;
+
+import java.util.Random;
 
 public class ImGuiThemes{
 
@@ -168,6 +169,90 @@ public class ImGuiThemes{
         style.setColor(ImGuiCol.PlotHistogramHovered, voidPurple.x, voidPurple.y, voidPurple.z, 1.00f);
 
         // FINAL TOUCHES - The polish that makes it shine
-        style.setAlpha(0.97f);  // Enhanced transparency for that premium holographic feel
+        style.setAlpha(0.97f);
+    }
+
+    public static void cosmicCrosshair() {
+        float time = (float) ImGui.getTime();
+        ImDrawList drawList = ImGui.getBackgroundDrawList();
+        ImVec2 size = ImGui.getIO().getDisplaySize();
+        ImVec2 center = new ImVec2(size.x / 2.0f, size.y / 2.0f);
+
+        float radius = cfg.nightFxSize[0];
+        float rotation = time * 1.2f;
+
+        for (int ring = 0; ring < 5; ring++) {
+            float ringRadius = radius * (0.4f + ring * 0.15f);
+            float ringAlpha = 0.8f - ring * 0.15f;
+            float ringPulse = 0.7f + 0.3f * (float) Math.sin(time * 3.0f + ring);
+
+            float hue = 0.28f + 0.3f * ((float) Math.sin(time + ring * 0.5f) * 0.5f + 0.5f);
+            float[] hsv = {hue, 0.9f, 1.0f};
+            float[] rgb = new float[3];
+            ImGui.colorConvertHSVtoRGB(hsv, rgb);
+            float r = rgb[0], g = rgb[1], b = rgb[2];
+
+            final int segments = 36;
+            for (int i = 0; i < segments; i++) {
+                float angle1 = rotation + 2.0f * (float) Math.PI * i / segments;
+                float angle2 = rotation + 2.0f * (float) Math.PI * (i + 1) / segments;
+                float wave = 1.0f + 0.15f * (float) Math.sin(angle1 * 6.0f + time * 4.0f);
+
+                ImVec2 p1 = new ImVec2(
+                        center.x + (float) Math.cos(angle1) * ringRadius * wave,
+                        center.y + (float) Math.sin(angle1) * ringRadius * wave
+                );
+                ImVec2 p2 = new ImVec2(
+                        center.x + (float) Math.cos(angle2) * ringRadius * wave,
+                        center.y + (float) Math.sin(angle2) * ringRadius * wave
+                );
+
+                int segmentColor = ImGui.getColorU32(
+                        r, g, b, ringAlpha * ringPulse * 0.95f
+                );
+                drawList.addLine(p1.x, p1.y, p2.x, p2.y, segmentColor, 2.0f);
+            }
+        }
+
+        final int rays = 8;
+        for (int i = 0; i < rays; i++) {
+            float rayAngle = rotation * 0.5f + 2.0f * (float) Math.PI * i / rays;
+            float rayLength = radius * 1.5f * (0.5f + 0.5f * (float) Math.sin(time * 2.0f + i));
+            ImVec2 rayEnd = new ImVec2(
+                    center.x + (float) Math.cos(rayAngle) * rayLength,
+                    center.y + (float) Math.sin(rayAngle) * rayLength
+            );
+
+            float rayHue = 0.3f + 0.1f * (float) Math.sin(time * 2.0f + i);
+            float[] hsv = {rayHue, 0.9f, 1.0f};
+            float[] rgb = new float[3];
+            ImGui.colorConvertHSVtoRGB(hsv, rgb);
+            float r = rgb[0], g = rgb[1], b = rgb[2];
+            float rayAlpha = 0.7f + 0.3f * (float) Math.sin(time * 5.0f + i);
+
+            int rayColor = ImGui.getColorU32(
+                    r, g, b, rayAlpha * 0.95f
+            );
+            drawList.addLine(center.x, center.y, rayEnd.x, rayEnd.y, rayColor, 2.5f);
+        }
+
+        if (cfg.nightFxCrosshairLines.get()) {
+            final float crossLength = radius * 0.7f;
+            int crossColor = ImGui.getColorU32(1.0f, 1.0f, 1.0f, 0.95f);
+
+            float horizontalPulse = 0.8f + 0.2f * (float) Math.sin(time * 4.0f);
+            drawList.addLine(
+                    center.x - crossLength * horizontalPulse, center.y,
+                    center.x + crossLength * horizontalPulse, center.y,
+                    crossColor, 2.0f
+            );
+
+            float verticalPulse = 0.8f + 0.2f * (float) Math.sin(time * 4.0f + 0.5f);
+            drawList.addLine(
+                    center.x, center.y - crossLength * verticalPulse,
+                    center.x, center.y + crossLength * verticalPulse,
+                    crossColor, 2.0f
+            );
+        }
     }
 }

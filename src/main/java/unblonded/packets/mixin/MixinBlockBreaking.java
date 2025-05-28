@@ -21,7 +21,7 @@ public class MixinBlockBreaking {
     private void onAttackBlock(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
         if (client.player == null) return;
         BlockPos playerPos = client.player.getBlockPos().down();
-        if (AirUnderCheck.isSafe && pos.equals(playerPos) && cfg.checkPlayerSafety) {
+        if (AirUnderCheck.isSafe && pos.equals(playerPos) && cfg.checkPlayerAirSafety.get()) {
             cir.setReturnValue(false);
             cir.cancel();
         }

@@ -254,7 +254,7 @@ public class ESPOverlayRenderer {
             }
 
             BlockPos currentPos = client.player.getBlockPos();
-            updateOffsetsIfNeeded(cfg.RADIUS);
+            updateOffsetsIfNeeded(cfg.espRadius[0]);
 
             if (shouldStartNewSearch(currentPos)) {
                 startNewSearch(currentPos);
@@ -264,7 +264,7 @@ public class ESPOverlayRenderer {
         });
 
         WorldRenderEvents.AFTER_ENTITIES.register(context -> {
-            if (cfg.drawBlocks) {
+            if (cfg.drawBlocks.get()) {
                 Map<Color, List<BlockPos>> colorGroups = new HashMap<>();
 
                 // Use a local copy to avoid concurrent modification issues
@@ -291,7 +291,7 @@ public class ESPOverlayRenderer {
                     }
                 }
 
-                if (cfg.drawBlockTracer) {
+                if (cfg.drawBlockTracer.get()) {
                     try {
                         for (Map.Entry<Color, List<BlockPos>> entry : colorGroups.entrySet()) {
                             if (entry.getKey() != null && !entry.getValue().isEmpty()) {
@@ -351,8 +351,8 @@ public class ESPOverlayRenderer {
     private static boolean shouldStartNewSearch(BlockPos currentPos) {
         if (lastSearchPos == null) return true;
         long timeSinceLast = System.currentTimeMillis() - lastSearchTime;
-        return timeSinceLast > cfg.SEARCH_INTERVAL ||
-                currentPos.getSquaredDistance(lastSearchPos) > ((double) cfg.RADIUS /2) * ((double) cfg.RADIUS /2);
+        return timeSinceLast > cfg.espSearchTime[0] ||
+                currentPos.getSquaredDistance(lastSearchPos) > ((double) cfg.espRadius[0] /2) * ((double) cfg.espRadius[0] /2);
     }
 
     private static void startNewSearch(BlockPos currentPos) {
@@ -374,7 +374,7 @@ public class ESPOverlayRenderer {
         // Check if batch is still valid after taking snapshot
         if (currentBatch >= offsetSnapshot.size()) return;
 
-        int endIndex = Math.min(currentBatch + cfg.BATCH_SIZE, offsetSnapshot.size());
+        int endIndex = Math.min(currentBatch + cfg.espBatchSize[0] * 1000, offsetSnapshot.size());
         ClientWorld world = client.world;
         if (world == null) return;
 
