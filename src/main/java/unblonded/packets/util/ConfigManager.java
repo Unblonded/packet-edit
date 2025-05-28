@@ -6,6 +6,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import imgui.type.*;
 import net.minecraft.client.MinecraftClient;
+import unblonded.packets.Packetedit;
 import unblonded.packets.cfg;
 import unblonded.packets.util.BlockColor;
 
@@ -18,7 +19,6 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class ConfigManager {
-    private static final String CONFIG_DIR = "packet-edit";
     private static final String CONFIG_FILE = "config.json";
 
     // Create Gson with custom Optional adapter
@@ -74,8 +74,7 @@ public class ConfigManager {
     public static void saveConfig() {
         try {
             // Get .minecraft directory
-            File minecraftDir = MinecraftClient.getInstance().runDirectory;
-            File configDir = new File(minecraftDir, CONFIG_DIR);
+            File configDir = Packetedit.workDir();
 
             // Create directory if it doesn't exist
             if (!configDir.exists()) {
@@ -152,8 +151,7 @@ public class ConfigManager {
 
     public static void loadConfig() {
         try {
-            File minecraftDir = MinecraftClient.getInstance().runDirectory;
-            File configDir = new File(minecraftDir, CONFIG_DIR);
+            File configDir = Packetedit.workDir();
             File configFile = new File(configDir, CONFIG_FILE);
 
             if (!configFile.exists()) {
@@ -243,8 +241,7 @@ public class ConfigManager {
 
     public static void saveConfigAs(String fileName) {
         try {
-            File minecraftDir = MinecraftClient.getInstance().runDirectory;
-            File configDir = new File(minecraftDir, CONFIG_DIR);
+            File configDir = Packetedit.workDir();
 
             if (!configDir.exists()) {
                 configDir.mkdirs();
@@ -316,8 +313,7 @@ public class ConfigManager {
 
     public static void loadConfigFrom(String fileName) {
         try {
-            File minecraftDir = MinecraftClient.getInstance().runDirectory;
-            File configDir = new File(minecraftDir, CONFIG_DIR);
+            File configDir = Packetedit.workDir();
 
             if (!fileName.endsWith(".json")) {
                 fileName += ".json";
@@ -410,8 +406,7 @@ public class ConfigManager {
     public static List<String> getAvailableConfigs() {
         List<String> configs = new ArrayList<>();
         try {
-            File minecraftDir = MinecraftClient.getInstance().runDirectory;
-            File configDir = new File(minecraftDir, CONFIG_DIR);
+            File configDir = Packetedit.workDir();
 
             if (configDir.exists()) {
                 File[] files = configDir.listFiles((dir, name) -> name.endsWith(".json"));

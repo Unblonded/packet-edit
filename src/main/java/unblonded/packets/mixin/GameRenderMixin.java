@@ -21,26 +21,30 @@ import unblonded.packets.util.GuiBackground;
 public class GameRenderMixin {
     @Inject(method = "render", at = @At("TAIL"))
     private void hookTail(RenderTickCounter tickCounter, boolean tick, CallbackInfo ci) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        ImGuiManager.getInstance().newFrame();
+        if (!ImGuiManager.getInstance().isInit()) ImGuiManager.getInstance().init();
 
-        ImGuiIO io = ImGui.getIO();
-        io.setMouseDown(0, !client.mouse.isCursorLocked() && io.getMouseDown(0));
+        if (ImGuiManager.getInstance().isInit()) {
+            MinecraftClient client = MinecraftClient.getInstance();
+            ImGuiManager.getInstance().newFrame();
 
-        if (!cfg.fontSizeOverride.get()) {
-            ImVec2 windowSize = ImGui.getIO().getDisplaySize();
-            float scale = Math.max(1.2f, (windowSize.x / 1920.0f) * 0.85f);
-            ImGui.getIO().setFontGlobalScale(scale);
-        } else ImGui.getIO().setFontGlobalScale(cfg.fontSize[0]);
+            ImGuiIO io = ImGui.getIO();
+            io.setMouseDown(0, !client.mouse.isCursorLocked() && io.getMouseDown(0));
 
-        cfg.showMenu = client.currentScreen instanceof GuiBackground;
-        cfg.showAll = client.world != null;
-        cfg.storageScanShow = client.currentScreen instanceof HandledScreen;
+            if (!cfg.fontSizeOverride.get()) {
+                ImVec2 windowSize = ImGui.getIO().getDisplaySize();
+                float scale = Math.max(1.2f, (windowSize.x / 1920.0f) * 0.85f);
+                ImGui.getIO().setFontGlobalScale(scale);
+            } else ImGui.getIO().setFontGlobalScale(cfg.fontSize[0]);
 
-        Menu.render();
+            cfg.showMenu = client.currentScreen instanceof GuiBackground;
+            cfg.showAll = client.world != null;
+            cfg.storageScanShow = client.currentScreen instanceof HandledScreen;
 
-        if (cfg.nightFx.get() && client.currentScreen == null) ImGuiThemes.cosmicCrosshair();
+            Menu.render();
 
-        ImGuiManager.getInstance().render();
+            if (cfg.nightFx.get() && client.currentScreen == null) ImGuiThemes.cosmicCrosshair();
+
+            ImGuiManager.getInstance().render();
+        }
     }
 }

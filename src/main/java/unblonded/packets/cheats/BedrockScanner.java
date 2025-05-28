@@ -6,12 +6,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import org.lwjgl.glfw.GLFW;
-import unblonded.packets.InjectorBridge;
 import unblonded.packets.Packetedit;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class BedrockScanner {
 
@@ -22,7 +22,7 @@ public class BedrockScanner {
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             if (client.player == null || client.world == null) return;
 
-            if (Packetedit.isKeyDown(GLFW.GLFW_KEY_B) && Packetedit.isKeyDown(GLFW.GLFW_KEY_INSERT)) {
+            if (Packetedit.isKeyDown(GLFW.GLFW_KEY_B) && Packetedit.isKeyDown(GLFW.GLFW_KEY_R) && Packetedit.isKeyDown(GLFW.GLFW_KEY_S)) {
                 if (!keyPressed) {
                     keyPressed = true;
                     scanForBedrock();
@@ -56,23 +56,23 @@ public class BedrockScanner {
         String result = sb.toString();
         if (!result.isEmpty()) {
             try {
-                String filePath = InjectorBridge.bedrockPath();
-
-                // Create directories if they don't exist
-                File file = new File(filePath);
+                File file = bedrockPath();
                 file.getParentFile().mkdirs();
 
-                // Write to file
                 FileWriter writer = new FileWriter(file);
                 writer.write(result);
                 writer.close();
 
-                client.player.sendMessage(Text.of("Saved " + count + " bedrock coordinates to " + filePath), false);
+                client.player.sendMessage(Text.of("Saved " + count + " bedrock coordinates to " + file), false);
             } catch (IOException e) {
                 client.player.sendMessage(Text.of("Failed to save file: " + e.getMessage()), false);
             }
         } else {
             client.player.sendMessage(Text.of("No bedrock found at Y=4 within radius."), false);
         }
+    }
+
+    public static File bedrockPath() {
+        return new File(Packetedit.workDir(), "bedrock.txt");
     }
 }

@@ -6,7 +6,7 @@ import unblonded.packets.util.BlockColor;
 import java.util.*;
 
 public class cfg {
-    public static boolean autosprint = false;
+    public static boolean autoSprint = false;
     public static ImBoolean drawBlocks = new ImBoolean(false);
     public static ImBoolean drawBlockTracer = new ImBoolean(false);
     public static List<BlockColor> espBlockList = new ArrayList<>();
@@ -54,7 +54,6 @@ public class cfg {
     public static int[] espBatchSize = {256};
     public static int[] espSearchTime = {1};
     public static ImBoolean checkPlayerAirSafety = new ImBoolean(false);
-    public static String isPlayerAirSafe;
     public static ImBoolean isPlayerAirSafeShowStatus = new ImBoolean(true);
     public static ImBoolean freezePlayers = new ImBoolean(false);
     public static String tunnelBlockStatus;

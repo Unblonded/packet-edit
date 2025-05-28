@@ -112,4 +112,6 @@ public class ImGuiManager {
 
         } catch (IOException e) { e.printStackTrace(); }
     }
+
+    public boolean isInit() { return initialized; }
 }

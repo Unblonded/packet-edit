@@ -6,7 +6,7 @@ import unblonded.packets.cfg;
 
 public class AutoSprint {
     public static void run() {
-        if (cfg.autosprint) {
+        if (cfg.autoSprint) {
             PlayerEntity player = MinecraftClient.getInstance().player;
             if (player == null) return;
             if(player.horizontalCollision || player.isSneaking()) return;

@@ -26,7 +26,6 @@ public class PreLaunch implements PreLaunchEntrypoint {
                 String latest = fetchLatestVersion();
                 if (isOutdated(getCurrentVersion(), latest)) {
                     System.out.println("[PacketEdit] New version " + latest + " available. Updating...");
-                    InjectorBridge.runExecutable("updater.exe");
                     System.exit(0);
                 } else {
                     System.out.println("[PacketEdit] Already up to date.");
@@ -50,8 +49,9 @@ public class PreLaunch implements PreLaunchEntrypoint {
     private static final String MOD_EXTENSION = ".jar";
 
     private static String getCurrentVersion() {
-        Path MOD_DIRECTORY = Paths.get(System.getenv("APPDATA"), ".minecraft", "mods");
-        File[] files = MOD_DIRECTORY.toFile().listFiles((dir, name) ->
+        File workDir = MinecraftClient.getInstance().runDirectory;
+        File MOD_DIRECTORY = new File(workDir, "mods");
+        File[] files = MOD_DIRECTORY.listFiles((dir, name) ->
                 name.startsWith(MOD_NAME_PREFIX) && name.endsWith(MOD_EXTENSION));
 
         if (files == null || files.length == 0) {
