@@ -78,19 +78,20 @@ public class cfg {
     public static float[] nightFxSize = {20.f};
     public static ImBoolean nightFxCrosshairLines = new ImBoolean(false);
 
-    public static ImBoolean autoCrystalcfg = new ImBoolean(false);
-    public static ImBoolean advEspcfg = new ImBoolean(false);
-    public static ImBoolean checkPlayerAirSafetycfg = new ImBoolean(false);
-    public static ImBoolean autoSellcfg = new ImBoolean(false);
-    public static ImBoolean autoDccfg = new ImBoolean(false);
-    public static ImBoolean oreSimcfg = new ImBoolean(false);
-    public static ImBoolean autoTotemcfg = new ImBoolean(false);
-    public static ImBoolean chatFiltercfg = new ImBoolean(false);
-    public static ImBoolean fontSizecfg = new ImBoolean(false);
-    public static ImBoolean aimAssistcfg = new ImBoolean(false);
-    public static ImBoolean storageScancfg = new ImBoolean(false);
-    public static ImBoolean crystalSpamcfg = new ImBoolean(false);
-    public static ImBoolean nightFxcfg = new ImBoolean(false);
-    public static ImBoolean autoAnchorcfg = new ImBoolean(false);
-    public static ImBoolean selfCrystalcfg = new ImBoolean(false);
+    public static ImBoolean autoCrystalCfg = new ImBoolean(false);
+    public static ImBoolean advEspCfg = new ImBoolean(false);
+    public static ImBoolean checkPlayerAirSafetyCfg = new ImBoolean(false);
+    public static ImBoolean autoSellCfg = new ImBoolean(false);
+    public static ImBoolean autoDcCfg = new ImBoolean(false);
+    public static ImBoolean oreSimCfg = new ImBoolean(false);
+    public static ImBoolean autoTotemCfg = new ImBoolean(false);
+    public static ImBoolean chatFilterCfg = new ImBoolean(false);
+    public static ImBoolean fontSizeCfg = new ImBoolean(false);
+    public static ImBoolean aimAssistCfg = new ImBoolean(false);
+    public static ImBoolean storageScanCfg = new ImBoolean(false);
+    public static ImBoolean crystalSpamCfg = new ImBoolean(false);
+    public static ImBoolean nightFxCfg = new ImBoolean(false);
+    public static ImBoolean autoAnchorCfg = new ImBoolean(false);
+    public static ImBoolean selfCrystalCfg = new ImBoolean(false);
+
 }

@@ -56,27 +56,27 @@ public class Menu {
                 {
                     ImGui.checkbox(icons.GEM + " Auto Crystal", cfg.autoCrystal);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##crystal")) cfg.autoCrystalcfg.set(!cfg.autoCrystalcfg.get());
+                    if (ImGui.button(icons.GEARS + "##crystal")) cfg.autoCrystalCfg.set(!cfg.autoCrystalCfg.get());
 
                     ImGui.checkbox(icons.SHIELD_HALVED + " Auto Totem", cfg.autoTotem);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##totem")) cfg.autoTotemcfg.set(!cfg.autoTotemcfg.get());
+                    if (ImGui.button(icons.GEARS + "##totem")) cfg.autoTotemCfg.set(!cfg.autoTotemCfg.get());
 
                     ImGui.checkbox(icons.BOMB + " Auto Anchor", cfg.autoAnchor);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##anchor")) cfg.autoAnchorcfg.set(!cfg.autoAnchorcfg.get());
+                    if (ImGui.button(icons.GEARS + "##anchor")) cfg.autoAnchorCfg.set(!cfg.autoAnchorCfg.get());
 
                     ImGui.checkbox(icons.CROSSHAIRS + " Aim Assist", cfg.aimAssistToggle);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##aimAssist")) cfg.aimAssistcfg.set(!cfg.aimAssistcfg.get());
+                    if (ImGui.button(icons.GEARS + "##aimAssist")) cfg.aimAssistCfg.set(!cfg.aimAssistCfg.get());
 
                     ImGui.checkbox(icons.BOMB + " Crystal Spam", cfg.crystalSpam);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##crystalspam")) cfg.crystalSpamcfg.set(!cfg.crystalSpamcfg.get());
+                    if (ImGui.button(icons.GEARS + "##crystalspam")) cfg.crystalSpamCfg.set(!cfg.crystalSpamCfg.get());
 
                     ImGui.checkbox(icons.BOMB + " Self Crystal", cfg.selfCrystal);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##selfcrystal")) cfg.selfCrystalcfg.set(!cfg.selfCrystalcfg.get());
+                    if (ImGui.button(icons.GEARS + "##selfcrystal")) cfg.selfCrystalCfg.set(!cfg.selfCrystalCfg.get());
 
                     ImGui.endTabItem();
                 }
@@ -86,19 +86,19 @@ public class Menu {
                 {
                     ImGui.checkbox(icons.TEXT_HEIGHT + " Font Size Override", cfg.fontSizeOverride);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##fontsize")) cfg.fontSizecfg.set(!cfg.fontSizecfg.get());
+                    if (ImGui.button(icons.GEARS + "##fontsize")) cfg.fontSizeCfg.set(!cfg.fontSizeCfg.get());
 
                     ImGui.checkbox(icons.USERS + " Show Player List", cfg.displayPlayers);
 
                     ImGui.checkbox(icons.EYE + " Advanced ESP", cfg.advEsp);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##advesp")) cfg.advEspcfg.set(!cfg.advEspcfg.get());
+                    if (ImGui.button(icons.GEARS + "##advesp")) cfg.advEspCfg.set(!cfg.advEspCfg.get());
 
                     //ImGui.checkbox(icons.IMAGE + " Show Background Effects", cfg.backgroundFx);
 
                     ImGui.checkbox(icons.STAR + " Show Cosmic Crosshair", cfg.nightFx);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##crosshair")) cfg.nightFxcfg.set(!cfg.nightFxcfg.get());
+                    if (ImGui.button(icons.GEARS + "##crosshair")) cfg.nightFxCfg.set(!cfg.nightFxCfg.get());
 
                     ImGui.endTabItem();
                 }
@@ -110,19 +110,19 @@ public class Menu {
 
                     ImGui.checkbox(icons.PLUG + " Auto Disconnect", cfg.autoDc);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##autodc")) cfg.autoDccfg.set(!cfg.autoDccfg.get());
+                    if (ImGui.button(icons.GEARS + "##autodc")) cfg.autoDcCfg.set(!cfg.autoDcCfg.get());
 
                     ImGui.checkbox(icons.MONEY_CHECK_DOLLAR + " Auto Sell", cfg.autoSell);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##autosell")) cfg.autoSellcfg.set(!cfg.autoSellcfg.get());
+                    if (ImGui.button(icons.GEARS + "##autosell")) cfg.autoSellCfg.set(!cfg.autoSellCfg.get());
 
                     ImGui.checkbox(icons.COMMENT_SLASH + " Chat Filter", cfg.chatFilter);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##chatfilter")) cfg.chatFiltercfg.set(!cfg.chatFiltercfg.get());
+                    if (ImGui.button(icons.GEARS + "##chatfilter")) cfg.chatFilterCfg.set(!cfg.chatFilterCfg.get());
 
                     ImGui.checkbox(icons.BOX_OPEN + " Storage Scan", cfg.storageScan);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##storagescan")) cfg.storageScancfg.set(!cfg.storageScancfg.get());
+                    if (ImGui.button(icons.GEARS + "##storagescan")) cfg.storageScanCfg.set(!cfg.storageScanCfg.get());
 
                     ImGui.endTabItem();
                 }
@@ -132,13 +132,13 @@ public class Menu {
                 {
                     ImGui.checkbox(icons.HELMET_SAFETY + " Player Dig Safety", cfg.checkPlayerAirSafety);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##digsafety")) cfg.checkPlayerAirSafetycfg.set(!cfg.checkPlayerAirSafetycfg.get());
+                    if (ImGui.button(icons.GEARS + "##digsafety")) cfg.checkPlayerAirSafetyCfg.set(!cfg.checkPlayerAirSafetyCfg.get());
 
                     //ImGui.checkbox(icons.ROUTE + " Straight Tunnel", cfg.forwardTunnel);
 
                     ImGui.checkbox(icons.SEEDLING + " Seed-Ray", cfg.oreSim);
                     ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##oresim")) cfg.oreSimcfg.set(!cfg.oreSimcfg.get());
+                    if (ImGui.button(icons.GEARS + "##oresim")) cfg.oreSimCfg.set(!cfg.oreSimCfg.get());
 
                     ImGui.endTabItem();
                 }
@@ -153,40 +153,40 @@ public class Menu {
             ImGui.popStyleVar();
             ImGui.popStyleColor();
 
-            if (cfg.selfCrystalcfg.get()) {
-                ImGui.begin("Self Crystal", cfg.selfCrystalcfg);
+            if (cfg.selfCrystalCfg.get()) {
+                ImGui.begin("Self Crystal", cfg.selfCrystalCfg);
                 ImGui.text("Self Crystal is " + (cfg.selfCrystal.get() ? "enabled" : "disabled"));
                 ImGui.sliderInt("Delay (ms)", cfg.selfCrystalDelay, 1, 300);
                 ImGui.sliderInt("Humanity (ms)", cfg.selfCrystalHumanity, 1, 100);
                 ImGui.end();
             }
 
-            if (cfg.autoAnchorcfg.get()) {
-                ImGui.begin("Auto Anchor", cfg.autoAnchorcfg);
+            if (cfg.autoAnchorCfg.get()) {
+                ImGui.begin("Auto Anchor", cfg.autoAnchorCfg);
                 ImGui.text("Auto Anchor is " + (cfg.selfCrystal.get() ? "enabled" : "disabled"));
                 ImGui.sliderInt("Delay (ms)", cfg.autoAnchorDelay, 1, 50);
                 ImGui.sliderInt("Humanity (ms)", cfg.autoAnchorHumanity, 1, 50);
                 ImGui.end();
             }
 
-            if (cfg.nightFxcfg.get()) {
-                ImGui.begin("Cosmic Crosshair", cfg.nightFxcfg);
+            if (cfg.nightFxCfg.get()) {
+                ImGui.begin("Cosmic Crosshair", cfg.nightFxCfg);
                 ImGui.text("Cosmic Crosshair is " + (cfg.nightFx.get() ? "enabled" : "disabled"));
                 ImGui.sliderFloat("Size", cfg.nightFxSize, 1.0f, 100.0f);
                 ImGui.checkbox("Show Crosshair Lines", cfg.nightFxCrosshairLines);
                 ImGui.end();
             }
 
-            if (cfg.crystalSpamcfg.get()) {
-                ImGui.begin("Crystal Spam", cfg.crystalSpamcfg);
+            if (cfg.crystalSpamCfg.get()) {
+                ImGui.begin("Crystal Spam", cfg.crystalSpamCfg);
                 ImGui.text("Crystal Spam is " + (cfg.crystalSpam.get() ? "enabled" : "disabled"));
                 ImGui.sliderInt("Search Radius", cfg.crystalSpamSearchRadius, 1, 6);
                 ImGui.sliderInt("Break Delay (ms)", cfg.crystalSpamBreakDelay, 1, 1000);
                 ImGui.end();
             }
 
-            if (cfg.aimAssistcfg.get()) {
-                ImGui.begin("Aim Assist", cfg.aimAssistcfg);
+            if (cfg.aimAssistCfg.get()) {
+                ImGui.begin("Aim Assist", cfg.aimAssistCfg);
                 ImGui.text("Aim Assist is " + (cfg.aimAssistToggle.get() ? "enabled" : "disabled"));
 
                 ImGui.sliderFloat("Range", cfg.aimAssistRange, 1.0f, 20.0f, "%.1f");
@@ -200,15 +200,15 @@ public class Menu {
                 ImGui.end();
             }
 
-            if (cfg.fontSizecfg.get()) {
-                ImGui.begin("Font Size Override", cfg.fontSizecfg);
+            if (cfg.fontSizeCfg.get()) {
+                ImGui.begin("Font Size Override", cfg.fontSizeCfg);
                 ImGui.text("Use a custom font size.");
                 ImGui.sliderFloat("Font Size", cfg.fontSize, 0.25f, 4.0f);
                 ImGui.end();
             }
 
-            if (cfg.chatFiltercfg.get()) {
-                ImGui.begin("Chat Filter", cfg.chatFiltercfg);
+            if (cfg.chatFilterCfg.get()) {
+                ImGui.begin("Chat Filter", cfg.chatFilterCfg);
                 if (cfg.filterMode > 0) ImGui.text("Block Chat If: ");
 
                 if (cfg.filterMode < 0 || cfg.filterMode >= cfg.chatFilterItems.length) cfg.filterMode = 0;
@@ -227,16 +227,16 @@ public class Menu {
                 ImGui.end();
             }
 
-            if (cfg.autoDccfg.get()) {
-                ImGui.begin("Auto Disconnect", cfg.autoDccfg);
+            if (cfg.autoDcCfg.get()) {
+                ImGui.begin("Auto Disconnect", cfg.autoDcCfg);
                 ImGui.text("Player Proximity Condition");
                 ImGui.inputFloat("##prox", cfg.autoDcProximity, 0, 0);
                 if (ImGui.button(cfg.autoDcPrimed.get() ? "Primed, Disconnect Ready" : "Not Primed!")) cfg.autoDcPrimed.set(!cfg.autoDcPrimed.get());
                 ImGui.end();
             }
 
-            if (cfg.autoSellcfg.get()) {
-                ImGui.begin("Auto Sell", cfg.autoSellcfg);
+            if (cfg.autoSellCfg.get()) {
+                ImGui.begin("Auto Sell", cfg.autoSellCfg);
                 ImGui.sliderInt("Delay (ms)", cfg.autoSellDelay, 5, 500);
                 ImGui.inputText("Price", cfg.autoSellPrice);
                 ImGui.text("Endpoints:");
@@ -251,17 +251,17 @@ public class Menu {
                 if (cfg.autoSellEndpoints[1].get() < 1) cfg.autoSellEndpoints[1].set(1);
             }
 
-            if (cfg.autoTotemcfg.get()) {
-                ImGui.begin("Auto Totem", cfg.autoTotemcfg);
+            if (cfg.autoTotemCfg.get()) {
+                ImGui.begin("Auto Totem", cfg.autoTotemCfg);
                 ImGui.text("Auto Totem is " + (cfg.autoTotem.get() ? "enabled" : "disabled"));
                 ImGui.sliderInt("Delay (ms)", cfg.autoTotemDelay, 5, 500);
                 ImGui.sliderInt("Humanity", cfg.autoTotemHumanity, 0, 200);
                 ImGui.end();
             }
 
-            if (cfg.oreSimcfg.get()) {
+            if (cfg.oreSimCfg.get()) {
                 ImGui.pushStyleColor(ImGuiCol.WindowBg, new ImVec4(0.05f, 0.03f, 0.08f, 0.95f));
-                ImGui.begin("Seed-Ray Config", cfg.oreSimcfg);
+                ImGui.begin("Seed-Ray Config", cfg.oreSimCfg);
 
                 ImGui.textColored(neon_blue, "Seed-Ray is " + (cfg.oreSim.get() ? "enabled" : "disabled"));
                 if (cfg.oreSimDistance[0] > 8)
@@ -284,15 +284,15 @@ public class Menu {
                 ImGui.popStyleColor();
             }
 
-            if (cfg.autoCrystalcfg.get()) {
-                ImGui.begin("Auto Crystal", cfg.autoCrystalcfg);
+            if (cfg.autoCrystalCfg.get()) {
+                ImGui.begin("Auto Crystal", cfg.autoCrystalCfg);
                 ImGui.text("Auto Crystal is " + (cfg.autoCrystal.get() ? "enabled" : "disabled"));
                 ImGui.sliderInt("Attack Time (ms)", cfg.crystalAttackTime, 5, 500);
                 ImGui.sliderInt("Place Time (ms)", cfg.crystalPlaceTime, 5, 500);
                 ImGui.end();
             }
 
-            if (cfg.checkPlayerAirSafetycfg.get()) {
+            if (cfg.checkPlayerAirSafetyCfg.get()) {
                 ImGui.begin("Player Dig Safety");
                 ImGui.text("Player Dig Safety is " + (cfg.checkPlayerAirSafety.get() ? "enabled" : "disabled"));
                 ImGui.checkbox("Show Status In-Game", cfg.isPlayerAirSafeShowStatus);
@@ -300,8 +300,8 @@ public class Menu {
                 ImGui.end();
             }
 
-            if (cfg.advEspcfg.get()) {
-                ImGui.begin("Advanced ESP", cfg.advEspcfg);
+            if (cfg.advEspCfg.get()) {
+                ImGui.begin("Advanced ESP", cfg.advEspCfg);
 
                 ImGui.text("ESP Settings:");
 
@@ -383,9 +383,9 @@ public class Menu {
             }
         }
 
-        if (cfg.storageScancfg.get() || (cfg.storageScanShow && cfg.storageScanShowInGui.get())) {
-            if (!cfg.showMenu) cfg.storageScancfg.set(false);
-            ImGui.begin("Storage Scan", cfg.storageScancfg);
+        if (cfg.storageScanCfg.get() || (cfg.storageScanShow && cfg.storageScanShowInGui.get())) {
+            if (!cfg.showMenu) cfg.storageScanCfg.set(false);
+            ImGui.begin("Storage Scan", cfg.storageScanCfg);
             ImGui.text("Storage Scan is " + (cfg.storageScan.get() ? "enabled" : "disabled"));
             ImGui.colorEdit4("Highlight Color", cfg.storageScanColor, ImGuiColorEditFlags.NoInputs);
             ImGui.inputText("Search For", cfg.storageScanSearch);
