@@ -9,12 +9,13 @@ import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import unblonded.packets.cfg;
 import unblonded.packets.cheats.AirUnderCheck;
+import unblonded.packets.cheats.OreSimulator;
 import unblonded.packets.cheats.PlayerTracker;
+import unblonded.packets.render.ESPOverlayRenderer;
 import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Menu {
     private static List<PlayerTracker.PlayerInfo> frozenPlayerList = null;
@@ -263,6 +264,8 @@ public class Menu {
                 ImGui.pushStyleColor(ImGuiCol.WindowBg, new ImVec4(0.05f, 0.03f, 0.08f, 0.95f));
                 ImGui.begin("Seed-Ray Config", cfg.oreSimCfg);
 
+                renderDebrisGraphAnimated();
+
                 ImGui.textColored(neon_blue, "Seed-Ray is " + (cfg.oreSim.get() ? "enabled" : "disabled"));
                 if (cfg.oreSimDistance[0] > 8)
                     ImGui.textColored(neon_pink, "Warning: High render distance may use lots of CPU");
@@ -481,5 +484,39 @@ public class Menu {
             ImGui.text(cfg.tunnelBlockStatus);
             ImGui.end();
         }
+    }
+
+    // Store previous densities to build a time graph
+    private static final int GRAPH_HISTORY_SIZE = 100;
+    private static final Deque<Float> debrisHistory = new ArrayDeque<>();
+
+    public static void renderDebrisGraphAnimated() {
+        ImGui.begin("Debris Density Graph");
+
+        // Calculate total debris and normalize by radius
+        int totalDebris = OreSimulator.chunkDebrisPositions.values().stream()
+                .mapToInt(Set::size)
+                .sum();
+
+        float averageDensity = OreSimulator.horizontalRadius == 0 ? 0 :
+                totalDebris / (float) OreSimulator.horizontalRadius;
+
+        // Keep a moving history buffer
+        if (debrisHistory.size() >= GRAPH_HISTORY_SIZE)
+            debrisHistory.pollFirst();
+
+        debrisHistory.addLast(averageDensity);
+
+        // Convert to float[] for plotting
+        float[] historyArray = new float[debrisHistory.size()];
+        int i = 0;
+        for (Float f : debrisHistory) {
+            historyArray[i++] = f;
+        }
+
+        ImGui.plotLines("Avg Debris Density", historyArray, historyArray.length, 0,
+                "density", 0f, 30f, new ImVec2(400, 100));
+
+        ImGui.end();
     }
 }

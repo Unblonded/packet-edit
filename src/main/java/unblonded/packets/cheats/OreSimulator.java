@@ -41,7 +41,7 @@ public class OreSimulator {
 	static AncientDebrisUtil dataLarge = AncientDebrisUtil.createForFeature(OrePlacedFeatures.ORE_ANCIENT_DEBRIS_LARGE, 7);
 
 	private static long worldSeed;
-	private static int horizontalRadius = 5;
+	public static int horizontalRadius = 5;
 
 	// New: Configuration options
 	private static boolean useConsensusMode = true;
@@ -183,7 +183,6 @@ public class OreSimulator {
 
 		Set<Vec3d> debrisPositions = new HashSet<>();
 
-		processDebrisGeneration(world, random, populationSeed, dataSmall, chunkX, chunkZ, debrisPositions);
 		// Reset RNG state before second generation to prevent drift
 		random.setPopulationSeed(worldSeed, chunkX, chunkZ);
 		processDebrisGeneration(world, random, populationSeed, dataLarge, chunkX, chunkZ, debrisPositions);

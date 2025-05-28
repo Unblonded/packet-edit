@@ -11,33 +11,33 @@ public class ImGuiThemes{
     public static void cyberpunk() {
         ImGuiStyle style = ImGui.getStyle();
 
-        // QUANTUM PRECISION SPACING - Premium ultra-wide spacing
-        style.setWindowPadding(22, 22);              // Increased for more premium feel
-        style.setFramePadding(16, 10);               // Enhanced button/control padding
-        style.setItemSpacing(16, 12);                // More breathing room
-        style.setItemInnerSpacing(10, 10);           // Consistent inner spacing
-        style.setTouchExtraPadding(4, 4);            // Better touch responsiveness
-        style.setIndentSpacing(30.0f);               // More pronounced indentation
-        style.setScrollbarSize(18.0f);               // Slightly larger scrollbars
-        style.setGrabMinSize(16.0f);                 // Larger grab controls
+        // QUANTUM PRECISION SPACING - Compact ultra-wide spacing
+        style.setWindowPadding(12, 12);              // Reduced from 22, 22
+        style.setFramePadding(8, 6);                 // Reduced from 16, 10
+        style.setItemSpacing(8, 6);                  // Reduced from 16, 12
+        style.setItemInnerSpacing(6, 6);             // Reduced from 10, 10
+        style.setTouchExtraPadding(2, 2);            // Reduced from 4, 4
+        style.setIndentSpacing(20.0f);               // Reduced from 30.0f
+        style.setScrollbarSize(14.0f);               // Reduced from 18.0f
+        style.setGrabMinSize(12.0f);                 // Reduced from 16.0f
         style.setTabMinWidthForCloseButton(0.0f);
 
         // HOLOGRAPHIC ROUNDING - Perfect harmony between future and function
-        style.setWindowRounding(10.0f);              // More pronounced window curves
-        style.setChildRounding(8.0f);                // Consistent child window rounding
-        style.setFrameRounding(8.0f);                // Consistent frame rounding
-        style.setPopupRounding(10.0f);               // Match window rounding
-        style.setScrollbarRounding(14.0f);           // More curved scrollbars
-        style.setGrabRounding(6.0f);                 // Better grab rounding
-        style.setTabRounding(8.0f);                  // Consistent tab rounding
+        style.setWindowRounding(6.0f);               // Reduced from 10.0f
+        style.setChildRounding(5.0f);                // Reduced from 8.0f
+        style.setFrameRounding(5.0f);                // Reduced from 8.0f
+        style.setPopupRounding(6.0f);                // Reduced from 10.0f
+        style.setScrollbarRounding(10.0f);           // Reduced from 14.0f
+        style.setGrabRounding(4.0f);                 // Reduced from 6.0f
+        style.setTabRounding(5.0f);                  // Reduced from 8.0f
         style.setWindowTitleAlign(0.5f, 0.5f);       // Centered titles
 
         // BORDER STYLING - Enhanced digital boundary
-        style.setWindowBorderSize(1.5f);             // Slightly thicker borders
-        style.setChildBorderSize(1.5f);              // Consistency in borders
-        style.setPopupBorderSize(1.5f);              // Consistency in borders
-        style.setFrameBorderSize(1.5f);              // Consistency in borders
-        style.setTabBorderSize(1.5f);                // Consistency in borders
+        style.setWindowBorderSize(1.0f);             // Reduced from 1.5f
+        style.setChildBorderSize(1.0f);              // Reduced from 1.5f
+        style.setPopupBorderSize(1.0f);              // Reduced from 1.5f
+        style.setFrameBorderSize(1.0f);              // Reduced from 1.5f
+        style.setTabBorderSize(1.0f);                // Reduced from 1.5f
 
         // ULTRA ENHANCED COLOR PALETTE - Quantum spectrum visualization
 
