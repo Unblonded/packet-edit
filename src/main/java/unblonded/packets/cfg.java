@@ -78,6 +78,9 @@ public class cfg {
     public static ImBoolean nightFx = new ImBoolean(false);
     public static float[] nightFxSize = {20.f};
     public static ImBoolean nightFxCrosshairLines = new ImBoolean(false);
+    public static ImBoolean showFpsChart = new ImBoolean(false);
+    public static ImBoolean showFpsChartInGame = new ImBoolean(false);
+    public static int[] fpsChartSampleRate = {5};
 
     public static ImBoolean autoCrystalCfg = new ImBoolean(false);
     public static ImBoolean advEspCfg = new ImBoolean(false);
@@ -94,5 +97,6 @@ public class cfg {
     public static ImBoolean nightFxCfg = new ImBoolean(false);
     public static ImBoolean autoAnchorCfg = new ImBoolean(false);
     public static ImBoolean selfCrystalCfg = new ImBoolean(false);
+    public static ImBoolean fpsChartCfg = new ImBoolean(false);
 
 }

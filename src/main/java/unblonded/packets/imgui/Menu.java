@@ -125,6 +125,10 @@ public class Menu {
                     ImGui.sameLine();
                     if (ImGui.button(icons.GEARS + "##storagescan")) cfg.storageScanCfg.set(!cfg.storageScanCfg.get());
 
+                    ImGui.checkbox(icons.TACHOGRAPH_DIGITAL + " FPS Chart", cfg.showFpsChart);
+                    ImGui.sameLine();
+                    if (ImGui.button(icons.GEARS + "##fpschart")) cfg.fpsChartCfg.set(!cfg.fpsChartCfg.get());
+
                     ImGui.endTabItem();
                 }
 
@@ -153,6 +157,14 @@ public class Menu {
             ImGui.end();
             ImGui.popStyleVar();
             ImGui.popStyleColor();
+
+            if (cfg.fpsChartCfg.get()) {
+                ImGui.begin("FPS Chart Config", cfg.fpsChartCfg);
+                ImGui.text("FPS Chart is " + (cfg.showFpsChart.get() ? "enabled" : "disabled"));
+                ImGui.sliderInt("Sample Rate (frames)", cfg.fpsChartSampleRate, 1, 100);
+                ImGui.checkbox("Show In Game", cfg.showFpsChartInGame);
+                ImGui.end();
+            }
 
             if (cfg.selfCrystalCfg.get()) {
                 ImGui.begin("Self Crystal", cfg.selfCrystalCfg);
@@ -488,6 +500,12 @@ public class Menu {
             ImGui.text(cfg.tunnelBlockStatus);
             ImGui.end();
         }
+
+        if ((cfg.showFpsChart.get() && cfg.showMenu) || cfg.showFpsChartInGame.get()) {
+            ImGui.begin("FPS Chart", cfg.showFpsChart);
+            renderFpsPlot();
+            ImGui.end();
+        }
     }
 
     // Store previous densities to build a time graph
@@ -527,4 +545,30 @@ public class Menu {
         ImGui.plotLines("##DebrisDensity", historyArray, historyArray.length, 0,
                 "Debris Density (dynamic)", 0f, 30f, new ImVec2(graphWidth, 100));
     }
+
+    private static final int FPS_HISTORY_SIZE = 100;
+    private static final Deque<Float> fpsHistory = new ArrayDeque<>();
+    private static int frameCounter = 0;
+
+    public static void renderFpsPlot() {
+        float currentFps = 1.0f / ImGui.getIO().getDeltaTime();
+
+        frameCounter++;
+        if (frameCounter >= cfg.fpsChartSampleRate[0]) {
+            float fps = ImGui.getIO().getFramerate();
+            if (fpsHistory.size() >= FPS_HISTORY_SIZE) fpsHistory.pollFirst();
+            fpsHistory.addLast(fps);
+            frameCounter = 0;
+        }
+
+        float[] historyArray = new float[fpsHistory.size()];
+        int i = 0;
+        for (Float f : fpsHistory) historyArray[i++] = f;
+
+        float width = ImGui.getContentRegionAvailX();
+        ImGui.plotLines("FPS", historyArray, historyArray.length, 0, String.format("FPS: %.1f", currentFps),
+                0f, 200f, new ImVec2(width, 100));
+    }
+
+
 }
