@@ -28,7 +28,7 @@ public class cfg {
     public static int[] autoTotemHumanity = {0};
     public static boolean triggerAutoSell = false;
     public static int[] autoSellDelay = {300};
-    public static ImString autoSellPrice = new ImString("0");
+    public static ImString autoSellPrice = new ImString(256);
     public static ImInt[] autoSellEndpoints = {new ImInt(0), new ImInt(8)};
     public static int filterMode = 0;
     public static ImBoolean chatFilter = new ImBoolean(false);
