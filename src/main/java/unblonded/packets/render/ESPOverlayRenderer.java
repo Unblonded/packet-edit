@@ -422,7 +422,6 @@ public class ESPOverlayRenderer {
             for (BlockPos offset : cachedOffsets) {
                 BlockPos targetPos = searchCenter.add(offset);
 
-                // Check if chunk is loaded (thread-safe)
                 if (!world.isChunkLoaded(targetPos)) continue;
 
                 try {
@@ -433,13 +432,8 @@ public class ESPOverlayRenderer {
                     if (enabledBlocks.contains(block)) {
                         results.add(targetPos);
                     }
-                } catch (Exception e) {
-                    // Skip problematic blocks
-                    continue;
-                }
+                } catch (Exception e) { continue; }
             }
-
-            // Update results atomically
             scanResults.clear();
             scanResults.addAll(results);
 
@@ -463,7 +457,6 @@ public class ESPOverlayRenderer {
     }
 
     private static void initializeOffsets(int radius) {
-        // Create and start a new thread for the calculation
         Thread offsetThread = new Thread(() -> {
             List<BlockPos> tempOffsets = new ArrayList<>();
             int radiusSq = radius * radius;
@@ -485,9 +478,6 @@ public class ESPOverlayRenderer {
             tempOffsets.sort(Comparator.comparingInt(pos ->
                     pos.getX() * pos.getX() + pos.getY() * pos.getY() + pos.getZ() * pos.getZ()));
 
-            // Update the cached offsets on the main thread (if needed for thread safety)
-            // For Minecraft, you might want to use Minecraft.getInstance().execute()
-            // to run this on the main thread
             synchronized (cachedOffsets) {
                 cachedOffsets.clear();
                 cachedOffsets.addAll(tempOffsets);

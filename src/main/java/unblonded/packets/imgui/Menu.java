@@ -322,7 +322,8 @@ public class Menu {
 
                 ImGui.text("ESP Settings:");
 
-                ImGui.sliderInt("Esp Radius", cfg.espRadius, 16, 128);
+                if (cfg.espRadius[0] > 64) ImGui.textColored(neon_pink, "Warning: High radius may eat the cpu");
+                ImGui.sliderInt("Esp Radius", cfg.espRadius, 16, 256);
 
                 ImGui.checkbox("Draw Blocks", cfg.drawBlocks);
                 ImGui.sameLine();
