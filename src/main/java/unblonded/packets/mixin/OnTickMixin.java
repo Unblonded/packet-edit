@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import unblonded.packets.cfg;
 import unblonded.packets.cheats.CrystalSpam;
 import unblonded.packets.cheats.KillAura;
+import unblonded.packets.util.ConfigManager;
 import unblonded.packets.util.util;
 
 @Mixin(MinecraftClient.class)
@@ -19,11 +20,14 @@ public abstract class OnTickMixin {
     private void onTick(CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (tickCount > Integer.MAX_VALUE - 100) tickCount = 0;
+        else tickCount++;
         util.handleKeyInputs(client);
         util.updateOreSim(client);
         util.updateStates();
         util.setTitle(client);
         KillAura.tick();
         CrystalSpam.start();
+
+        if (tickCount % 200 == 0) ConfigManager.saveConfig();
     }
 }

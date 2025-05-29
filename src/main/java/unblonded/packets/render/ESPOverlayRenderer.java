@@ -1,5 +1,6 @@
 package unblonded.packets.render;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -35,6 +36,86 @@ public class ESPOverlayRenderer {
     private static long lastSearchTime = 0;
     private static final Set<BlockPos> foundPositions = ConcurrentHashMap.newKeySet();
     private static final CopyOnWriteArrayList<BlockPos> renderBuffer = new CopyOnWriteArrayList<>();
+
+    public static void drawGlowPos(WorldRenderContext context, BlockPos pos, Color color) {
+        World world = context.world();
+        if (world == null || color == null) return;
+
+        Camera camera = context.camera();
+        MatrixStack matrices = context.matrixStack();
+        Vec3d cameraPos = camera.getPos();
+
+        matrices.push();
+        RenderSystem.enableBlend();
+        RenderSystem.blendFuncSeparate(
+                GlStateManager.SrcFactor.SRC_ALPHA,
+                GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA,
+                GlStateManager.SrcFactor.ONE,
+                GlStateManager.DstFactor.ZERO
+        );
+        RenderSystem.disableDepthTest();
+        RenderSystem.disableCull();
+
+        try {
+            matrices.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
+
+            Box bb = new Box(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+            MatrixStack.Entry entry = matrices.peek();
+            Matrix4f matrix = entry.getPositionMatrix();
+
+            Tessellator tessellator = Tessellator.getInstance();
+            RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+            BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+
+            float a = color.A();
+            float r = color.R();
+            float g = color.G();
+            float b = color.B();
+
+            // Bottom face (Y-)
+            buffer.vertex(matrix, (float)bb.minX, (float)bb.minY, (float)bb.minZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.maxX, (float)bb.minY, (float)bb.minZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.maxX, (float)bb.minY, (float)bb.maxZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.minX, (float)bb.minY, (float)bb.maxZ).color(r, g, b, a);
+
+            // Top face (Y+)
+            buffer.vertex(matrix, (float)bb.minX, (float)bb.maxY, (float)bb.minZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.minX, (float)bb.maxY, (float)bb.maxZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.maxX, (float)bb.maxY, (float)bb.maxZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.maxX, (float)bb.maxY, (float)bb.minZ).color(r, g, b, a);
+
+            // North face (Z-)
+            buffer.vertex(matrix, (float)bb.minX, (float)bb.minY, (float)bb.minZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.minX, (float)bb.maxY, (float)bb.minZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.maxX, (float)bb.maxY, (float)bb.minZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.maxX, (float)bb.minY, (float)bb.minZ).color(r, g, b, a);
+
+            // South face (Z+)
+            buffer.vertex(matrix, (float)bb.minX, (float)bb.minY, (float)bb.maxZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.maxX, (float)bb.minY, (float)bb.maxZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.maxX, (float)bb.maxY, (float)bb.maxZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.minX, (float)bb.maxY, (float)bb.maxZ).color(r, g, b, a);
+
+            // West face (X-)
+            buffer.vertex(matrix, (float)bb.minX, (float)bb.minY, (float)bb.minZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.minX, (float)bb.minY, (float)bb.maxZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.minX, (float)bb.maxY, (float)bb.maxZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.minX, (float)bb.maxY, (float)bb.minZ).color(r, g, b, a);
+
+            // East face (X+)
+            buffer.vertex(matrix, (float)bb.maxX, (float)bb.minY, (float)bb.minZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.maxX, (float)bb.maxY, (float)bb.minZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.maxX, (float)bb.maxY, (float)bb.maxZ).color(r, g, b, a);
+            buffer.vertex(matrix, (float)bb.maxX, (float)bb.minY, (float)bb.maxZ).color(r, g, b, a);
+
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
+        } finally {
+            RenderSystem.disableBlend();
+            RenderSystem.enableDepthTest();
+            RenderSystem.enableCull();
+            matrices.pop();
+        }
+    }
 
     public static void drawEspPos(WorldRenderContext context, BlockPos pos, Color color) {
         World world = context.world();
@@ -282,11 +363,11 @@ public class ESPOverlayRenderer {
                         Block block = state.getBlock();
                         Color color = getBlockColor(block);
                         if (color != null) {
-                            drawEspPos(context, pos, color);
+                            if (cfg.advEspDrawType.get()) drawGlowPos(context, pos, color);
+                            else drawEspPos(context, pos, color);
                             colorGroups.computeIfAbsent(color, k -> new ArrayList<>()).add(pos);
                         }
                     } catch (Exception e) {
-                        // Log exception but continue processing
                         System.err.println("Error rendering ESP for block: " + e.getMessage());
                     }
                 }
@@ -310,7 +391,8 @@ public class ESPOverlayRenderer {
                         try {
                             BlockPos seedPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
                             if (mc.world != null && mc.world.getBlockState(seedPos).isOpaque()) {
-                                drawEspPos(context, seedPos, new Color(cfg.oreSimColor));
+                                if (cfg.oreSimDrawMode.get()) drawGlowPos(context, seedPos, new Color(cfg.oreSimColor));
+                                else drawEspPos(context, seedPos, new Color(cfg.oreSimColor));
                             }
                         } catch (Exception e) {
                             System.err.println("Error rendering ore simulation: " + e.getMessage());

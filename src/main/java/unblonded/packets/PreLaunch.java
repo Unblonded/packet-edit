@@ -59,7 +59,6 @@ public class PreLaunch implements PreLaunchEntrypoint {
             return "0.0.0"; // fallback
         }
 
-        // Example: packet-edit-1.2.3.jar → 1.2.3
         String fileName = files[0].getName();
         String version = fileName
                 .substring(MOD_NAME_PREFIX.length(), fileName.length() - MOD_EXTENSION.length());

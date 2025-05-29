@@ -34,13 +34,7 @@ public class Packetedit {
 			util.crash();
 		}
 
-		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
-			ConfigManager.loadConfig();
-		});
-
-		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
-			ConfigManager.saveConfig();
-		});
+		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {ConfigManager.loadConfig();});
 
 		console.info("Authentication successful!");
 	}

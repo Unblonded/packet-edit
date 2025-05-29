@@ -268,19 +268,21 @@ public class Menu {
                 if (cfg.oreSimDistance[0] > 8)
                     ImGui.textColored(neon_pink, "Warning: High render distance may use lots of CPU");
 
-                // Animated slider
                 ImGui.pushStyleColor(ImGuiCol.FrameBg, new ImVec4(0.12f, 0.08f, 0.18f, 0.8f));
                 ImGui.pushStyleColor(ImGuiCol.FrameBgHovered, new ImVec4(0.18f, 0.12f, 0.24f, 0.8f));
                 ImGui.pushStyleColor(ImGuiCol.SliderGrab, neon_purple);
                 ImGui.sliderInt("Render Distance", cfg.oreSimDistance, 0, 32);
+
                 ImGui.popStyleColor(3);
 
                 ImGui.inputScalar("Seed", cfg.oreSimSeed);
-                if (ImGui.button("Donut Nether")) {
-                    cfg.oreSimSeed.set(6608149111735331168L);
-                }
+                if (ImGui.button("Use Donut Seed")) cfg.oreSimSeed.set(6608149111735331168L);
+                if (ImGui.button((cfg.oreSimDrawMode.get() ? "Glow" : "Wire") + " Mode##drawTypeOresim")) cfg.oreSimDrawMode.set(!cfg.oreSimDrawMode.get());
+                ImGui.sameLine();
+                ImGui.colorEdit4("##espcolor", cfg.oreSimColor, ImGuiColorEditFlags.NoLabel | ImGuiColorEditFlags.NoInputs);
+                ImGui.sameLine();
+                ImGui.text("Esp Color");
 
-                ImGui.colorEdit4("ESP Color", cfg.oreSimColor);
 
                 renderDebrisGraphAnimated();
                 ImGui.end();
@@ -313,6 +315,8 @@ public class Menu {
                 ImGui.sliderInt("Search Time (sec)", cfg.espSearchTime, 0, 20);
 
                 ImGui.checkbox("Draw Blocks", cfg.drawBlocks);
+                ImGui.sameLine();
+                if (ImGui.button((cfg.advEspDrawType.get() ? "Glow" : "Wire") + " Mode##drawType")) cfg.advEspDrawType.set(!cfg.advEspDrawType.get());
                 if (cfg.drawBlocks.get()) ImGui.checkbox("Draw Tracers", cfg.drawBlockTracer);
 
                 // Add new block input

@@ -20,6 +20,7 @@ public class cfg {
     public static int[] autoAnchorHumanity = {3};
     public static ImLong oreSimSeed = new ImLong(0L);
     public static ImBoolean oreSim = new ImBoolean(false);
+    public static ImBoolean oreSimDrawMode = new ImBoolean(false);
     public static int[] oreSimDistance = {3};
     public static float[] oreSimColor = {1.0f, 0.0f, 0.0f, 1.0f};
     public static ImBoolean autoTotem = new ImBoolean(false);
@@ -48,6 +49,7 @@ public class cfg {
     public static boolean showAll;
     public static ImBoolean displayPlayers = new ImBoolean(false);
     public static ImBoolean advEsp = new ImBoolean(false);
+    public static ImBoolean advEspDrawType = new ImBoolean(false);
     public static ImString blockName = new ImString(256);
     public static float[] blockColor = {1.f, 1.f, 1.f, 1.f};
     public static int[] espRadius = {32};
