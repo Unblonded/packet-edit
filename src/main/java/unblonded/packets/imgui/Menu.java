@@ -323,8 +323,6 @@ public class Menu {
                 ImGui.text("ESP Settings:");
 
                 ImGui.sliderInt("Esp Radius", cfg.espRadius, 16, 128);
-                ImGui.sliderInt("Batch Size x1K", cfg.espBatchSize, 50, 1000);
-                ImGui.sliderInt("Search Time (sec)", cfg.espSearchTime, 0, 20);
 
                 ImGui.checkbox("Draw Blocks", cfg.drawBlocks);
                 ImGui.sameLine();

@@ -25,17 +25,24 @@ import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ESPOverlayRenderer {
     private static final MinecraftClient mc = MinecraftClient.getInstance();
     private static List<BlockPos> cachedOffsets = new ArrayList<>();
-    private static int currentBatch = 0;
     private static BlockPos lastSearchPos = null;
     private static long lastSearchTime = 0;
-    private static final Set<BlockPos> foundPositions = ConcurrentHashMap.newKeySet();
-    private static final CopyOnWriteArrayList<BlockPos> renderBuffer = new CopyOnWriteArrayList<>();
+    private static final List<BlockPos> foundBlocks = new ArrayList<>();
+    private static int lastRadius = -1;
+
+    private static final ExecutorService scanExecutor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "ESP-Scanner");
+        t.setDaemon(true);
+        return t;
+    });
+    private static volatile boolean isScanning = false;
+    private static final List<BlockPos> scanResults = Collections.synchronizedList(new ArrayList<>());
 
     public static void drawGlowPos(WorldRenderContext context, BlockPos pos, Color color) {
         World world = context.world();
@@ -199,7 +206,6 @@ public class ESPOverlayRenderer {
 
             BufferRenderer.drawWithGlobalProgram(buffer.end());
         } finally {
-            // Always restore render state regardless of what happens
             RenderSystem.disableBlend();
             RenderSystem.enableDepthTest();
             RenderSystem.lineWidth(1.0f);
@@ -234,10 +240,7 @@ public class ESPOverlayRenderer {
         Vec3d viewVector = player.getRotationVec(tickDelta);
         Vec3d crosshairPos = eyePos.add(viewVector.multiply(10, 10, 10));
 
-        // Start matrix stack transformations
         matrices.push();
-
-        // Set up rendering properties
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableDepthTest();
@@ -249,23 +252,17 @@ public class ESPOverlayRenderer {
             MatrixStack.Entry entry = matrices.peek();
             Matrix4f matrix = entry.getPositionMatrix();
 
-            // Set up rendering properties
             Tessellator tessellator = Tessellator.getInstance();
             RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
-
-            // Start the buffer and begin drawing lines
             BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
 
-            // Draw line from player's eye position to crosshair
             drawLine(buffer, matrix,
                     (float) targetPos.x, (float) targetPos.y, (float) targetPos.z,
                     (float) crosshairPos.x, (float) crosshairPos.y, (float) crosshairPos.z,
                     color);
 
-            // Finish drawing with the shader
             BufferRenderer.drawWithGlobalProgram(buffer.end());
         } finally {
-            // Always restore render state
             RenderSystem.disableBlend();
             RenderSystem.enableDepthTest();
             RenderSystem.lineWidth(1.0f);
@@ -291,7 +288,6 @@ public class ESPOverlayRenderer {
                 BlockPos current = queue.poll();
                 group.add(current);
 
-                // Check all 6 adjacent blocks
                 for (Direction direction : Direction.values()) {
                     BlockPos neighbor = current.offset(direction);
                     if (blocks.contains(neighbor) && !processed.contains(neighbor)) {
@@ -323,42 +319,44 @@ public class ESPOverlayRenderer {
 
     public static void onInitializeClient() {
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
-            // Only run if ESP is enabled and conditions are met
             if (client.player == null || client.world == null || !cfg.advEsp.get() || cfg.espBlockList.isEmpty()) {
-                // Create a new buffer instance instead of just clearing
-                synchronized (renderBuffer) {
-                    renderBuffer.clear();
-                    foundPositions.clear();
-                    lastSearchPos = null; // Reset search state too
+                synchronized (foundBlocks) {
+                    foundBlocks.clear();
                 }
+                lastSearchPos = null;
                 return;
             }
 
             BlockPos currentPos = client.player.getBlockPos();
             updateOffsetsIfNeeded(cfg.espRadius[0]);
 
-            if (shouldStartNewSearch(currentPos)) {
-                startNewSearch(currentPos);
+            if (shouldStartNewSearch(currentPos) && !isScanning) {
+                isScanning = true;
+                scanExecutor.submit(() -> performThreadedScan(client, currentPos));
+                lastSearchPos = currentPos.toImmutable();
+                lastSearchTime = System.currentTimeMillis();
             }
 
-            processSearchBatch(client, currentPos);
+            // Copy scan results to foundBlocks for rendering
+            if (!scanResults.isEmpty()) {
+                synchronized (foundBlocks) {
+                    foundBlocks.clear();
+                    foundBlocks.addAll(scanResults);
+                }
+                scanResults.clear();
+            }
         });
+
 
         WorldRenderEvents.AFTER_ENTITIES.register(context -> {
             if (cfg.drawBlocks.get()) {
                 Map<Color, List<BlockPos>> colorGroups = new HashMap<>();
 
-                // Use a local copy to avoid concurrent modification issues
-                List<BlockPos> localCopy;
-                synchronized (renderBuffer) {
-                    localCopy = new ArrayList<>(renderBuffer);
-                }
-
-                for (BlockPos pos : localCopy) {
+                for (BlockPos pos : foundBlocks) {
                     try {
                         if (context.world() == null) continue;
                         BlockState state = context.world().getBlockState(pos);
-                        if (state == null) continue;
+                        if (state == null || state.isAir()) continue;
 
                         Block block = state.getBlock();
                         Color color = getBlockColor(block);
@@ -403,11 +401,60 @@ public class ESPOverlayRenderer {
         });
     }
 
+    private static void performThreadedScan(MinecraftClient client, BlockPos searchCenter) {
+        try {
+            ClientWorld world = client.world;
+            if (world == null) {
+                isScanning = false;
+                return;
+            }
+
+            List<BlockPos> results = new ArrayList<>();
+
+            // Pre-filter enabled blocks
+            Set<Block> enabledBlocks = new HashSet<>();
+            for (BlockColor blockColor : cfg.espBlockList) {
+                if (blockColor.isEnabled() && blockColor.getBlock() != null) {
+                    enabledBlocks.add(blockColor.getBlock());
+                }
+            }
+
+            for (BlockPos offset : cachedOffsets) {
+                BlockPos targetPos = searchCenter.add(offset);
+
+                // Check if chunk is loaded (thread-safe)
+                if (!world.isChunkLoaded(targetPos)) continue;
+
+                try {
+                    BlockState state = world.getBlockState(targetPos);
+                    if (state.isAir()) continue;
+
+                    Block block = state.getBlock();
+                    if (enabledBlocks.contains(block)) {
+                        results.add(targetPos);
+                    }
+                } catch (Exception e) {
+                    // Skip problematic blocks
+                    continue;
+                }
+            }
+
+            // Update results atomically
+            scanResults.clear();
+            scanResults.addAll(results);
+
+        } catch (Exception e) {
+            System.err.println("ESP scan error: " + e.getMessage());
+        } finally {
+            isScanning = false;
+        }
+    }
+
     private static Color getBlockColor(Block block) {
         if (block == null || cfg.espBlockList == null) return null;
 
         for (BlockColor blockColor : cfg.espBlockList) {
-            if (!blockColor.isEnabled()) continue; // Skip disabled blocks
+            if (!blockColor.isEnabled()) continue;
             if (blockColor.getBlock() != null && blockColor.getBlock().equals(block)) {
                 return blockColor.getColor();
             }
@@ -415,88 +462,51 @@ public class ESPOverlayRenderer {
         return null;
     }
 
-    private static int lastRadius = -1;
-
     private static void initializeOffsets(int radius) {
-        int radiusSq = radius * radius;
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dy = -radius; dy <= radius; dy++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (dx*dx + dy*dy + dz*dz <= radiusSq) {
-                        cachedOffsets.add(new BlockPos(dx, dy, dz));
+        // Create and start a new thread for the calculation
+        Thread offsetThread = new Thread(() -> {
+            List<BlockPos> tempOffsets = new ArrayList<>();
+            int radiusSq = radius * radius;
+            int minY = Math.max(-radius, -64);
+            int maxY = Math.min(radius, 320);
+
+            // Perform the expensive calculation on the background thread
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dy = minY; dy <= maxY; dy++) {
+                    for (int dz = -radius; dz <= radius; dz++) {
+                        if (dx*dx + dy*dy + dz*dz <= radiusSq) {
+                            tempOffsets.add(new BlockPos(dx, dy, dz));
+                        }
                     }
                 }
             }
-        }
+
+            // Sort the results
+            tempOffsets.sort(Comparator.comparingInt(pos ->
+                    pos.getX() * pos.getX() + pos.getY() * pos.getY() + pos.getZ() * pos.getZ()));
+
+            // Update the cached offsets on the main thread (if needed for thread safety)
+            // For Minecraft, you might want to use Minecraft.getInstance().execute()
+            // to run this on the main thread
+            synchronized (cachedOffsets) {
+                cachedOffsets.clear();
+                cachedOffsets.addAll(tempOffsets);
+            }
+        }, "OffsetCalculationThread");
+
+        offsetThread.setDaemon(true); // Dies when main thread dies
+        offsetThread.start();
     }
 
     private static boolean shouldStartNewSearch(BlockPos currentPos) {
         if (lastSearchPos == null) return true;
         long timeSinceLast = System.currentTimeMillis() - lastSearchTime;
         return timeSinceLast > cfg.espSearchTime[0] ||
-                currentPos.getSquaredDistance(lastSearchPos) > ((double) cfg.espRadius[0] /2) * ((double) cfg.espRadius[0] /2);
+                currentPos.getSquaredDistance(lastSearchPos) > ((double) cfg.espRadius[0] / 2) * ((double) cfg.espRadius[0] / 2);
     }
 
-    private static void startNewSearch(BlockPos currentPos) {
-        lastSearchPos = currentPos.toImmutable();
-        lastSearchTime = System.currentTimeMillis();
-        currentBatch = 0;
-        foundPositions.clear();
-    }
-
-    private static void processSearchBatch(MinecraftClient client, BlockPos currentPos) {
-        if (currentBatch >= cachedOffsets.size()) return;
-
-        // Create a snapshot of the list to avoid concurrent modification
-        List<BlockPos> offsetSnapshot;
-        synchronized (cachedOffsets) {
-            offsetSnapshot = new ArrayList<>(cachedOffsets);
-        }
-
-        // Check if batch is still valid after taking snapshot
-        if (currentBatch >= offsetSnapshot.size()) return;
-
-        int endIndex = Math.min(currentBatch + cfg.espBatchSize[0] * 1000, offsetSnapshot.size());
-        ClientWorld world = client.world;
-        if (world == null) return;
-
-        for (int i = currentBatch; i < endIndex; i++) {
-            BlockPos offset = offsetSnapshot.get(i);
-            BlockPos targetPos = currentPos.add(offset);
-            if (!world.isChunkLoaded(targetPos)) continue;
-            BlockState state = world.getBlockState(targetPos);
-            Block block = state.getBlock();
-
-            // Check if block is in our ESP list
-            try {
-                List<BlockColor> espBlockListCopy = new ArrayList<>(cfg.espBlockList);
-                for (BlockColor espBlock : espBlockListCopy) {
-                    if (!espBlock.isEnabled()) continue;
-                    if (espBlock.getBlock().equals(block) && !foundPositions.contains(targetPos)) {
-                        foundPositions.add(targetPos);
-                        break;
-                    }
-                }
-            } catch (Exception ignored) {}
-        }
-
-        currentBatch = endIndex;
-
-        // Update render buffer when search completes
-        if (currentBatch >= offsetSnapshot.size()) {
-            synchronized (renderBuffer) {
-                renderBuffer.clear();
-                renderBuffer.addAll(foundPositions);
-                foundPositions.clear();
-            }
-            currentBatch = 0; // Reset for next search cycle
-        }
-    }
-
-    // Other helper methods remain the same:
     private static void updateOffsetsIfNeeded(int currentRadius) {
         if (currentRadius != lastRadius) {
-            cachedOffsets.clear();
             initializeOffsets(currentRadius);
             lastRadius = currentRadius;
         }
