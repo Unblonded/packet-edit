@@ -234,7 +234,7 @@ public class AutoSell {
             triggerActivated = true;
             DELAY_MS = delay;
             price = targetPrice.get();
-            autoSellEndpoints = new int[]{endpoints[0].get(), endpoints[1].get()};
+            autoSellEndpoints = new int[]{endpoints[0].get()-1, endpoints[1].get()-1};
         } else {
             // If manually disabled, stop the cycle
             if (runningCycle) {
