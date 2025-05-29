@@ -17,13 +17,8 @@ public class GCCommand {
                                          CommandRegistryAccess registryAccess,
                                          CommandManager.RegistrationEnvironment environment) {
 
-        dispatcher.register(CommandManager.literal("gc")
-                .requires(source -> source.hasPermissionLevel(2))
-                .executes(GCCommand::executeGC));
-
-        dispatcher.register(CommandManager.literal("memory")
-                .requires(source -> source.hasPermissionLevel(2))
-                .executes(GCCommand::executeMemoryInfo));
+        dispatcher.register(CommandManager.literal("gc").executes(GCCommand::executeGC));
+        dispatcher.register(CommandManager.literal("memory").executes(GCCommand::executeMemoryInfo));
     }
 
     private static int executeGC(CommandContext<ServerCommandSource> context) {
