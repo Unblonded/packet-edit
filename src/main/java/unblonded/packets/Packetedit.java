@@ -5,19 +5,13 @@ import net.minecraft.client.MinecraftClient;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import unblonded.packets.imgui.ImGuiManager;
 import unblonded.packets.util.ConfigManager;
 import unblonded.packets.util.util;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.Scanner;
-import java.util.UUID;
 import java.util.function.Function;
 
 public class Packetedit {
