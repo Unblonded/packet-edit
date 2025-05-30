@@ -6,6 +6,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import imgui.type.*;
 import net.minecraft.block.Block;
+import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import unblonded.packets.Packetedit;
@@ -26,6 +27,7 @@ public class ConfigManager {
             .setPrettyPrinting()
             .registerTypeAdapter(BlockColor.class, new BlockColorAdapter())
             .registerTypeAdapter(Color.class, new ColorAdapter())
+            .registerTypeAdapter(KitSlot.class, new KitSlotAdapter())
             .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
             .create();
 
@@ -89,6 +91,39 @@ public class ConfigManager {
             float b = obj.get("blue").getAsFloat();
             float a = obj.get("alpha").getAsFloat();
             return new Color(r, g, b, a);
+        }
+    }
+
+    // Custom adapter for KitSlot that safely serializes Item objects
+    private static class KitSlotAdapter implements JsonSerializer<KitSlot>, JsonDeserializer<KitSlot> {
+        @Override
+        public JsonElement serialize(KitSlot src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject obj = new JsonObject();
+            obj.addProperty("slotIndex", src.slotIndex);
+
+            // Serialize item as its registry name instead of the full object
+            if (src.item != null) {
+                Identifier itemId = Registries.ITEM.getId(src.item);
+                obj.addProperty("item", itemId.toString());
+            }
+
+            return obj;
+        }
+
+        @Override
+        public KitSlot deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            JsonObject obj = json.getAsJsonObject();
+
+            int slotIndex = obj.get("slotIndex").getAsInt();
+
+            // Deserialize item from registry name
+            Item item = null;
+            if (obj.has("item")) {
+                String itemId = obj.get("item").getAsString();
+                item = Registries.ITEM.get(Identifier.of(itemId));
+            }
+
+            return new KitSlot(slotIndex, item);
         }
     }
 
@@ -195,6 +230,9 @@ public class ConfigManager {
                             intArray[i] = imIntArray[i].get();
                         }
                         configJson.add(fieldName, gson.toJsonTree(intArray));
+                    } else if (value instanceof Map && fieldName.equals("savedLoadouts")) {
+                        // Handle Map<String, List<KitSlot>> with our custom adapter
+                        configJson.add(fieldName, gson.toJsonTree(value, new TypeToken<Map<String, List<KitSlot>>>(){}.getType()));
                     } else if (value instanceof List) {
                         // Now we can safely handle List<BlockColor> with our custom adapter
                         if (fieldName.equals("espBlockList")) {
@@ -295,6 +333,14 @@ public class ConfigManager {
                             imIntArray[i] = new ImInt(intArray[i]);
                         }
                         field.set(null, imIntArray);
+                    } else if (currentValue instanceof Map && fieldName.equals("savedLoadouts")) {
+                        // Handle Map<String, List<KitSlot>> deserialization
+                        Map<String, List<KitSlot>> loadouts = gson.fromJson(jsonElement,
+                                new TypeToken<Map<String, List<KitSlot>>>(){}.getType());
+
+                        // Clear the existing map and repopulate it
+                        ((Map<String, List<KitSlot>>) currentValue).clear();
+                        ((Map<String, List<KitSlot>>) currentValue).putAll(loadouts);
                     } else if (currentValue instanceof List && fieldName.equals("espBlockList")) {
                         // Now we can safely deserialize List<BlockColor>
                         List<BlockColor> blockList = gson.fromJson(jsonElement,

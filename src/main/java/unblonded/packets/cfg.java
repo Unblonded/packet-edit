@@ -2,6 +2,7 @@ package unblonded.packets;
 
 import imgui.type.*;
 import unblonded.packets.util.BlockColor;
+import unblonded.packets.util.KitSlot;
 
 import java.util.*;
 
@@ -81,6 +82,10 @@ public class cfg {
     public static ImBoolean showFpsChart = new ImBoolean(false);
     public static ImBoolean showFpsChartInGame = new ImBoolean(false);
     public static int[] fpsChartSampleRate = {5};
+    public static final Map<String, List<KitSlot>> savedLoadouts = new HashMap<>();
+    public static final ImString loadoutNameInput = new ImString(16);
+    public static String selectedLoadout = null;
+    public static ImBoolean showLoadouts = new ImBoolean(false);
 
     public static ImBoolean autoCrystalCfg = new ImBoolean(false);
     public static ImBoolean advEspCfg = new ImBoolean(false);

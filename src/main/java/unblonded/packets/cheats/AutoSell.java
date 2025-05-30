@@ -83,14 +83,13 @@ public class AutoSell {
             switch (currentState) {
                 case SWITCHING_SLOT:
                     try {
-                        // Switch to the current slot
                         client.player.getInventory().selectedSlot = currentSlot;
 
                         // Get the item in the current slot
                         if (!client.player.getInventory().getStack(currentSlot).isEmpty()) {
                             client.player.sendMessage(Text.of("Selected slot " + currentSlot), false);
                             currentState = State.SENDING_COMMAND;
-                            consecutiveErrors = 0; // Reset on success
+                            consecutiveErrors = 0;
                         } else {
                             client.player.sendMessage(Text.of("Skipping empty slot " + currentSlot), false);
                             currentState = State.DELAY;
@@ -137,8 +136,6 @@ public class AutoSell {
                     try {
                         if (client.currentScreen instanceof HandledScreen) {
                             HandledScreen<?> screen = (HandledScreen<?>) client.currentScreen;
-
-                            // Find the confirm button (lime stained glass pane)
                             int confirmButtonSlot = findConfirmButtonSlot(screen);
 
                             if (confirmButtonSlot != -1) {

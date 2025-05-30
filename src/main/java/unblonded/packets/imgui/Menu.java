@@ -9,11 +9,12 @@ import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import unblonded.packets.cfg;
 import unblonded.packets.cheats.AirUnderCheck;
+import unblonded.packets.cheats.AutoLoadout;
 import unblonded.packets.cheats.OreSimulator;
 import unblonded.packets.cheats.PlayerTracker;
-import unblonded.packets.render.ESPOverlayRenderer;
 import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
+import unblonded.packets.util.KitSlot;
 
 import java.util.*;
 
@@ -129,6 +130,8 @@ public class Menu {
                     ImGui.sameLine();
                     if (ImGui.button(icons.GEARS + "##fpschart")) cfg.fpsChartCfg.set(!cfg.fpsChartCfg.get());
 
+                    if (ImGui.button(icons.BOOK_OPEN + " Loadout Manager##loadouts")) cfg.showLoadouts.set(!cfg.showLoadouts.get());
+
                     ImGui.endTabItem();
                 }
 
@@ -157,6 +160,10 @@ public class Menu {
             ImGui.end();
             ImGui.popStyleVar();
             ImGui.popStyleColor();
+
+            if (cfg.showLoadouts.get()) {
+                loadOutTest();
+            }
 
             if (cfg.fpsChartCfg.get()) {
                 ImGui.begin("FPS Chart Config", cfg.fpsChartCfg);
@@ -569,5 +576,184 @@ public class Menu {
                 0f, 200f, new ImVec2(width, 100));
     }
 
+    private static void loadOutTest() {
+        ImGui.setNextWindowSize(320, 350, ImGuiCond.FirstUseEver);
+        ImGui.begin("Loadouts", cfg.showLoadouts, ImGuiWindowFlags.NoCollapse);
 
+        // Compact header
+        ImGui.pushStyleColor(ImGuiCol.Text, 0.8f, 0.9f, 1.0f, 1.0f);
+        ImGui.text("New Loadout");
+        ImGui.popStyleColor();
+
+        // Compact input section
+        ImGui.setNextItemWidth(160);
+        ImGui.inputText("##LoadoutName", cfg.loadoutNameInput, ImGuiInputTextFlags.None);
+        ImGui.sameLine();
+
+        ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
+        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
+        if (ImGui.button("Save")) {
+            String name = cfg.loadoutNameInput.get().trim();
+            if (!name.isEmpty()) {
+                AutoLoadout.saveCurrentLoadout(name);
+                cfg.loadoutNameInput.set("");
+            }
+        }
+        ImGui.popStyleColor(2);
+
+        ImGui.separator();
+
+        // Compact loadouts section
+        Map<String, List<KitSlot>> loadouts = cfg.savedLoadouts;
+
+        ImGui.pushStyleColor(ImGuiCol.Text, 0.8f, 0.9f, 1.0f, 1.0f);
+        ImGui.text("Saved (" + loadouts.size() + ")");
+        ImGui.popStyleColor();
+
+        if (loadouts.isEmpty()) {
+            ImGui.pushStyleColor(ImGuiCol.Text, 0.6f, 0.6f, 0.6f, 1.0f);
+            ImGui.text("No loadouts saved");
+            ImGui.popStyleColor();
+        } else {
+            // Compact loadout list
+            ImGui.beginChild("LoadoutList", 0, 140, true, ImGuiWindowFlags.None);
+
+            for (String name : loadouts.keySet()) {
+                boolean selected = name.equals(cfg.selectedLoadout);
+                List<KitSlot> kit = loadouts.get(name);
+
+                if (selected) {
+                    ImGui.pushStyleColor(ImGuiCol.Header, 0.3f, 0.5f, 0.8f, 0.8f);
+                    ImGui.pushStyleColor(ImGuiCol.HeaderHovered, 0.4f, 0.6f, 0.9f, 0.8f);
+                }
+
+                if (ImGui.selectable(name + " (" + kit.size() + ")", selected)) {
+                    cfg.selectedLoadout = name;
+                }
+
+                if (selected) {
+                    ImGui.popStyleColor(2);
+                }
+
+                // Right-click menu
+                if (ImGui.isItemHovered() && ImGui.isMouseClicked(1)) {
+                    cfg.selectedLoadout = name;
+                    ImGui.openPopup("LoadoutContext");
+                }
+            }
+
+            ImGui.endChild();
+
+            // Compact context menu
+            if (ImGui.beginPopup("LoadoutContext")) {
+                if (cfg.selectedLoadout != null) {
+                    if (ImGui.menuItem("Apply")) {
+                        AutoLoadout.applyLoadout(cfg.selectedLoadout);
+                    }
+                    if (ImGui.menuItem("Delete")) {
+                        AutoLoadout.removeLoadout(cfg.selectedLoadout);
+                        cfg.selectedLoadout = null;
+                    }
+                }
+                ImGui.endPopup();
+            }
+
+            // Compact action buttons
+            if (cfg.selectedLoadout != null) {
+                ImGui.separator();
+
+                // Single row of compact buttons
+                ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
+                ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
+                if (ImGui.button("Apply")) {
+                    AutoLoadout.applyLoadout(cfg.selectedLoadout);
+                }
+                ImGui.popStyleColor(2);
+
+                ImGui.sameLine();
+                ImGui.pushStyleColor(ImGuiCol.Button, 0.8f, 0.2f, 0.2f, 1.0f);
+                ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.9f, 0.3f, 0.3f, 1.0f);
+                if (ImGui.button("Delete")) {
+                    AutoLoadout.removeLoadout(cfg.selectedLoadout);
+                    cfg.selectedLoadout = null;
+                }
+                ImGui.popStyleColor(2);
+
+                ImGui.sameLine();
+                ImGui.pushStyleColor(ImGuiCol.Button, 0.8f, 0.5f, 0.2f, 1.0f);
+                ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.9f, 0.6f, 0.3f, 1.0f);
+                if (ImGui.button("Update")) {
+                    AutoLoadout.saveCurrentLoadout(cfg.selectedLoadout);
+                }
+                ImGui.popStyleColor(2);
+
+                // Compact details (optional, collapsed by default)
+                if (ImGui.collapsingHeader("Items")) {
+                    List<KitSlot> selectedKit = loadouts.get(cfg.selectedLoadout);
+                    if (selectedKit != null) {
+                        ImGui.beginChild("Details", 0, 60, true, ImGuiWindowFlags.None);
+                        ImGui.pushStyleColor(ImGuiCol.Text, 0.9f, 0.9f, 0.9f, 1.0f);
+
+                        for (KitSlot slot : selectedKit) {
+                            ImGui.text(getSlotTypeName(slot.slotIndex) + ": " + getItemDisplayName(slot.item));
+                        }
+
+                        ImGui.popStyleColor();
+                        ImGui.endChild();
+                    }
+                }
+            }
+
+            // Compact utility section
+            ImGui.separator();
+            ImGui.pushStyleColor(ImGuiCol.Button, 0.6f, 0.2f, 0.2f, 1.0f);
+            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.7f, 0.3f, 0.3f, 1.0f);
+            if (ImGui.button("Clear All")) {
+                if (ImGui.getIO().getKeyCtrl()) {
+                    AutoLoadout.clearAllLoadouts();
+                    cfg.selectedLoadout = null;
+                }
+            }
+            ImGui.popStyleColor(2);
+
+            if (ImGui.isItemHovered()) {
+                ImGui.setTooltip("Hold Ctrl to confirm");
+            }
+        }
+
+        ImGui.end();
+    }
+
+    // Helper methods remain the same
+    private static String getSlotTypeName(int slotIndex) {
+        if (slotIndex >= 0 && slotIndex <= 8) {
+            return "H" + slotIndex; // Compact: "H0" instead of "Hotbar 0"
+        } else if (slotIndex >= 9 && slotIndex <= 35) {
+            return "I" + (slotIndex - 8); // Compact: "I1" instead of "Inventory 1"
+        } else if (slotIndex == 36) {
+            return "Boots";
+        } else if (slotIndex == 37) {
+            return "Legs";
+        } else if (slotIndex == 38) {
+            return "Chest";
+        } else if (slotIndex == 39) {
+            return "Head";
+        } else if (slotIndex == 40) {
+            return "Off";
+        }
+        return "S" + slotIndex;
+    }
+
+    private static String getItemDisplayName(net.minecraft.item.Item item) {
+        String name = item.toString();
+        if (name.startsWith("minecraft:")) {
+            name = name.substring(10);
+        }
+        // More compact - just replace underscores and capitalize first letter
+        name = name.replace("_", " ");
+        if (!name.isEmpty()) {
+            name = Character.toUpperCase(name.charAt(0)) + name.substring(1).toLowerCase();
+        }
+        return name;
+    }
 }
