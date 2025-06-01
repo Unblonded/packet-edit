@@ -1,28 +1,36 @@
 package unblonded.packets.util;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
+
 public class GCCommand {
-
-    static public void onInitializeClient() {
-        CommandRegistrationCallback.EVENT.register(GCCommand::registerCommands);
+    public static void onInitializeClient() {
+        System.out.println("Client GC Command Mod is loading...");
+        ClientCommandRegistrationCallback.EVENT.register(GCCommand::registerCommands);
     }
 
-    private static void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher,
-                                         CommandRegistryAccess registryAccess,
-                                         CommandManager.RegistrationEnvironment environment) {
+    private static void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher,
+                                         CommandRegistryAccess registryAccess) {
 
-        dispatcher.register(CommandManager.literal("gc").executes(GCCommand::executeGC));
-        dispatcher.register(CommandManager.literal("memory").executes(GCCommand::executeMemoryInfo));
+        System.out.println("Registering client-side GC commands...");
+
+        dispatcher.register(literal("gc").executes(GCCommand::executeGC));
+        dispatcher.register(literal("memory").executes(GCCommand::executeMemoryInfo));
+
+        System.out.println("Client GC commands registered successfully!");
     }
 
-    private static int executeGC(CommandContext<ServerCommandSource> context) {
-        ServerCommandSource source = context.getSource();
+    static private int executeGC(CommandContext<FabricClientCommandSource> context) {
+        MinecraftClient client = MinecraftClient.getInstance();
 
         // Get memory info before GC
         Runtime runtime = Runtime.getRuntime();
@@ -44,20 +52,22 @@ public class GCCommand {
         long afterTotal = runtime.totalMemory();
         long freed = beforeUsed - afterUsed;
 
-        // Send results to player/console
-        source.sendFeedback(() -> Text.literal("§aGarbage collection executed!"), false);
-        source.sendFeedback(() -> Text.literal(String.format("§7Before: %.1f MB used / %.1f MB total",
-                beforeUsed / 1024.0 / 1024.0, beforeTotal / 1024.0 / 1024.0)), false);
-        source.sendFeedback(() -> Text.literal(String.format("§7After: %.1f MB used / %.1f MB total",
-                afterUsed / 1024.0 / 1024.0, afterTotal / 1024.0 / 1024.0)), false);
-        source.sendFeedback(() -> Text.literal(String.format("§2Freed: %.1f MB",
-                freed / 1024.0 / 1024.0)), false);
+        // Send results to chat
+        if (client.player != null) {
+            client.player.sendMessage(Text.literal("§aGarbage collection executed!"), false);
+            client.player.sendMessage(Text.literal(String.format("§7Before: %.1f MB used / %.1f MB total",
+                    beforeUsed / 1024.0 / 1024.0, beforeTotal / 1024.0 / 1024.0)), false);
+            client.player.sendMessage(Text.literal(String.format("§7After: %.1f MB used / %.1f MB total",
+                    afterUsed / 1024.0 / 1024.0, afterTotal / 1024.0 / 1024.0)), false);
+            client.player.sendMessage(Text.literal(String.format("§2Freed: %.1f MB",
+                    freed / 1024.0 / 1024.0)), false);
+        }
 
         return 1;
     }
 
-    private static int executeMemoryInfo(CommandContext<ServerCommandSource> context) {
-        ServerCommandSource source = context.getSource();
+    static private int executeMemoryInfo(CommandContext<FabricClientCommandSource> context) {
+        MinecraftClient client = MinecraftClient.getInstance();
         Runtime runtime = Runtime.getRuntime();
 
         long maxMemory = runtime.maxMemory();
@@ -67,15 +77,17 @@ public class GCCommand {
 
         double usedPercent = (double) usedMemory / maxMemory * 100;
 
-        source.sendFeedback(() -> Text.literal("§6=== Memory Information ==="), false);
-        source.sendFeedback(() -> Text.literal(String.format("§7Used: %.1f MB (%.1f%%)",
-                usedMemory / 1024.0 / 1024.0, usedPercent)), false);
-        source.sendFeedback(() -> Text.literal(String.format("§7Allocated: %.1f MB",
-                totalMemory / 1024.0 / 1024.0)), false);
-        source.sendFeedback(() -> Text.literal(String.format("§7Maximum: %.1f MB",
-                maxMemory / 1024.0 / 1024.0)), false);
-        source.sendFeedback(() -> Text.literal(String.format("§7Free in allocated: %.1f MB",
-                freeMemory / 1024.0 / 1024.0)), false);
+        if (client.player != null) {
+            client.player.sendMessage(Text.literal("§6=== Client Memory Information ==="), false);
+            client.player.sendMessage(Text.literal(String.format("§7Used: %.1f MB (%.1f%%)",
+                    usedMemory / 1024.0 / 1024.0, usedPercent)), false);
+            client.player.sendMessage(Text.literal(String.format("§7Allocated: %.1f MB",
+                    totalMemory / 1024.0 / 1024.0)), false);
+            client.player.sendMessage(Text.literal(String.format("§7Maximum: %.1f MB",
+                    maxMemory / 1024.0 / 1024.0)), false);
+            client.player.sendMessage(Text.literal(String.format("§7Free in allocated: %.1f MB",
+                    freeMemory / 1024.0 / 1024.0)), false);
+        }
 
         return 1;
     }
