@@ -32,7 +32,7 @@ public class GameRenderMixin {
 
             if (!cfg.fontSizeOverride.get()) {
                 ImVec2 windowSize = ImGui.getIO().getDisplaySize();
-                float scale = Math.max(1.2f, (windowSize.x / 1920.0f) * 0.85f);
+                float scale = Math.max(1.1f, (windowSize.x / 1920.0f) * 0.85f);
                 ImGui.getIO().setFontGlobalScale(scale);
             } else {
                 ImGui.getIO().setFontGlobalScale(cfg.fontSize[0]);

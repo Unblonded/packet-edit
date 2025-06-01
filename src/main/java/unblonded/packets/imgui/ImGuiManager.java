@@ -21,6 +21,10 @@ public class ImGuiManager {
         return instance;
     }
 
+    public void destroy() {
+        instance = null;
+    }
+
     public void init() {
         if (initialized) return;
 

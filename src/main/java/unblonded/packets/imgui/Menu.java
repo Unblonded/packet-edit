@@ -192,7 +192,7 @@ public class Menu {
             if (cfg.nightFxCfg.get()) {
                 ImGui.begin("Cosmic Crosshair", cfg.nightFxCfg);
                 ImGui.text("Cosmic Crosshair is " + (cfg.nightFx.get() ? "enabled" : "disabled"));
-                ImGui.sliderFloat("Size", cfg.nightFxSize, 1.0f, 100.0f);
+                ImGui.sliderFloat("Size", cfg.nightFxSize, 1.0f, 100.0f, "%.1f");
                 ImGui.checkbox("Show Crosshair Lines", cfg.nightFxCrosshairLines);
                 ImGui.end();
             }
@@ -223,7 +223,10 @@ public class Menu {
             if (cfg.fontSizeCfg.get()) {
                 ImGui.begin("Font Size Override", cfg.fontSizeCfg);
                 ImGui.text("Use a custom font size.");
-                ImGui.sliderFloat("Font Size", cfg.fontSize, 0.25f, 4.0f);
+                ImGui.sliderFloat("Font Size", cfg.fontSize, 0.25f, 4.0f, "%.1f");
+                ImGui.sliderFloat("##scaleSize", cfg.scaleSize, 0.5f, 2.f, "%.1f");
+                ImGui.sameLine();
+                if (ImGui.button("Scale")) ImGui.getStyle().scaleAllSizes(.5f);
                 ImGui.end();
             }
 

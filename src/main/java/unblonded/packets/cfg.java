@@ -68,6 +68,7 @@ public class cfg {
     public static String[] chatFilterItems = new String[]{ "Mute", "Contains", "Not Contain" };
     public static ImBoolean fontSizeOverride = new ImBoolean(false);;
     public static float[] fontSize = {1.5f};
+    public static float[] scaleSize = {0.5f};
     public static boolean storageScanShow;
     public static float[] aimAssistRange = {6.8f};
     public static float[] aimAssistFov = {128.2f};

@@ -2,6 +2,7 @@ package unblonded.packets.imgui;
 
 import imgui.*;
 import imgui.flag.ImGuiCol;
+import net.minecraft.client.MinecraftClient;
 import unblonded.packets.cfg;
 
 import java.util.Random;

@@ -5,6 +5,9 @@ import unblonded.packets.render.*;
 import unblonded.packets.util.*;
 
 import net.fabricmc.api.ClientModInitializer;
+import unblonded.packets.util.CmdManager.Cmds.MemoryCommand;
+import unblonded.packets.util.CmdManager.Cmds.GCCommand;
+import unblonded.packets.util.CmdManager.CommandManager;
 
 public class Initializer implements ClientModInitializer {
     @Override
@@ -22,6 +25,9 @@ public class Initializer implements ClientModInitializer {
         AutoDisconnect.onInitializeClient();
         AimAssist.onInitializeClient();
         SelfCrystal.onInitializeClient();
-        GCCommand.onInitializeClient();
+
+        CommandManager.register(new GCCommand());
+        CommandManager.register(new MemoryCommand());
+        CommandManager.init();
     }
 }
