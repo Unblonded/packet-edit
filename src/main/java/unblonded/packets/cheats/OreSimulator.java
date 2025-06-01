@@ -24,16 +24,9 @@ public class OreSimulator {
 	private static final MinecraftClient mc = MinecraftClient.getInstance();
 	public static final Map<Long, Set<Vec3d>> chunkDebrisPositions = new ConcurrentHashMap<>();
 
-	// New: Floating-point tolerance for better consistency
 	private static final double EPSILON = 1e-10;
-
-	// New: Chunk stability tracking
 	private static final Map<Long, Long> chunkLoadTimes = new ConcurrentHashMap<>();
-
-	// New: Block state cache for consistency
 	private static final Map<BlockPos, Boolean> blockStateCache = new ConcurrentHashMap<>();
-
-	// New: Verification mode for debugging
 	private static boolean verificationMode = false;
 	private static final Map<Long, Set<Vec3d>> actualResults = new ConcurrentHashMap<>();
 
@@ -43,24 +36,17 @@ public class OreSimulator {
 	private static long worldSeed;
 	public static int horizontalRadius = 5;
 
-	// New: Configuration options
 	private static boolean useConsensusMode = true;
 	private static int consensusIterations = 3;
 	private static boolean useChunkStabilityDelay = true;
-	private static long chunkStabilityDelay = 1000; // 1 second
+	private static long chunkStabilityDelay = 1000; 
 
-	public static void setHorizontalRadius(int radius) {
-		horizontalRadius = radius;
-	}
+	public static void setHorizontalRadius(int radius) { horizontalRadius = radius; }
 
-	public static void setWorldSeed(long seed) {
-		worldSeed = seed;
-	}
+	public static void setWorldSeed(long seed) { worldSeed = seed; }
 
-	// New: Configuration methods
-	public static void setVerificationMode(boolean enabled) {
-		verificationMode = enabled;
-	}
+	
+	public static void setVerificationMode(boolean enabled) { verificationMode = enabled; }
 
 	public static void setConsensusMode(boolean enabled, int iterations) {
 		useConsensusMode = enabled;
@@ -75,7 +61,7 @@ public class OreSimulator {
 	public static void recalculateChunks() {
 		if (mc.player == null || mc.world == null) return;
 		chunkDebrisPositions.clear();
-		blockStateCache.clear(); // Clear cache on recalculation
+		blockStateCache.clear(); 
 
 		ChunkPos playerChunkPos = mc.player.getChunkPos();
 		int chunkX = playerChunkPos.x;
@@ -83,7 +69,7 @@ public class OreSimulator {
 
 		for (int x = chunkX - horizontalRadius; x <= chunkX + horizontalRadius; x++) {
 			for (int z = chunkZ - horizontalRadius; z <= chunkZ + horizontalRadius; z++) {
-				// Enhanced: Better chunk status handling with retry logic
+				
 				Chunk chunk = waitForChunk(mc.world, x, z);
 				if (chunk != null && isChunkStable(chunk)) {
 					if (useConsensusMode) {
@@ -99,23 +85,21 @@ public class OreSimulator {
 		}
 	}
 
-	// New: Wait for proper chunk with retry logic
+	
 	private static Chunk waitForChunk(ClientWorld world, int x, int z) {
-		// First try to get chunk with features
 		Chunk chunk = world.getChunk(x, z, ChunkStatus.FEATURES, false);
 		if (chunk != null) return chunk;
 
-		// Fallback to biomes status with forced loading
 		chunk = world.getChunk(x, z, ChunkStatus.BIOMES, true);
 		if (chunk != null) {
-			// Mark chunk load time for stability tracking
+			
 			long chunkKey = ChunkPos.toLong(x, z);
 			chunkLoadTimes.put(chunkKey, System.currentTimeMillis());
 		}
 		return chunk;
 	}
 
-	// New: Check if chunk is stable enough for accurate simulation
+	
 	private static boolean isChunkStable(Chunk chunk) {
 		if (!useChunkStabilityDelay) return true;
 
@@ -124,16 +108,14 @@ public class OreSimulator {
 
 		chunkLoadTimes.putIfAbsent(chunkKey, currentTime);
 
-		// Wait for chunk to stabilize after loading
 		return (currentTime - chunkLoadTimes.get(chunkKey)) >= chunkStabilityDelay;
 	}
 
-	// New: Consensus algorithm for multiple simulation runs
+	
 	private static Set<Vec3d> getConsensusResults(Chunk chunk, int iterations) {
 		Map<Vec3d, Integer> positionCounts = new HashMap<>();
 
 		for (int i = 0; i < iterations; i++) {
-			// Clear cache between iterations to avoid bias
 			blockStateCache.clear();
 			Set<Vec3d> results = simulateChunk(chunk);
 			for (Vec3d pos : results) {
@@ -141,14 +123,13 @@ public class OreSimulator {
 			}
 		}
 
-		// Return positions that appeared in majority of simulations
 		return positionCounts.entrySet().stream()
 				.filter(entry -> entry.getValue() > iterations / 2)
 				.map(Map.Entry::getKey)
 				.collect(Collectors.toSet());
 	}
 
-	// New: Separate simulation method for consensus mode
+	
 	private static Set<Vec3d> simulateChunk(Chunk chunk) {
 		var chunkPos = chunk.getPos();
 		ClientWorld world = mc.world;
@@ -176,14 +157,12 @@ public class OreSimulator {
 
 		int chunkX = chunkPos.x << 4;
 		int chunkZ = chunkPos.z << 4;
-
-		// Enhanced: Better RNG synchronization with validation
+		
 		ChunkRandom random = new ChunkRandom(ChunkRandom.RandomProvider.XOROSHIRO.create(0));
 		long populationSeed = random.setPopulationSeed(worldSeed, chunkX, chunkZ);
 
 		Set<Vec3d> debrisPositions = new HashSet<>();
 
-		// Reset RNG state before second generation to prevent drift
 		random.setPopulationSeed(worldSeed, chunkX, chunkZ);
 		processDebrisGeneration(world, random, populationSeed, dataLarge, chunkX, chunkZ, debrisPositions);
 
@@ -200,15 +179,12 @@ public class OreSimulator {
 
 		if (!results.isEmpty()) {
 			chunkDebrisPositions.put(chunkKey, results);
-
-			// New: Verification mode comparison
-			if (verificationMode && actualResults.containsKey(chunkKey)) {
+			if (verificationMode && actualResults.containsKey(chunkKey))
 				compareResults(chunkKey, results, actualResults.get(chunkKey));
-			}
 		}
 	}
 
-	// New: Verification comparison
+	
 	private static void compareResults(long chunkKey, Set<Vec3d> predicted, Set<Vec3d> actual) {
 		Set<Vec3d> missed = new HashSet<>(actual);
 		missed.removeAll(predicted);
@@ -217,16 +193,16 @@ public class OreSimulator {
 		falsePositives.removeAll(actual);
 
 		if (!missed.isEmpty() || !falsePositives.isEmpty()) {
-			System.out.println("Discrepancies in chunk " + chunkKey +
+			System.out.println("Errors in chunk " + chunkKey +
 					": Missed=" + missed.size() + ", False Positives=" + falsePositives.size());
-			// Could add more detailed analysis here
+			
 		}
 	}
 
 	private static void processDebrisGeneration(ClientWorld world, ChunkRandom random, long populationSeed,
 												AncientDebrisUtil debrisData, int chunkX, int chunkZ,
 												Set<Vec3d> results) {
-		// Enhanced: More frequent RNG resets to prevent drift
+		
 		random.setDecoratorSeed(populationSeed, debrisData.index, debrisData.step);
 		int count = debrisData.count.get(random);
 
@@ -238,8 +214,7 @@ public class OreSimulator {
 			int y = debrisData.heightProvider.get(random, debrisData.heightContext);
 
 			BlockPos pos = new BlockPos(x, y, z);
-
-			// Enhanced: More precise biome validation
+			
 			if (!hasValidBiomeAtPosition(world, pos)) continue;
 
 			ArrayList<Vec3d> generatedPositions;
@@ -251,15 +226,14 @@ public class OreSimulator {
 		}
 	}
 
-	// New: More precise biome sampling at multiple points
+	
 	private static boolean hasValidBiomeAtPosition(ClientWorld world, BlockPos pos) {
-		// Check center point
+		
 		var biome = world.getBiome(pos);
 		if (biome.getKey().isPresent() && isValidAncientDebrisBiome(biome.getKey().get())) {
 			return true;
 		}
-
-		// Check corners to catch biome boundaries better
+		
 		BlockPos[] testPositions = {
 				pos.add(1, 0, 0),
 				pos.add(-1, 0, 0),
@@ -276,7 +250,7 @@ public class OreSimulator {
 		return false;
 	}
 
-	// New: Cached block state checking for consistency
+	
 	private static boolean isOpaqueBlock(ClientWorld world, BlockPos pos) {
 		return blockStateCache.computeIfAbsent(pos, p -> world.getBlockState(p).isOpaque());
 	}
@@ -313,11 +287,9 @@ public class OreSimulator {
 	}
 
 	private static ArrayList<Vec3d> generateVeinPart(ClientWorld world, ChunkRandom random, int veinSize, double startX, double endX, double startZ, double endZ, double startY, double endY, int x, int y, int z, int size, int i, float discardOnAir) {
-
 		BitSet bitSet = new BitSet(size * i * size);
 		BlockPos.Mutable mutable = new BlockPos.Mutable();
 		double[] ds = new double[veinSize * 4];
-
 		ArrayList<Vec3d> poses = new ArrayList<>();
 
 		int n;
@@ -379,7 +351,6 @@ public class OreSimulator {
 							if (ai * ai + ak * ak < 1.0D) {
 								for (int al = ad; al <= ag; ++al) {
 									double am = ((double) al + 0.5D - aa) / u;
-									// Enhanced: Added epsilon tolerance for boundary calculations
 									if (ai * ai + ak * ak + am * am < (1.0D + EPSILON)) {
 										int an = ah - x + (aj - y) * size + (al - z) * size * i;
 										if (!bitSet.get(an)) {
@@ -399,27 +370,20 @@ public class OreSimulator {
 				}
 			}
 		}
-
 		return poses;
 	}
 
 	private static boolean shouldPlace(ClientWorld world, BlockPos orePos, float discardOnAir, ChunkRandom random) {
-		if (discardOnAir == 0F || (discardOnAir != 1F && random.nextFloat() >= discardOnAir)) {
-			return true;
-		}
+		if (discardOnAir == 0F || (discardOnAir != 1F && random.nextFloat() >= discardOnAir)) return true;
 
-		for (Direction direction : Direction.values()) {
-			if (!isOpaqueBlock(world, orePos.add(direction.getVector())) && discardOnAir != 1F) {
+		for (Direction direction : Direction.values())
+			if (!isOpaqueBlock(world, orePos.add(direction.getVector())) && discardOnAir != 1F)
 				return false;
-			}
-		}
 		return true;
 	}
 
 	private static ArrayList<Vec3d> generateHidden(ClientWorld world, ChunkRandom random, BlockPos blockPos, int size) {
-
 		ArrayList<Vec3d> poses = new ArrayList<>();
-
 		int i = random.nextInt(size + 1);
 
 		for (int j = 0; j < i; ++j) {
@@ -455,7 +419,7 @@ public class OreSimulator {
 				|| biome == BiomeKeys.BASALT_DELTAS;
 	}
 
-	// New: Utility methods for configuration and debugging
+	
 	public static void clearCaches() {
 		blockStateCache.clear();
 		chunkLoadTimes.clear();

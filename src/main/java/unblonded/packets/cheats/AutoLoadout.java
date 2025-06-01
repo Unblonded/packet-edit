@@ -257,13 +257,6 @@ public class AutoLoadout {
         }
     }
 
-    /**
-     * Convert inventory slot index to screen handler slot index
-     * Hotbar slots 0-8 in inventory become slots 36-44 in screen handler
-     * Main inventory slots 9-35 become slots 9-35 in screen handler
-     * Armor slots in inventory (boots=36, leggings=37, chestplate=38, helmet=39)
-     * become screen handler slots (boots=8, leggings=7, chestplate=6, helmet=5)
-     */
     private static int convertToScreenSlot(int inventorySlot) {
         // Hotbar slots (0-8 in inventory)
         if (inventorySlot >= 0 && inventorySlot <= 8) {
@@ -273,11 +266,6 @@ public class AutoLoadout {
         else if (inventorySlot >= 9 && inventorySlot <= 35) {
             return inventorySlot;
         }
-        // Armor slots - inventory to screen handler mapping:
-        // Boots: 36 -> 8
-        // Leggings: 37 -> 7
-        // Chestplate: 38 -> 6
-        // Helmet: 39 -> 5
         else if (inventorySlot == 36) { // Boots
             return 8;
         }

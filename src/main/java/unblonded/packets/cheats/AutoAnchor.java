@@ -23,13 +23,10 @@ public class AutoAnchor {
 
     private static BlockPos anchorPos = null;
     private static int glowstoneSlot = -1;
-    private static int stage = 0;
-    private static int tickDelay = 0;
     private static boolean processing = false;
     private static boolean enabled = false;
 
     public static void onInitializeClient() {
-        // Listen for anchor placement
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
             if (!world.isClient || hand != Hand.MAIN_HAND || !enabled) return ActionResult.PASS;
 
@@ -38,19 +35,16 @@ public class AutoAnchor {
                 glowstoneSlot = findHotbarSlot(Items.GLOWSTONE);
                 if (glowstoneSlot != -1) {
                     processing = true;
-                    stage = 0;
-                    tickDelay = 0;
                 }
             }
 
             return ActionResult.PASS;
         });
 
-        // Tick loop
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             if (!processing || anchorPos == null || client.player == null || client.world == null || !enabled) return;
 
-            processing = false; // Prevent multiple triggers
+            processing = false;
             new Thread(() -> {
                 try {
                     for (int i = 0; i < 4; i++) {
@@ -69,10 +63,8 @@ public class AutoAnchor {
                             interactWithBlock(anchorPos);
                         }
 
-                        // Reset
                         anchorPos = null;
                         glowstoneSlot = -1;
-                        stage = 0;
                     });
                 } catch (InterruptedException ignored) { }
             }, "AutoAnchorThread").start();
@@ -98,7 +90,5 @@ public class AutoAnchor {
         return -1;
     }
 
-    public static void setState(boolean state) {
-        enabled = state;
-    }
+    public static void setState(boolean state) { enabled = state; }
 }

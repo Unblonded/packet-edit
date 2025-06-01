@@ -79,9 +79,6 @@ public class AimAssist {
         }
     }
 
-    /**
-     * Starts the timer for smooth aim adjustment
-     */
     private static void startTimer() {
         if (timerRunning) {
             return;
@@ -114,9 +111,6 @@ public class AimAssist {
         lastUpdateTime = System.currentTimeMillis();
     }
 
-    /**
-     * Stops the timer
-     */
     private static void stopTimer() {
         if (aimTimer != null) {
             aimTimer.cancel();
@@ -125,9 +119,6 @@ public class AimAssist {
         timerRunning = false;
     }
 
-    /**
-     * Finds the best target based on configured parameters.
-     */
     private static PlayerEntity findTarget() {
         if (mc.player == null || mc.world == null) {
             return null;
@@ -153,9 +144,6 @@ public class AimAssist {
                 .get(0);
     }
 
-    /**
-     * Calculate priority score for a target (lower is better)
-     */
     private static double getTargetPriority(PlayerEntity target) {
         // Distance factor
         double distance = mc.player.squaredDistanceTo(target);
@@ -170,9 +158,6 @@ public class AimAssist {
         return angleDistance * 3.0 + distance;
     }
 
-    /**
-     * Adjusts the aim toward the target
-     */
     private static void adjustAim(PlayerEntity target, float deltaTime) {
         // Calculate target rotation to the player
         float[] targetRotation = calculateRotation(target);
@@ -216,9 +201,6 @@ public class AimAssist {
         mc.player.setPitch(newPitch);
     }
 
-    /**
-     * Calculates the ideal rotation to look at a target
-     */
     private static float[] calculateRotation(PlayerEntity target) {
         Vec3d eyePos = mc.player.getEyePos();
 
@@ -236,27 +218,20 @@ public class AimAssist {
         return new float[] {yaw, pitch};
     }
 
-    /**
-     * Calculate movement speed based on angle difference
-     */
     private static float calculateSpeed(float angleDifference) {
         // Map angleDifference to speed (small angles = slow, large angles = faster)
         return MathHelper.clamp(angleDifference / 5.0f, minSpeed, maxSpeed);
     }
 
-    /**
-     * Check if a player entity is a valid target
-     */
     private static boolean isValidTarget(PlayerEntity entity) {
         if (entity == mc.player) {
-            return false; // Don't target self
+            return false;
         }
 
         if (entity.isRemoved() || !entity.isAlive() || entity.isInvisible()) {
             return false;
         }
 
-        // Check if target is visible
         if (visibilityCheck && !canSee(entity)) {
             return false;
         }
@@ -264,9 +239,6 @@ public class AimAssist {
         return true;
     }
 
-    /**
-     * Check if an entity is visible to the player
-     */
     private static boolean canSee(PlayerEntity entity) {
         if (mc.player == null || mc.world == null) return false;
 
@@ -284,7 +256,6 @@ public class AimAssist {
         return mc.world.raycast(context).getType() == HitResult.Type.MISS;
     }
 
-    // Getters and setters for configurable parameters
     public static void applySettings(float newRange, float newFov, float newSmoothness,
                                      float newMinSpeed, float newMaxSpeed, boolean newVisibilityCheck,
                                      int newUpdateRate) {

@@ -31,9 +31,7 @@ public class CrystalSpam {
     }
 
     public static void start() {
-        if (isRunning) {
-            return;
-        }
+        if (isRunning) return;
 
         isRunning = true;
         new Thread(CrystalSpam::run).start();
@@ -61,11 +59,11 @@ public class CrystalSpam {
                     }
                 }
 
-                Thread.sleep(50); // Small delay to prevent excessive CPU usage
+                Thread.sleep(50); 
             } catch (Exception e) {
                 e.printStackTrace();
                 try {
-                    Thread.sleep(1000); // Wait before retrying after an error
+                    Thread.sleep(1000); 
                 } catch (InterruptedException ex) {
                     ex.printStackTrace();
                 }
@@ -77,23 +75,20 @@ public class CrystalSpam {
         PlayerEntity player = mc.player;
         World world = mc.world;
 
-        if (player == null || world == null) {
-            return Optional.empty();
-        }
+        if (player == null || world == null) return Optional.empty();
 
         List<BlockPos> validBlocks = new ArrayList<>();
         BlockPos playerPos = player.getBlockPos();
 
-        // Scan in a cube around the player
         for (int x = -searchRadius; x <= searchRadius; x++) {
             for (int y = -searchRadius; y <= searchRadius; y++) {
                 for (int z = -searchRadius; z <= searchRadius; z++) {
                     BlockPos pos = playerPos.add(x, y, z);
                     Block block = world.getBlockState(pos).getBlock();
 
-                    // Check if block is obsidian or bedrock
+                    
                     if (block == Blocks.OBSIDIAN || block == Blocks.BEDROCK) {
-                        // Check if there's air above it (for crystal placement)
+                        
                         BlockPos abovePos = pos.up();
                         if (world.getBlockState(abovePos).isAir() && world.getBlockState(abovePos.up()).isAir()) {
                             validBlocks.add(pos);
@@ -102,43 +97,27 @@ public class CrystalSpam {
                 }
             }
         }
-
-        // Sort blocks by distance to player
+        
         return validBlocks.stream()
                 .min(Comparator.comparingDouble(pos ->
                         player.getPos().squaredDistanceTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5)));
     }
 
-    /**
-     * Places an End Crystal on the specified block
-     * @param pos Position to place the crystal on
-     */
     private static void placeCrystal(BlockPos pos) {
-        if (mc.player == null || mc.world == null) {
-            return;
-        }
+        if (mc.player == null || mc.world == null) return;
 
-        // Find end crystals in hotbar
         int crystalSlot = findItemInHotbar(Items.END_CRYSTAL);
-        if (crystalSlot == -1) {
-            return; // No crystals found
-        }
+        if (crystalSlot == -1) return;
 
-        // Save the current selected slot
         int originalSlot = mc.player.getInventory().selectedSlot;
 
-        // Select the crystal
         mc.player.getInventory().selectedSlot = crystalSlot;
 
-        // Calculate the position and look at it
         Vec3d placePos = new Vec3d(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5);
         lookAt(placePos);
-
-        // Place the crystal
+        
         BlockHitResult hitResult = new BlockHitResult(placePos, Direction.UP, pos, false);
         mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, hitResult);
-
-        // Restore original slot
         mc.player.getInventory().selectedSlot = originalSlot;
     }
 
@@ -147,7 +126,6 @@ public class CrystalSpam {
             return;
         }
 
-        // Find the closest crystal entity near the block
         mc.world.getEntitiesByClass(net.minecraft.entity.decoration.EndCrystalEntity.class,
                         mc.player.getBoundingBox().expand(searchRadius),
                         entity -> {
@@ -159,10 +137,10 @@ public class CrystalSpam {
                 .stream()
                 .findFirst()
                 .ifPresent(crystal -> {
-                    // Look at the crystal
+                    
                     lookAt(crystal.getPos());
 
-                    // Attack the crystal
+                    
                     mc.interactionManager.attackEntity(mc.player, crystal);
                     mc.player.swingHand(Hand.MAIN_HAND);
                 });
@@ -193,7 +171,7 @@ public class CrystalSpam {
         double pitch = Math.asin(-direction.y) * 180.0 / Math.PI;
         double yaw = Math.atan2(direction.z, direction.x) * 180.0 / Math.PI - 90.0;
 
-        // Set the player's rotation
+        
         mc.player.setYaw((float) yaw);
         mc.player.setPitch((float) pitch);
     }

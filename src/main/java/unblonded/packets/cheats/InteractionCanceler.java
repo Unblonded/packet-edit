@@ -39,7 +39,6 @@ public class InteractionCanceler {
             }
         });
 
-        // Make ghost entities non-interactable
         UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
             if (enabled && GHOST_ENTITIES.contains(entity.getType())) {
                 return ActionResult.FAIL;

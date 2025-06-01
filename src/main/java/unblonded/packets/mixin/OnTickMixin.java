@@ -6,9 +6,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import unblonded.packets.cfg;
 import unblonded.packets.cheats.CrystalSpam;
-import unblonded.packets.cheats.KillAura;
 import unblonded.packets.util.ConfigManager;
 import unblonded.packets.util.util;
 
@@ -25,7 +23,6 @@ public abstract class OnTickMixin {
         util.updateOreSim(client);
         util.updateStates();
         util.setTitle(client);
-        KillAura.tick();
         CrystalSpam.start();
 
         if (tickCount % 200 == 0) ConfigManager.saveConfig();

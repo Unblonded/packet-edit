@@ -40,15 +40,11 @@ public class InventoryScanner {
         textToSearch.add(stack.getName().getString().toLowerCase());
 
         List<Text> tooltip = stack.getTooltip(Item.TooltipContext.DEFAULT, CLIENT.player, TooltipType.ADVANCED);
-        for (Text line : tooltip) {
-            textToSearch.add(line.getString().toLowerCase());
-        }
+        for (Text line : tooltip) textToSearch.add(line.getString().toLowerCase());
 
-        for (String text : textToSearch) {
-            if (text.contains(query)) {
+        for (String text : textToSearch)
+            if (text.contains(query))
                 return true;
-            }
-        }
 
         return false;
     }

@@ -37,9 +37,7 @@ public class SelfCrystal {
     }
 
     public static void onInitializeClient() {
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            onTick();
-        });
+        ClientTickEvents.END_CLIENT_TICK.register(client -> { onTick(); });
     }
 
     public static void clearAll() {
@@ -53,23 +51,18 @@ public class SelfCrystal {
             BlockPos hitPos = hitResult.getBlockPos();
             Direction face = hitResult.getSide();
 
-            // Calculate all possible crystal positions
             List<BlockPos> possiblePositions = new ArrayList<>();
 
-            if (face == Direction.UP) {
-                possiblePositions.add(hitPos.up());
-            } else {
-                possiblePositions.add(hitPos.offset(face));
-            }
+            if (face == Direction.UP) possiblePositions.add(hitPos.up());
+            else possiblePositions.add(hitPos.offset(face));
 
-            // Also check adjacent positions in case of slight placement variations
             BlockPos primary = possiblePositions.get(0);
             possiblePositions.add(primary.add(1, 0, 0));
             possiblePositions.add(primary.add(-1, 0, 0));
             possiblePositions.add(primary.add(0, 0, 1));
             possiblePositions.add(primary.add(0, 0, -1));
 
-            // Track all possible positions
+            
             for (BlockPos pos : possiblePositions) {
                 trackedCrystals.put(pos, new CrystalInfo());
             }
@@ -77,9 +70,7 @@ public class SelfCrystal {
     }
 
     private static void onTick() {
-        if (!enabled || mc.player == null || mc.world == null) {
-            return;
-        }
+        if (!enabled || mc.player == null || mc.world == null) return;
 
         long currentTime = System.currentTimeMillis();
         Iterator<Map.Entry<BlockPos, CrystalInfo>> iterator = trackedCrystals.entrySet().iterator();
@@ -91,34 +82,24 @@ public class SelfCrystal {
 
             info.ticksWaited++;
 
-            // Remove if too old (10 seconds)
             if (currentTime - info.placedTime > 10000) {
                 iterator.remove();
                 continue;
             }
 
-            // Find crystal at this position
             EndCrystalEntity crystal = findCrystalAtPos(pos);
 
             if (crystal == null) {
-                // If we've waited a reasonable time and still no crystal, remove this position
-                if (info.ticksWaited > 20) { // 1 second
-                    iterator.remove();
-                }
+                if (info.ticksWaited > 20) iterator.remove();
                 continue;
             }
 
-            // Check if enough time has passed to attack
-            if (!info.readyToAttack && currentTime - info.placedTime >= info.attackDelay) {
+            if (!info.readyToAttack && currentTime - info.placedTime >= info.attackDelay)
                 info.readyToAttack = true;
-            }
 
-            // Attack if ready
             if (info.readyToAttack) {
                 attackCrystal(crystal);
-                iterator.remove(); // Remove after attacking
-
-                // Remove other positions tracking the same crystal to avoid duplicate attacks
+                iterator.remove();
                 removeOtherPositionsForSameArea(pos);
             }
         }
@@ -130,7 +111,6 @@ public class SelfCrystal {
             Map.Entry<BlockPos, CrystalInfo> entry = iterator.next();
             BlockPos pos = entry.getKey();
 
-            // Remove positions within 2 blocks of the attacked position
             if (!pos.equals(centerPos) && pos.isWithinDistance(centerPos, 2.0)) {
                 iterator.remove();
             }
@@ -140,7 +120,6 @@ public class SelfCrystal {
     private static EndCrystalEntity findCrystalAtPos(BlockPos pos) {
         if (mc.world == null) return null;
 
-        // Expanded search box to catch crystals that might be slightly offset
         Box searchBox = new Box(
                 pos.getX() - 1.0, pos.getY() - 0.5, pos.getZ() - 1.0,
                 pos.getX() + 2.0, pos.getY() + 2.5, pos.getZ() + 2.0
@@ -156,7 +135,7 @@ public class SelfCrystal {
             return null;
         }
 
-        // Return the closest crystal to the expected position
+        
         EndCrystalEntity closest = crystals.get(0);
         double closestDistance = closest.getPos().distanceTo(pos.toCenterPos());
 
