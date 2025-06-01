@@ -2,16 +2,16 @@ package unblonded.packets.util.CmdManager;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.minecraft.command.CommandSource;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
+import unblonded.packets.util.Chat;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CommandManager {
-    public static final CommandDispatcher<CommandSource> DISPATCHER = new CommandDispatcher<>();
+    public static final CommandDispatcher<FabricClientCommandSource> DISPATCHER = new CommandDispatcher<>();
     private static final List<Command> commands = new ArrayList<>();
     private static final String PREFIX = "`";
 
@@ -28,7 +28,7 @@ public class CommandManager {
     public static void register(Command command) {
         commands.add(command);
 
-        LiteralArgumentBuilder<CommandSource> builder = LiteralArgumentBuilder.literal(command.name);
+        LiteralArgumentBuilder<FabricClientCommandSource> builder = LiteralArgumentBuilder.literal(command.name);
         command.build(builder);
         DISPATCHER.register(builder);
     }
@@ -38,16 +38,12 @@ public class CommandManager {
             String commandText = message.substring(PREFIX.length());
             MinecraftClient client = MinecraftClient.getInstance();
 
-            if (client.getNetworkHandler() != null) {
-                DISPATCHER.execute(commandText, client.getNetworkHandler().getCommandSource());
+            if (client.getNetworkHandler() != null && client.player != null) {
+                FabricClientCommandSource source = (FabricClientCommandSource) client.getNetworkHandler().getCommandSource();
+                DISPATCHER.execute(commandText, source);
             }
-        } catch (Exception e) {sendMessage("Error executing command: " + e.getMessage());}
-    }
-
-    private static void sendMessage(String message) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player != null) {
-            client.player.sendMessage(Text.literal(message), false);
+        } catch (Exception e) {
+            Chat.sendMessage("Error executing command: " + e.getMessage());
         }
     }
 

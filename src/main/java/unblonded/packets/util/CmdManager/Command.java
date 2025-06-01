@@ -1,7 +1,7 @@
 package unblonded.packets.util.CmdManager;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.minecraft.command.CommandSource;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 
 public abstract class Command {
     public final String name;
@@ -16,5 +16,5 @@ public abstract class Command {
         this(name, "No description");
     }
 
-    public abstract void build(LiteralArgumentBuilder<CommandSource> builder);
+    public abstract void build(LiteralArgumentBuilder<FabricClientCommandSource> builder);
 }

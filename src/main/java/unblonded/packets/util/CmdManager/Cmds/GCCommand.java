@@ -1,8 +1,8 @@
 package unblonded.packets.util.CmdManager.Cmds;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.command.CommandSource;
 import net.minecraft.text.Text;
 import unblonded.packets.util.CmdManager.Command;
 
@@ -12,7 +12,7 @@ public class GCCommand extends Command {
     }
 
     @Override
-    public void build(LiteralArgumentBuilder<CommandSource> builder) {
+    public void build(LiteralArgumentBuilder<FabricClientCommandSource> builder) {
         builder.executes(context -> {
             MinecraftClient client = MinecraftClient.getInstance();
 

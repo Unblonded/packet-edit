@@ -223,9 +223,6 @@ public class Menu {
                 ImGui.begin("Font Size Override", cfg.fontSizeCfg);
                 ImGui.text("Use a custom font size.");
                 ImGui.sliderFloat("Font Size", cfg.fontSize, 0.25f, 4.0f, "%.1f");
-                ImGui.sliderFloat("##scaleSize", cfg.scaleSize, 0.5f, 2.f, "%.1f");
-                ImGui.sameLine();
-                if (ImGui.button("Scale")) ImGui.getStyle().scaleAllSizes(.5f);
                 ImGui.end();
             }
 

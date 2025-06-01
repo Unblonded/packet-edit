@@ -4,10 +4,11 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.suggestion.Suggestions;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.client.MinecraftClient;
 import unblonded.packets.util.CmdManager.CommandManager;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.command.CommandSource;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -17,11 +18,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.concurrent.CompletableFuture;
 
-import static net.minecraft.client.MinecraftClient.getInstance;
-
 @Mixin(ChatInputSuggestor.class)
 public abstract class ChatMixin {
-    @Shadow private ParseResults<CommandSource> parse;
+    @Shadow private ParseResults<FabricClientCommandSource> parse;
     @Shadow @Final TextFieldWidget textField;
     @Shadow boolean completingSuggestions;
     @Shadow private CompletableFuture<Suggestions> pendingSuggestions;
@@ -38,8 +37,13 @@ public abstract class ChatMixin {
         if (reader.canRead(length) && reader.getString().startsWith(prefix, reader.getCursor())) {
             reader.setCursor(reader.getCursor() + length);
 
-            if (this.parse == null)
-                this.parse = CommandManager.DISPATCHER.parse(reader, getInstance().getNetworkHandler().getCommandSource());
+            if (this.parse == null) {
+                MinecraftClient client = MinecraftClient.getInstance();
+                if (client.getNetworkHandler() != null && client.player != null) {
+                    FabricClientCommandSource source = (FabricClientCommandSource)client.getNetworkHandler().getCommandSource();
+                    this.parse = CommandManager.DISPATCHER.parse(reader, source);
+                }
+            }
 
             int cursor = textField.getCursor();
             if (cursor >= length && (this.window == null || !this.completingSuggestions)) {
