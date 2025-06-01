@@ -26,14 +26,10 @@ public class MemoryCommand extends Command {
 
             if (client.player != null) {
                 client.player.sendMessage(Text.literal("§6=== Client Memory Information ==="), false);
-                client.player.sendMessage(Text.literal(String.format("§7Used: %.1f MB (%.1f%%)",
-                        usedMemory / 1024.0 / 1024.0, usedPercent)), false);
-                client.player.sendMessage(Text.literal(String.format("§7Allocated: %.1f MB",
-                        totalMemory / 1024.0 / 1024.0)), false);
-                client.player.sendMessage(Text.literal(String.format("§7Maximum: %.1f MB",
-                        maxMemory / 1024.0 / 1024.0)), false);
-                client.player.sendMessage(Text.literal(String.format("§7Free in allocated: %.1f MB",
-                        freeMemory / 1024.0 / 1024.0)), false);
+                client.player.sendMessage(Text.literal(String.format("§7Used: %.1f MB (%.1f%%)", usedMemory / 1024.0 / 1024.0, usedPercent)), false);
+                client.player.sendMessage(Text.literal(String.format("§7Allocated: %.1f MB", totalMemory / 1024.0 / 1024.0)), false);
+                client.player.sendMessage(Text.literal(String.format("§7Maximum: %.1f MB", maxMemory / 1024.0 / 1024.0)), false);
+                client.player.sendMessage(Text.literal(String.format("§7Free in allocated: %.1f MB", freeMemory / 1024.0 / 1024.0)), false);
             }
 
             return 1;

@@ -17,9 +17,6 @@
 	"entrypoints": {
 		"client": [
 			"unblonded.packets.Initializer"
-		],
-		"preLaunch": [
-			"unblonded.packets.PreLaunch"
 		]
 	},
 	"mixins": [

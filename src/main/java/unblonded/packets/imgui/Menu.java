@@ -41,7 +41,6 @@ public class Menu {
 
             ImGui.begin("Modules - Unblonded");
 
-            // Animated checkboxes
             ImGui.pushStyleColor(ImGuiCol.FrameBg, new ImVec4(0.08f, 0.05f, 0.12f, 0.8f));
             ImGui.pushStyleColor(ImGuiCol.FrameBgHovered, new ImVec4(
                     neon_blue.x * 0.3f,
@@ -340,7 +339,6 @@ public class Menu {
                 if (ImGui.button((cfg.advEspDrawType.get() ? "Glow" : "Wire") + " Mode##drawType")) cfg.advEspDrawType.set(!cfg.advEspDrawType.get());
                 if (cfg.drawBlocks.get()) ImGui.checkbox("Draw Tracers", cfg.drawBlockTracer);
 
-                // Add new block input
                 ImGui.inputText("Block Name", cfg.blockName);
                 ImGui.colorEdit4("Block Color", cfg.blockColor);
 
@@ -375,32 +373,25 @@ public class Menu {
                     BlockColor blockColor = cfg.espBlockList.get(i);
                     ImGui.pushID(i);
 
-                    // Checkbox for enable/disable
                     ImBoolean enabled = new ImBoolean(blockColor.isEnabled());
-                    if (ImGui.checkbox("##enabled", enabled)) {
-                        blockColor.setEnabled(enabled.get());
-                    }
+                    if (ImGui.checkbox("##enabled", enabled)) blockColor.setEnabled(enabled.get());
 
                     ImGui.sameLine();
 
-                    // Color editor
                     float[] color = blockColor.getColorF();
-                    if (ImGui.colorEdit4("##color", color, ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.NoLabel)) {
+                    if (ImGui.colorEdit4("##color", color, ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.NoLabel))
                         blockColor.setColor(new Color(color[0], color[1], color[2], color[3]));
-                    }
 
                     ImGui.sameLine();
 
-                    // Block name display
                     String blockName = Registries.BLOCK.getId(blockColor.getBlock()).toString();
                     ImGui.textUnformatted(blockName);
 
                     ImGui.sameLine(ImGui.getWindowWidth() - 120);
 
-                    // Remove button
                     if (ImGui.smallButton("Remove")) {
                         cfg.espBlockList.remove(i);
-                        i--; // Adjust index after removal
+                        i--;
                     }
 
                     ImGui.popID();
@@ -430,11 +421,9 @@ public class Menu {
             }
             ImGui.separator();
 
-            // Get the nearby players from PlayerTracker, respecting freeze setting
             List<PlayerTracker.PlayerInfo> nearbyPlayers;
 
             if (cfg.freezePlayers.get()) {
-                // Use frozen list if freeze is enabled
                 if (frozenPlayerList == null) frozenPlayerList = new ArrayList<>(PlayerTracker.getNearbyPlayers());
                 nearbyPlayers = frozenPlayerList;
             } else {
@@ -487,12 +476,9 @@ public class Menu {
         }
 
         if (cfg.checkPlayerAirSafety.get() && cfg.isPlayerAirSafeShowStatus.get()) {
-            // Update safety status
             AirUnderCheck.checkSafety();
-
             ImGui.begin("Dig Safety");
 
-            // Add color coding for better visibility
             if (!AirUnderCheck.isSafe)
                 ImGui.textColored(0.0f, 1.0f, 0.0f, 1.0f, "Status: SAFE");
             else
@@ -517,7 +503,6 @@ public class Menu {
         }
     }
 
-    // Store previous densities to build a time graph
     private static final int GRAPH_HISTORY_SIZE = 100;
     private static final int POINT_REPEAT = 3;
     private static final Deque<Float> debrisHistory = new ArrayDeque<>();
@@ -530,7 +515,6 @@ public class Menu {
                 ? 0f
                 : totalDebris / (float) OreSimulator.horizontalRadius;
 
-        // Only add points when value changes
         if (averageDensity != lastAverageDensity) {
             for (int j = 0; j < POINT_REPEAT; j++) {
                 if (debrisHistory.size() >= GRAPH_HISTORY_SIZE) debrisHistory.pollFirst();
@@ -539,17 +523,12 @@ public class Menu {
             lastAverageDensity = averageDensity;
         }
 
-        // Fill remaining space with last known value to keep animation flowing
-        while (debrisHistory.size() < GRAPH_HISTORY_SIZE) {
-            debrisHistory.addLast(lastAverageDensity);
-        }
+        while (debrisHistory.size() < GRAPH_HISTORY_SIZE) debrisHistory.addLast(lastAverageDensity);
 
-        // Copy to array for ImGui
         float[] historyArray = new float[debrisHistory.size()];
         int i = 0;
         for (Float f : debrisHistory) historyArray[i++] = f;
 
-        // Plot using full content width
         float graphWidth = ImGui.getContentRegionAvailX();
         ImGui.plotLines("##DebrisDensity", historyArray, historyArray.length, 0,
                 "Debris Density (dynamic)", 0f, 30f, new ImVec2(graphWidth, 100));
@@ -583,12 +562,10 @@ public class Menu {
         ImGui.setNextWindowSize(320, 350, ImGuiCond.FirstUseEver);
         ImGui.begin("Loadouts", cfg.showLoadouts, ImGuiWindowFlags.NoCollapse);
 
-        // Compact header
         ImGui.pushStyleColor(ImGuiCol.Text, 0.8f, 0.9f, 1.0f, 1.0f);
         ImGui.text("New Loadout");
         ImGui.popStyleColor();
 
-        // Compact input section
         ImGui.setNextItemWidth(160);
         ImGui.inputText("##LoadoutName", cfg.loadoutNameInput, ImGuiInputTextFlags.None);
         ImGui.sameLine();
@@ -606,7 +583,6 @@ public class Menu {
 
         ImGui.separator();
 
-        // Compact loadouts section
         Map<String, List<KitSlot>> loadouts = cfg.savedLoadouts;
 
         ImGui.pushStyleColor(ImGuiCol.Text, 0.8f, 0.9f, 1.0f, 1.0f);
@@ -618,7 +594,6 @@ public class Menu {
             ImGui.text("No loadouts saved");
             ImGui.popStyleColor();
         } else {
-            // Compact loadout list
             ImGui.beginChild("LoadoutList", 0, 140, true, ImGuiWindowFlags.None);
 
             for (String name : loadouts.keySet()) {
@@ -630,15 +605,9 @@ public class Menu {
                     ImGui.pushStyleColor(ImGuiCol.HeaderHovered, 0.4f, 0.6f, 0.9f, 0.8f);
                 }
 
-                if (ImGui.selectable(name + " (" + kit.size() + ")", selected)) {
-                    cfg.selectedLoadout = name;
-                }
+                if (ImGui.selectable(name + " (" + kit.size() + ")", selected)) cfg.selectedLoadout = name;
+                if (selected) ImGui.popStyleColor(2);
 
-                if (selected) {
-                    ImGui.popStyleColor(2);
-                }
-
-                // Right-click menu
                 if (ImGui.isItemHovered() && ImGui.isMouseClicked(1)) {
                     cfg.selectedLoadout = name;
                     ImGui.openPopup("LoadoutContext");
@@ -647,7 +616,6 @@ public class Menu {
 
             ImGui.endChild();
 
-            // Compact context menu
             if (ImGui.beginPopup("LoadoutContext")) {
                 if (cfg.selectedLoadout != null) {
                     if (ImGui.menuItem("Apply")) {
@@ -661,11 +629,8 @@ public class Menu {
                 ImGui.endPopup();
             }
 
-            // Compact action buttons
             if (cfg.selectedLoadout != null) {
                 ImGui.separator();
-
-                // Single row of compact buttons
                 ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
                 ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
                 if (ImGui.button("Apply")) {
@@ -690,7 +655,6 @@ public class Menu {
                 }
                 ImGui.popStyleColor(2);
 
-                // Compact details (optional, collapsed by default)
                 if (ImGui.collapsingHeader("Items")) {
                     List<KitSlot> selectedKit = loadouts.get(cfg.selectedLoadout);
                     if (selectedKit != null) {
@@ -707,7 +671,6 @@ public class Menu {
                 }
             }
 
-            // Compact utility section
             ImGui.separator();
             ImGui.pushStyleColor(ImGuiCol.Button, 0.6f, 0.2f, 0.2f, 1.0f);
             ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.7f, 0.3f, 0.3f, 1.0f);
@@ -719,20 +682,17 @@ public class Menu {
             }
             ImGui.popStyleColor(2);
 
-            if (ImGui.isItemHovered()) {
-                ImGui.setTooltip("Hold Ctrl to confirm");
-            }
+            if (ImGui.isItemHovered()) ImGui.setTooltip("Hold Ctrl to confirm");
         }
 
         ImGui.end();
     }
 
-    // Helper methods remain the same
     private static String getSlotTypeName(int slotIndex) {
         if (slotIndex >= 0 && slotIndex <= 8) {
-            return "H" + slotIndex; // Compact: "H0" instead of "Hotbar 0"
+            return "H" + slotIndex;
         } else if (slotIndex >= 9 && slotIndex <= 35) {
-            return "I" + (slotIndex - 8); // Compact: "I1" instead of "Inventory 1"
+            return "I" + (slotIndex - 8);
         } else if (slotIndex == 36) {
             return "Boots";
         } else if (slotIndex == 37) {
@@ -749,14 +709,9 @@ public class Menu {
 
     private static String getItemDisplayName(net.minecraft.item.Item item) {
         String name = item.toString();
-        if (name.startsWith("minecraft:")) {
-            name = name.substring(10);
-        }
-        // More compact - just replace underscores and capitalize first letter
+        if (name.startsWith("minecraft:")) name = name.substring(10);
         name = name.replace("_", " ");
-        if (!name.isEmpty()) {
-            name = Character.toUpperCase(name.charAt(0)) + name.substring(1).toLowerCase();
-        }
+        if (!name.isEmpty()) name = Character.toUpperCase(name.charAt(0)) + name.substring(1).toLowerCase();
         return name;
     }
 }

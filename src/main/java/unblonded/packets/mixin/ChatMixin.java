@@ -30,10 +30,7 @@ public abstract class ChatMixin {
     @Shadow
     protected abstract void showCommandSuggestions();
 
-    @Inject(method = "refresh",
-            at = @At(value = "INVOKE", target = "Lcom/mojang/brigadier/StringReader;canRead()Z", remap = false),
-            cancellable = true
-    )
+    @Inject(method = "refresh", at = @At(value = "INVOKE", target = "Lcom/mojang/brigadier/StringReader;canRead()Z", remap = false), cancellable = true)
     public void onRefresh(CallbackInfo ci, @Local StringReader reader) {
         String prefix = CommandManager.getPrefix();
         int length = prefix.length();
@@ -41,20 +38,14 @@ public abstract class ChatMixin {
         if (reader.canRead(length) && reader.getString().startsWith(prefix, reader.getCursor())) {
             reader.setCursor(reader.getCursor() + length);
 
-            if (this.parse == null) {
+            if (this.parse == null)
                 this.parse = CommandManager.DISPATCHER.parse(reader, getInstance().getNetworkHandler().getCommandSource());
-            }
 
             int cursor = textField.getCursor();
             if (cursor >= length && (this.window == null || !this.completingSuggestions)) {
                 this.pendingSuggestions = CommandManager.DISPATCHER.getCompletionSuggestions(this.parse, cursor);
-                this.pendingSuggestions.thenRun(() -> {
-                    if (this.pendingSuggestions.isDone()) {
-                        this.showCommandSuggestions();
-                    }
-                });
+                this.pendingSuggestions.thenRun(() -> { if (this.pendingSuggestions.isDone()) this.showCommandSuggestions(); });
             }
-
             ci.cancel();
         }
     }

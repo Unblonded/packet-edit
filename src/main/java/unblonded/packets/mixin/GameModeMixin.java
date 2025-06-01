@@ -10,20 +10,15 @@ import unblonded.packets.util.GameModeAccessor;
 @Mixin(ClientPlayerInteractionManager.class)
 public class GameModeMixin implements GameModeAccessor {
 
-    @Shadow
-    @Mutable
-    private BlockPos currentBreakingPos;
+    @Shadow @Mutable private BlockPos currentBreakingPos;
 
-    @Shadow
-    private float currentBreakingProgress;
+    @Shadow private float currentBreakingProgress;
 
-    @Override
-    public BlockPos getDestroyBlockPos() {
+    @Override public BlockPos getDestroyBlockPos() {
         return currentBreakingPos;
     }
 
-    @Override
-    public float getDestroyProgress() {
+    @Override public float getDestroyProgress() {
         return currentBreakingProgress;
     }
 }

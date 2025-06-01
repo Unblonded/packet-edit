@@ -231,7 +231,6 @@ public class ESPOverlayRenderer {
         Vec3d cameraPos = camera.getPos();
         float tickDelta = context.camera().getLastTickDelta();
 
-        // Interpolate player position to account for partial ticks
         double eyeX = MathHelper.lerp(tickDelta, player.prevX, player.getX());
         double eyeY = MathHelper.lerp(tickDelta, player.prevY, player.getY()) + player.getEyeHeight(player.getPose());
         double eyeZ = MathHelper.lerp(tickDelta, player.prevZ, player.getZ());
@@ -337,7 +336,6 @@ public class ESPOverlayRenderer {
                 lastSearchTime = System.currentTimeMillis();
             }
 
-            // Copy scan results to foundBlocks for rendering
             if (!scanResults.isEmpty()) {
                 synchronized (foundBlocks) {
                     foundBlocks.clear();
@@ -411,7 +409,6 @@ public class ESPOverlayRenderer {
 
             List<BlockPos> results = new ArrayList<>();
 
-            // Pre-filter enabled blocks
             Set<Block> enabledBlocks = new HashSet<>();
             for (BlockColor blockColor : cfg.espBlockList) {
                 if (blockColor.isEnabled() && blockColor.getBlock() != null) {
@@ -463,7 +460,6 @@ public class ESPOverlayRenderer {
             int minY = Math.max(-radius, -64);
             int maxY = Math.min(radius, 320);
 
-            // Perform the expensive calculation on the background thread
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dy = minY; dy <= maxY; dy++) {
                     for (int dz = -radius; dz <= radius; dz++) {
@@ -474,9 +470,7 @@ public class ESPOverlayRenderer {
                 }
             }
 
-            // Sort the results
-            tempOffsets.sort(Comparator.comparingInt(pos ->
-                    pos.getX() * pos.getX() + pos.getY() * pos.getY() + pos.getZ() * pos.getZ()));
+            tempOffsets.sort(Comparator.comparingInt(pos -> pos.getX() * pos.getX() + pos.getY() * pos.getY() + pos.getZ() * pos.getZ()));
 
             synchronized (cachedOffsets) {
                 cachedOffsets.clear();
@@ -484,7 +478,7 @@ public class ESPOverlayRenderer {
             }
         }, "OffsetCalculationThread");
 
-        offsetThread.setDaemon(true); // Dies when main thread dies
+        offsetThread.setDaemon(true);
         offsetThread.start();
     }
 

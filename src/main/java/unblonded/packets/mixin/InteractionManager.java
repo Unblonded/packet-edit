@@ -14,8 +14,7 @@ import unblonded.packets.cheats.SelfCrystal;
 @Mixin(ClientPlayerInteractionManager.class)
 public class InteractionManager {
     @Inject(at = @At("HEAD"), method = "interactBlock")
-    private void onInteractBlock(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult,
-                                 CallbackInfoReturnable<?> cir) {
+    private void onInteractBlock(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<?> cir) {
         ItemStack stack = player.getStackInHand(hand);
         SelfCrystal.onPlayerInteract(stack, hand, hitResult);
     }

@@ -12,27 +12,15 @@ import unblonded.packets.cfg;
 
 @Mixin(ChatHud.class)
 public class ChatFilter {
-    @Inject(
-            method = "addMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageSignatureData;Lnet/minecraft/client/gui/hud/MessageIndicator;)V",
-            at = @At("HEAD"),
-            cancellable = true
-    )
+    @Inject(method = "addMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageSignatureData;Lnet/minecraft/client/gui/hud/MessageIndicator;)V", at = @At("HEAD"), cancellable = true)
     private void onAddMessage(Text message, MessageSignatureData signatureData, MessageIndicator indicator, CallbackInfo ci) {
         String plain = message.getString().toLowerCase();
         String block = cfg.blockMsg.get().toLowerCase();
 
         if (cfg.chatFilter.get()) {
-            if (cfg.filterMode == 0) {
-                ci.cancel();
-            } else if (cfg.filterMode == 1) {
-                if (plain.contains(block)) {
-                    ci.cancel();
-                }
-            } else if (cfg.filterMode == 2) {
-                if (!plain.contains(block)) {
-                    ci.cancel();
-                }
-            }
+            if (cfg.filterMode == 0) ci.cancel();
+            else if (cfg.filterMode == 1) if (plain.contains(block)) ci.cancel();
+            else if (cfg.filterMode == 2) if (!plain.contains(block)) ci.cancel();
         }
     }
 }

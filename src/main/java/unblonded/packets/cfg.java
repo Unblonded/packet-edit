@@ -54,7 +54,6 @@ public class cfg {
     public static ImString blockName = new ImString(256);
     public static float[] blockColor = {1.f, 1.f, 1.f, 1.f};
     public static int[] espRadius = {32};
-    public static int[] espBatchSize = {256};
     public static int[] espSearchTime = {1};
     public static ImBoolean checkPlayerAirSafety = new ImBoolean(false);
     public static ImBoolean isPlayerAirSafeShowStatus = new ImBoolean(true);
@@ -64,7 +63,6 @@ public class cfg {
     public static ImBoolean autoDc = new ImBoolean(false);
     public static ImBoolean autoDcPrimed = new ImBoolean(false);
     public static ImFloat autoDcProximity = new ImFloat(5.0f);
-    public static ImBoolean backgroundFx = new ImBoolean(true);
     public static String[] chatFilterItems = new String[]{ "Mute", "Contains", "Not Contain" };
     public static ImBoolean fontSizeOverride = new ImBoolean(false);;
     public static float[] fontSize = {1.5f};

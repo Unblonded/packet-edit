@@ -31,20 +31,17 @@ public class ConfigManager {
             .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
             .create();
 
-    // Custom adapter for BlockColor that safely serializes Block objects
     private static class BlockColorAdapter implements JsonSerializer<BlockColor>, JsonDeserializer<BlockColor> {
         @Override
         public JsonElement serialize(BlockColor src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject obj = new JsonObject();
 
-            // Serialize block as its registry name instead of the full object
             Block block = src.getBlock();
             if (block != null) {
                 Identifier blockId = Registries.BLOCK.getId(block);
                 obj.addProperty("block", blockId.toString());
             }
 
-            // Serialize color using our custom adapter
             obj.add("color", context.serialize(src.getColor()));
             obj.addProperty("enabled", src.isEnabled());
 
@@ -55,23 +52,18 @@ public class ConfigManager {
         public BlockColor deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             JsonObject obj = json.getAsJsonObject();
 
-            // Deserialize block from registry name
             Block block = null;
             if (obj.has("block")) {
                 String blockId = obj.get("block").getAsString();
                 block = Registries.BLOCK.get(Identifier.of(blockId));
             }
 
-            // Deserialize color
             Color color = context.deserialize(obj.get("color"), Color.class);
-
             boolean enabled = obj.has("enabled") ? obj.get("enabled").getAsBoolean() : true;
-
             return new BlockColor(block, color, enabled);
         }
     }
 
-    // Custom adapter for Color class
     private static class ColorAdapter implements JsonSerializer<Color>, JsonDeserializer<Color> {
         @Override
         public JsonElement serialize(Color src, Type typeOfSrc, JsonSerializationContext context) {
@@ -94,14 +86,12 @@ public class ConfigManager {
         }
     }
 
-    // Custom adapter for KitSlot that safely serializes Item objects
     private static class KitSlotAdapter implements JsonSerializer<KitSlot>, JsonDeserializer<KitSlot> {
         @Override
         public JsonElement serialize(KitSlot src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject obj = new JsonObject();
             obj.addProperty("slotIndex", src.slotIndex);
 
-            // Serialize item as its registry name instead of the full object
             if (src.item != null) {
                 Identifier itemId = Registries.ITEM.getId(src.item);
                 obj.addProperty("item", itemId.toString());
@@ -116,7 +106,6 @@ public class ConfigManager {
 
             int slotIndex = obj.get("slotIndex").getAsInt();
 
-            // Deserialize item from registry name
             Item item = null;
             if (obj.has("item")) {
                 String itemId = obj.get("item").getAsString();
@@ -127,7 +116,6 @@ public class ConfigManager {
         }
     }
 
-    // Custom TypeAdapter for Optional
     private static class OptionalTypeAdapter<T> extends TypeAdapter<Optional<T>> {
         private final TypeAdapter<T> adapter;
 
@@ -154,7 +142,6 @@ public class ConfigManager {
         }
     }
 
-    // TypeAdapterFactory for Optional
     private static class OptionalTypeAdapterFactory implements TypeAdapterFactory {
         @Override
         public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
@@ -173,13 +160,9 @@ public class ConfigManager {
 
     public static void saveConfig() {
         try {
-            // Get .minecraft directory
             File configDir = Packetedit.workDir();
 
-            // Create directory if it doesn't exist
-            if (!configDir.exists()) {
-                configDir.mkdirs();
-            }
+            if (!configDir.exists()) configDir.mkdirs();
 
             //THINGS TO SET FALSE
             cfg.triggerAutoSell = false;
@@ -188,7 +171,6 @@ public class ConfigManager {
             File configFile = new File(configDir, CONFIG_FILE);
             JsonObject configJson = new JsonObject();
 
-            // Use reflection to get all fields from cfg class
             Field[] fields = cfg.class.getDeclaredFields();
 
             for (Field field : fields) {
@@ -197,33 +179,20 @@ public class ConfigManager {
                 Object value = field.get(null);
 
                 try {
-                    // Skip Optional fields - handle them separately if needed
-                    if (value instanceof Optional) {
-                        Optional<?> optional = (Optional<?>) value;
-                        if (optional.isPresent()) {
-                            configJson.add(fieldName, gson.toJsonTree(optional.get()));
-                        }
+                    if (value instanceof Optional<?> optional) {
+                        optional.ifPresent(o -> configJson.add(fieldName, gson.toJsonTree(o)));
                         continue;
                     }
 
-                    // Convert different types to JSON
-                    if (value instanceof ImBoolean) {
-                        configJson.addProperty(fieldName, ((ImBoolean) value).get());
-                    } else if (value instanceof ImInt) {
-                        configJson.addProperty(fieldName, ((ImInt) value).get());
-                    } else if (value instanceof ImFloat) {
-                        configJson.addProperty(fieldName, ((ImFloat) value).get());
-                    } else if (value instanceof ImLong) {
-                        configJson.addProperty(fieldName, ((ImLong) value).get());
-                    } else if (value instanceof ImString) {
-                        configJson.addProperty(fieldName, ((ImString) value).get());
-                    } else if (value instanceof int[]) {
-                        configJson.add(fieldName, gson.toJsonTree(value));
-                    } else if (value instanceof float[]) {
-                        configJson.add(fieldName, gson.toJsonTree(value));
-                    } else if (value instanceof String[]) {
-                        configJson.add(fieldName, gson.toJsonTree(value));
-                    } else if (value instanceof ImInt[]) {
+                    if (value instanceof ImBoolean) configJson.addProperty(fieldName, ((ImBoolean) value).get());
+                    else if (value instanceof ImInt) configJson.addProperty(fieldName, ((ImInt) value).get());
+                    else if (value instanceof ImFloat) configJson.addProperty(fieldName, ((ImFloat) value).get());
+                    else if (value instanceof ImLong) configJson.addProperty(fieldName, ((ImLong) value).get());
+                    else if (value instanceof ImString) configJson.addProperty(fieldName, ((ImString) value).get());
+                    else if (value instanceof int[]) configJson.add(fieldName, gson.toJsonTree(value));
+                    else if (value instanceof float[]) configJson.add(fieldName, gson.toJsonTree(value));
+                    else if (value instanceof String[]) configJson.add(fieldName, gson.toJsonTree(value));
+                    else if (value instanceof ImInt[]) {
                         ImInt[] imIntArray = (ImInt[]) value;
                         int[] intArray = new int[imIntArray.length];
                         for (int i = 0; i < imIntArray.length; i++) {
@@ -231,32 +200,21 @@ public class ConfigManager {
                         }
                         configJson.add(fieldName, gson.toJsonTree(intArray));
                     } else if (value instanceof Map && fieldName.equals("savedLoadouts")) {
-                        // Handle Map<String, List<KitSlot>> with our custom adapter
                         configJson.add(fieldName, gson.toJsonTree(value, new TypeToken<Map<String, List<KitSlot>>>(){}.getType()));
                     } else if (value instanceof List) {
-                        // Now we can safely handle List<BlockColor> with our custom adapter
                         if (fieldName.equals("espBlockList")) {
                             configJson.add(fieldName, gson.toJsonTree(value, new TypeToken<List<BlockColor>>(){}.getType()));
-                        } else {
-                            // Handle other list types
-                            configJson.add(fieldName, gson.toJsonTree(value));
-                        }
-                    } else if (value instanceof Boolean || value instanceof Integer ||
-                            value instanceof Float || value instanceof String) {
+                        } else configJson.add(fieldName, gson.toJsonTree(value));
+                    } else if (value instanceof Boolean || value instanceof Integer || value instanceof Float || value instanceof String) {
                         configJson.add(fieldName, gson.toJsonTree(value));
                     }
                 } catch (Exception e) {
                     System.err.println("Error serializing field " + fieldName + ": " + e.getMessage());
                     e.printStackTrace();
-                    // Continue with other fields
                 }
             }
 
-            // Write to file
-            try (FileWriter writer = new FileWriter(configFile)) {
-                gson.toJson(configJson, writer);
-            }
-
+            try (FileWriter writer = new FileWriter(configFile)) { gson.toJson(configJson, writer); }
             System.out.println("Config saved to: " + configFile.getAbsolutePath());
 
         } catch (Exception e) {
@@ -275,49 +233,33 @@ public class ConfigManager {
                 return;
             }
 
-            // Read JSON from file
             String jsonString = new String(Files.readAllBytes(configFile.toPath()));
             JsonObject configJson = JsonParser.parseString(jsonString).getAsJsonObject();
 
-            // Use reflection to set all fields in cfg class
             Field[] fields = cfg.class.getDeclaredFields();
 
             for (Field field : fields) {
                 field.setAccessible(true);
                 String fieldName = field.getName();
 
-                if (!configJson.has(fieldName)) {
-                    continue; // Skip if not in config file
-                }
+                if (!configJson.has(fieldName)) continue;
 
                 Object currentValue = field.get(null);
                 JsonElement jsonElement = configJson.get(fieldName);
 
                 try {
-                    // Handle Optional fields
                     if (currentValue instanceof Optional) {
-                        if (jsonElement.isJsonNull()) {
-                            field.set(null, Optional.empty());
-                        } else {
-                            // You'll need to determine the type and create the Optional accordingly
-                            // This is a simplified example - you may need more specific handling
-                            field.set(null, Optional.of(jsonElement));
-                        }
+                        if (jsonElement.isJsonNull()) field.set(null, Optional.empty());
+                        else field.set(null, Optional.of(jsonElement));
                         continue;
                     }
 
-                    // Set values based on type
-                    if (currentValue instanceof ImBoolean) {
-                        ((ImBoolean) currentValue).set(jsonElement.getAsBoolean());
-                    } else if (currentValue instanceof ImInt) {
-                        ((ImInt) currentValue).set(jsonElement.getAsInt());
-                    } else if (currentValue instanceof ImFloat) {
-                        ((ImFloat) currentValue).set(jsonElement.getAsFloat());
-                    } else if (currentValue instanceof ImLong) {
-                        ((ImLong) currentValue).set(jsonElement.getAsLong());
-                    } else if (currentValue instanceof ImString) {
-                        ((ImString) currentValue).set(jsonElement.getAsString());
-                    } else if (currentValue instanceof int[]) {
+                    if (currentValue instanceof ImBoolean) ((ImBoolean) currentValue).set(jsonElement.getAsBoolean());
+                    else if (currentValue instanceof ImInt) ((ImInt) currentValue).set(jsonElement.getAsInt());
+                    else if (currentValue instanceof ImFloat) ((ImFloat) currentValue).set(jsonElement.getAsFloat());
+                    else if (currentValue instanceof ImLong) ((ImLong) currentValue).set(jsonElement.getAsLong());
+                    else if (currentValue instanceof ImString) ((ImString) currentValue).set(jsonElement.getAsString());
+                    else if (currentValue instanceof int[]) {
                         int[] array = gson.fromJson(jsonElement, int[].class);
                         field.set(null, array);
                     } else if (currentValue instanceof float[]) {
@@ -334,31 +276,20 @@ public class ConfigManager {
                         }
                         field.set(null, imIntArray);
                     } else if (currentValue instanceof Map && fieldName.equals("savedLoadouts")) {
-                        // Handle Map<String, List<KitSlot>> deserialization
-                        Map<String, List<KitSlot>> loadouts = gson.fromJson(jsonElement,
-                                new TypeToken<Map<String, List<KitSlot>>>(){}.getType());
-
-                        // Clear the existing map and repopulate it
+                        Map<String, List<KitSlot>> loadouts = gson.fromJson(jsonElement, new TypeToken<Map<String, List<KitSlot>>>(){}.getType());
                         ((Map<String, List<KitSlot>>) currentValue).clear();
                         ((Map<String, List<KitSlot>>) currentValue).putAll(loadouts);
                     } else if (currentValue instanceof List && fieldName.equals("espBlockList")) {
-                        // Now we can safely deserialize List<BlockColor>
-                        List<BlockColor> blockList = gson.fromJson(jsonElement,
-                                new TypeToken<List<BlockColor>>(){}.getType());
+                        List<BlockColor> blockList = gson.fromJson(jsonElement, new TypeToken<List<BlockColor>>(){}.getType());
                         field.set(null, blockList);
-                    } else if (currentValue instanceof Boolean) {
-                        field.setBoolean(null, jsonElement.getAsBoolean());
-                    } else if (currentValue instanceof Integer) {
-                        field.setInt(null, jsonElement.getAsInt());
-                    } else if (currentValue instanceof Float) {
-                        field.setFloat(null, jsonElement.getAsFloat());
-                    } else if (currentValue instanceof String) {
-                        field.set(null, jsonElement.getAsString());
                     }
+                    else if (currentValue instanceof Boolean) field.setBoolean(null, jsonElement.getAsBoolean());
+                    else if (currentValue instanceof Integer) field.setInt(null, jsonElement.getAsInt());
+                    else if (currentValue instanceof Float) field.setFloat(null, jsonElement.getAsFloat());
+                    else if (currentValue instanceof String) field.set(null, jsonElement.getAsString());
                 } catch (Exception e) {
                     System.err.println("Error loading field " + fieldName + ": " + e.getMessage());
                     e.printStackTrace();
-                    // Continue with other fields
                 }
             }
 

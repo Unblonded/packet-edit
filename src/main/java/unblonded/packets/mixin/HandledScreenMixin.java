@@ -15,8 +15,7 @@ import unblonded.packets.cheats.InventoryScanner;
 public class HandledScreenMixin {
     @Inject(method = "render", at = @At("TAIL"))
     private void draw(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        if (InventoryScanner.CLIENT.currentScreen instanceof HandledScreen<?> screen) {
+        if (InventoryScanner.CLIENT.currentScreen instanceof HandledScreen<?> screen)
             InventoryScanner.drawHighlights(context, screen);
-        }
     }
 }

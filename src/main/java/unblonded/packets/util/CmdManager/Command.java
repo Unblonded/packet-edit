@@ -13,7 +13,7 @@ public abstract class Command {
     }
 
     public Command(String name) {
-        this(name, "No description provided");
+        this(name, "No description");
     }
 
     public abstract void build(LiteralArgumentBuilder<CommandSource> builder);

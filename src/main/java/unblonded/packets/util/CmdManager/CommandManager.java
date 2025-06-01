@@ -16,20 +16,18 @@ public class CommandManager {
     private static final String PREFIX = "`";
 
     public static void init() {
-        // Register the chat message interceptor to handle command execution
         ClientSendMessageEvents.ALLOW_CHAT.register((message) -> {
             if (message.startsWith(PREFIX)) {
                 handleCommand(message);
-                return false; // Don't send the message to chat
+                return false;
             }
-            return true; // Allow normal chat messages
+            return true;
         });
     }
 
     public static void register(Command command) {
         commands.add(command);
 
-        // Register with brigadier dispatcher
         LiteralArgumentBuilder<CommandSource> builder = LiteralArgumentBuilder.literal(command.name);
         command.build(builder);
         DISPATCHER.register(builder);
@@ -37,17 +35,13 @@ public class CommandManager {
 
     private static void handleCommand(String message) {
         try {
-            // Remove the prefix and execute the command
             String commandText = message.substring(PREFIX.length());
             MinecraftClient client = MinecraftClient.getInstance();
 
             if (client.getNetworkHandler() != null) {
                 DISPATCHER.execute(commandText, client.getNetworkHandler().getCommandSource());
             }
-        } catch (Exception e) {
-            sendMessage("Error executing command: " + e.getMessage());
-            e.printStackTrace();
-        }
+        } catch (Exception e) {sendMessage("Error executing command: " + e.getMessage());}
     }
 
     private static void sendMessage(String message) {
@@ -57,11 +51,7 @@ public class CommandManager {
         }
     }
 
-    public static String getPrefix() {
-        return PREFIX;
-    }
+    public static String getPrefix() {return PREFIX;}
 
-    public static List<Command> getCommands() {
-        return new ArrayList<>(commands);
-    }
+    public static List<Command> getCommands() {return new ArrayList<>(commands);}
 }

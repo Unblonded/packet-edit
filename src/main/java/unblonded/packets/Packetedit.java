@@ -60,16 +60,12 @@ public class Packetedit {
 
 			int responseCode = connection.getResponseCode();
 
-			InputStream inputStream = (responseCode >= 200 && responseCode <= 299)
-					? connection.getInputStream()
-					: connection.getErrorStream();
+			InputStream inputStream = (responseCode >= 200 && responseCode <= 299) ? connection.getInputStream() : connection.getErrorStream();
 
 			try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
 				StringBuilder response = new StringBuilder();
 				String line;
-				while ((line = br.readLine()) != null) {
-					response.append(line.trim());
-				}
+				while ((line = br.readLine()) != null) response.append(line.trim());
 				String responseString = response.toString();
 
 				return responseHandler.apply(responseString);
