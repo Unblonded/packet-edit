@@ -26,8 +26,7 @@ public abstract class ChatMixin {
     @Shadow private CompletableFuture<Suggestions> pendingSuggestions;
     @Shadow private ChatInputSuggestor.SuggestionWindow window;
 
-    @Shadow
-    protected abstract void showCommandSuggestions();
+    @Shadow protected abstract void showCommandSuggestions();
 
     @Inject(method = "refresh", at = @At(value = "INVOKE", target = "Lcom/mojang/brigadier/StringReader;canRead()Z", remap = false), cancellable = true)
     public void onRefresh(CallbackInfo ci, @Local StringReader reader) {

@@ -84,6 +84,9 @@ public class cfg {
     public static final ImString loadoutNameInput = new ImString(16);
     public static String selectedLoadout = null;
     public static ImBoolean showLoadouts = new ImBoolean(false);
+    public static ImBoolean handRender = new ImBoolean(false);
+    public static float[] handRenderScale = {1.f};
+    public static float[][] handRenderXYZ = {{0f},{0f},{0f}};
 
     public static ImBoolean autoCrystalCfg = new ImBoolean(false);
     public static ImBoolean advEspCfg = new ImBoolean(false);
@@ -101,5 +104,6 @@ public class cfg {
     public static ImBoolean autoAnchorCfg = new ImBoolean(false);
     public static ImBoolean selfCrystalCfg = new ImBoolean(false);
     public static ImBoolean fpsChartCfg = new ImBoolean(false);
+    public static ImBoolean handRenderCfg = new ImBoolean(false);
 
 }

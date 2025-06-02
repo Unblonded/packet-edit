@@ -25,6 +25,6 @@ public abstract class OnTickMixin {
         util.setTitle(client);
         CrystalSpam.start();
 
-        if (tickCount % 200 == 0) ConfigManager.saveConfig();
+        if (tickCount % 100 == 0) ConfigManager.saveConfig();
     }
 }

@@ -29,6 +29,7 @@ public class Initializer implements ClientModInitializer {
         CommandManager.register(new GCCommand());
         CommandManager.register(new MemoryCommand());
         CommandManager.register(new ToggleCommand());
+        CommandManager.register(new AlertTest());
         CommandManager.init();
     }
 }

@@ -16,7 +16,8 @@
 		"CrosshairMixin",
 		"InteractionManager",
 		"GameRenderMixin",
-		"InputMixin"
+		"InputMixin",
+		"HandRenderMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

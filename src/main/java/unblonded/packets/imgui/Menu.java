@@ -24,6 +24,8 @@ public class Menu {
     public static void render() {
         if (!cfg.showAll) return;
 
+        Alert.renderAll();
+
         float pulse_speed = 3.5f;
         float pulse = (float) (0.5f + 0.5f * Math.sin((ImGui.getTime()) * pulse_speed));
         ImVec4 neon_pink = new ImVec4(1.0f, 0.1f, 0.6f, 1.0f);
@@ -101,6 +103,10 @@ public class Menu {
                     ImGui.sameLine();
                     if (ImGui.button(icons.GEARS + "##crosshair")) cfg.nightFxCfg.set(!cfg.nightFxCfg.get());
 
+                    ImGui.checkbox(icons.HAND + " Hand Render", cfg.handRender);
+                    ImGui.sameLine();
+                    if (ImGui.button(icons.GEARS + "##handrender")) cfg.handRenderCfg.set(!cfg.handRenderCfg.get());
+
                     ImGui.endTabItem();
                 }
 
@@ -159,6 +165,16 @@ public class Menu {
             ImGui.end();
             ImGui.popStyleVar();
             ImGui.popStyleColor();
+
+            if (cfg.handRenderCfg.get()) {
+                ImGui.begin("Hand Render", cfg.handRenderCfg);
+                ImGui.text("Hand Render is " + (cfg.handRender.get() ? "enabled" : "disabled"));
+                ImGui.sliderFloat("Scale", cfg.handRenderScale, .1f, 5f, "%.1f");
+                ImGui.sliderFloat("X Offset", cfg.handRenderXYZ[0], -10f, 10f, "%.1f");
+                ImGui.sliderFloat("Y Offset", cfg.handRenderXYZ[1], -10f, 10f, "%.1f");
+                ImGui.sliderFloat("Z Offset", cfg.handRenderXYZ[2], -10f, 10f, "%.1f");
+                ImGui.end();
+            }
 
             if (cfg.showLoadouts.get()) {
                 loadOutTest();

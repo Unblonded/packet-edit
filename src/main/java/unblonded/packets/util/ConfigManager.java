@@ -24,7 +24,6 @@ public class ConfigManager {
 
     // Create Gson with custom adapters
     private static final Gson gson = new GsonBuilder()
-            .setPrettyPrinting()
             .registerTypeAdapter(BlockColor.class, new BlockColorAdapter())
             .registerTypeAdapter(Color.class, new ColorAdapter())
             .registerTypeAdapter(KitSlot.class, new KitSlotAdapter())
@@ -191,6 +190,7 @@ public class ConfigManager {
                     else if (value instanceof ImString) configJson.addProperty(fieldName, ((ImString) value).get());
                     else if (value instanceof int[]) configJson.add(fieldName, gson.toJsonTree(value));
                     else if (value instanceof float[]) configJson.add(fieldName, gson.toJsonTree(value));
+                    else if (value instanceof float[][]) configJson.add(fieldName, gson.toJsonTree(value));
                     else if (value instanceof String[]) configJson.add(fieldName, gson.toJsonTree(value));
                     else if (value instanceof ImInt[]) {
                         ImInt[] imIntArray = (ImInt[]) value;
@@ -264,6 +264,9 @@ public class ConfigManager {
                         field.set(null, array);
                     } else if (currentValue instanceof float[]) {
                         float[] array = gson.fromJson(jsonElement, float[].class);
+                        field.set(null, array);
+                    } else if (currentValue instanceof float[][]) {
+                        float[][] array = gson.fromJson(jsonElement, float[][].class);
                         field.set(null, array);
                     } else if (currentValue instanceof String[]) {
                         String[] array = gson.fromJson(jsonElement, String[].class);
