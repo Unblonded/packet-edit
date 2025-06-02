@@ -3,6 +3,9 @@ package unblonded.packets.imgui;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiWindowFlags;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.sound.SoundEvents;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -58,6 +61,7 @@ public class Alert {
         this.isVisible = true;
         this.alpha = 1.0f;
 
+        playSound();
         activeAlerts.add(this);
     }
 
@@ -233,9 +237,9 @@ public class Alert {
         return new Alert(title, message, AlertType.ERROR, 5000);
     }
 
-    //Should be implemented bro
     public static void playSound() {
-
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player != null) client.player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
     }
 
     public String getTitle() { return title; }
