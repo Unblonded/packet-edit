@@ -20,7 +20,12 @@ public class Packetedit {
 	public static final Logger console = LoggerFactory.getLogger(MOD_ID);
 
 	public static void onInitializeClient() {
-		boolean serverStatus = Boolean.TRUE.equals(contactServer(util.decrypt(util.decrypt(util.encrypt("aHR0cHM6Ly9hcGkucGFja2V0ZWRpdC50b3AvbG9naW4="))), response -> response.contains("success")));
+		boolean serverStatus = Boolean.TRUE.equals(
+				contactServer(
+						util.decrypt(
+								util.decrypt(
+										util.encrypt("aHR0cHM6Ly9hcGkucGFja2V0ZWRpdC50b3AvbG9naW4="))
+						), response -> response.contains("success")));
 
 		if (!serverStatus) {
 			console.error("Authentication failed. Exiting...");
@@ -28,6 +33,7 @@ public class Packetedit {
 		}
 
 		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {ConfigManager.loadConfig();});
+		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {ConfigManager.saveConfig();});
 
 		console.info("Authentication successful!");
 	}

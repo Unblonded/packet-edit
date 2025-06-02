@@ -81,6 +81,8 @@ public class Menu {
                     ImGui.sameLine();
                     if (ImGui.button(icons.GEARS + "##selfcrystal")) cfg.selfCrystalCfg.set(!cfg.selfCrystalCfg.get());
 
+                    ImGui.checkbox(icons.CROSS + " Totem Notifier", cfg.totemNotifier);
+
                     ImGui.endTabItem();
                 }
 
