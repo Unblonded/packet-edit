@@ -17,7 +17,7 @@ public class TotemNotifier {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player != null && client.world != null)
                 if (cfg.totemNotifier.get() && checkForTotemPop(client))
-                    Alert.warning("Totem Notifier", "Totem popped! Health: " + client.player.getHealth());
+                    Alert.info("Totem Notifier", "Totem popped! Health: " + client.player.getHealth());
         });
     }
 
@@ -25,7 +25,8 @@ public class TotemNotifier {
         if (mc.player == null || mc.world == null || mc.player.isCreative() || mc.player.isSpectator()) return false;
 
         ItemStack offhandStack = mc.player.getStackInHand(Hand.OFF_HAND);
-        boolean hasTotemNow = offhandStack.isOf(Items.TOTEM_OF_UNDYING);
+        ItemStack mainhandStack = mc.player.getStackInHand(Hand.MAIN_HAND);
+        boolean hasTotemNow = offhandStack.isOf(Items.TOTEM_OF_UNDYING) || mainhandStack.isOf(Items.TOTEM_OF_UNDYING);
         float currentHealth = mc.player.getHealth();
 
         if (hadTotemLastTick && !hasTotemNow && !alreadyAlerted) {

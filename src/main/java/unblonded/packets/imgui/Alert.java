@@ -40,11 +40,11 @@ public class Alert {
     private float alpha;
 
     public Alert(String message) {
-        this("Alert", message, AlertType.INFO, 2000);
+        this("Alert", message, AlertType.INFO, 1000);
     }
 
     public Alert(String message, AlertType type) {
-        this("Alert", message, type, 2000);
+        this("Alert", message, type, 1000);
     }
 
     public Alert(String message, AlertType type, long duration) {
@@ -239,19 +239,19 @@ public class Alert {
     }
 
     public static Alert info(String title, String message) {
-        return new Alert(title, message, AlertType.INFO, 3000);
+        return new Alert(title, message, AlertType.INFO, 1000);
     }
 
     public static Alert success(String title, String message) {
-        return new Alert(title, message, AlertType.SUCCESS, 3000);
+        return new Alert(title, message, AlertType.SUCCESS, 1000);
     }
 
     public static Alert warning(String title, String message) {
-        return new Alert(title, message, AlertType.WARNING, 4000);
+        return new Alert(title, message, AlertType.WARNING, 1000);
     }
 
     public static Alert error(String title, String message) {
-        return new Alert(title, message, AlertType.ERROR, 5000);
+        return new Alert(title, message, AlertType.ERROR, 1000);
     }
 
     public static void playSound() {
