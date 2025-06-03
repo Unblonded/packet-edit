@@ -53,7 +53,7 @@ public class ToggleCommand extends Command {
                         .suggests(FEATURE_SUGGESTIONS)
                         .executes(this::toggleFeature))
                 .executes(context -> {
-                    Chat.sendMessage("Usage: .t <feature>");
+                    Chat.sendMessage(Chat.prefix + " Usage: .t <feature>");
                     return 1;
                 });
     }
@@ -181,12 +181,12 @@ public class ToggleCommand extends Command {
                 break;
 
             default:
-                Chat.sendMessage("§cUnknown feature: " + feature);
+                Chat.sendMessage(Chat.prefix + " §cUnknown feature: " + feature);
                 return 0;
         }
 
         String status = toggled ? "§aenabled" : "§cdisabled";
-        Chat.sendMessage("§6§l>§bPacket Edit§6§l<§7:§r §e" + featureName + " " + status);
+        Chat.sendMessage(Chat.prefix + " §e" + featureName + " " + status);
         return 1;
     }
 }

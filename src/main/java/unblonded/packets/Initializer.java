@@ -1,6 +1,7 @@
 package unblonded.packets;
 
 import unblonded.packets.cheats.*;
+import unblonded.packets.imgui.Alert;
 import unblonded.packets.render.*;
 import unblonded.packets.util.*;
 
@@ -26,10 +27,12 @@ public class Initializer implements ClientModInitializer {
         AimAssist.onInitializeClient();
         SelfCrystal.onInitializeClient();
         TotemNotifier.onInitializeClient();
+        AlertHandler.onInitializeClient();
 
         CommandManager.register(new GCCommand());
         CommandManager.register(new MemoryCommand());
         CommandManager.register(new ToggleCommand());
+        CommandManager.register(new GodSwordCommand());
         CommandManager.register(new AlertTest());
         CommandManager.init();
     }

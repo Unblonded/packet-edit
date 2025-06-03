@@ -14,7 +14,7 @@ public class AlertTest extends Command {
     @Override
     public void build(LiteralArgumentBuilder<FabricClientCommandSource> builder) {
         builder.executes(context -> {
-            new Alert("Test Alert", "This is a test alert message.", Alert.AlertType.INFO, 5000);
+            Alert.warning("Tested Alert", "Hello Sir");
             return 1;
         });
     }

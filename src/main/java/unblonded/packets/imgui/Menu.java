@@ -52,114 +52,7 @@ public class Menu {
             ));
             ImGui.pushStyleColor(ImGuiCol.CheckMark, neon_pink);
 
-            if (ImGui.beginTabBar("MainTabBar", ImGuiTabBarFlags.None))
-            {
-                // Combat  PvP Tab
-                if (ImGui.beginTabItem(icons.CROSSHAIRS + " Combat"))
-                {
-                    ImGui.checkbox(icons.GEM + " Auto Crystal", cfg.autoCrystal);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##crystal")) cfg.autoCrystalCfg.set(!cfg.autoCrystalCfg.get());
-
-                    ImGui.checkbox(icons.SHIELD_HALVED + " Auto Totem", cfg.autoTotem);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##totem")) cfg.autoTotemCfg.set(!cfg.autoTotemCfg.get());
-
-                    ImGui.checkbox(icons.BOMB + " Auto Anchor", cfg.autoAnchor);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##anchor")) cfg.autoAnchorCfg.set(!cfg.autoAnchorCfg.get());
-
-                    ImGui.checkbox(icons.CROSSHAIRS + " Aim Assist", cfg.aimAssistToggle);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##aimAssist")) cfg.aimAssistCfg.set(!cfg.aimAssistCfg.get());
-
-                    ImGui.checkbox(icons.BOMB + " Crystal Spam", cfg.crystalSpam);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##crystalspam")) cfg.crystalSpamCfg.set(!cfg.crystalSpamCfg.get());
-
-                    ImGui.checkbox(icons.BOMB + " Self Crystal", cfg.selfCrystal);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##selfcrystal")) cfg.selfCrystalCfg.set(!cfg.selfCrystalCfg.get());
-
-                    ImGui.checkbox(icons.CROSS + " Totem Notifier", cfg.totemNotifier);
-
-                    ImGui.endTabItem();
-                }
-
-                // ESP  Visual Tab
-                if (ImGui.beginTabItem(icons.EYE + " Visuals"))
-                {
-                    ImGui.checkbox(icons.TEXT_HEIGHT + " Font Size Override", cfg.fontSizeOverride);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##fontsize")) cfg.fontSizeCfg.set(!cfg.fontSizeCfg.get());
-
-                    ImGui.checkbox(icons.USERS + " Show Player List", cfg.displayPlayers);
-
-                    ImGui.checkbox(icons.EYE + " Advanced ESP", cfg.advEsp);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##advesp")) cfg.advEspCfg.set(!cfg.advEspCfg.get());
-
-                    //ImGui.checkbox(icons.IMAGE + " Show Background Effects", cfg.backgroundFx);
-
-                    ImGui.checkbox(icons.STAR + " Show Cosmic Crosshair", cfg.nightFx);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##crosshair")) cfg.nightFxCfg.set(!cfg.nightFxCfg.get());
-
-                    ImGui.checkbox(icons.HAND + " Hand Render", cfg.handRender);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##handrender")) cfg.handRenderCfg.set(!cfg.handRenderCfg.get());
-
-                    ImGui.endTabItem();
-                }
-
-                // Utility Tab
-                if (ImGui.beginTabItem(icons.TOOLBOX + " Utility"))
-                {
-                    ImGui.checkbox(icons.HAND + " Interaction Canceler", cfg.cancelInteraction);
-
-                    ImGui.checkbox(icons.PLUG + " Auto Disconnect", cfg.autoDc);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##autodc")) cfg.autoDcCfg.set(!cfg.autoDcCfg.get());
-
-                    ImGui.checkbox(icons.MONEY_CHECK_DOLLAR + " Auto Sell", cfg.autoSell);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##autosell")) cfg.autoSellCfg.set(!cfg.autoSellCfg.get());
-
-                    ImGui.checkbox(icons.COMMENT_SLASH + " Chat Filter", cfg.chatFilter);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##chatfilter")) cfg.chatFilterCfg.set(!cfg.chatFilterCfg.get());
-
-                    ImGui.checkbox(icons.BOX_OPEN + " Storage Scan", cfg.storageScan);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##storagescan")) cfg.storageScanCfg.set(!cfg.storageScanCfg.get());
-
-                    ImGui.checkbox(icons.TACHOGRAPH_DIGITAL + " FPS Chart", cfg.showFpsChart);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##fpschart")) cfg.fpsChartCfg.set(!cfg.fpsChartCfg.get());
-
-                    if (ImGui.button(icons.BOOK_OPEN + " Loadout Manager##loadouts")) cfg.showLoadouts.set(!cfg.showLoadouts.get());
-
-                    ImGui.endTabItem();
-                }
-
-                // Mining  Economy Tab
-                if (ImGui.beginTabItem(icons.GEM + " Mining"))
-                {
-                    ImGui.checkbox(icons.HELMET_SAFETY + " Player Dig Safety", cfg.checkPlayerAirSafety);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##digsafety")) cfg.checkPlayerAirSafetyCfg.set(!cfg.checkPlayerAirSafetyCfg.get());
-
-                    //ImGui.checkbox(icons.ROUTE + " Straight Tunnel", cfg.forwardTunnel);
-
-                    ImGui.checkbox(icons.SEEDLING + " Seed-Ray", cfg.oreSim);
-                    ImGui.sameLine();
-                    if (ImGui.button(icons.GEARS + "##oresim")) cfg.oreSimCfg.set(!cfg.oreSimCfg.get());
-
-                    ImGui.endTabItem();
-                }
-
-                ImGui.endTabBar();
-            }
+            renderMainInterface();
 
 
             ImGui.popStyleColor(3);
@@ -168,13 +61,23 @@ public class Menu {
             ImGui.popStyleVar();
             ImGui.popStyleColor();
 
+            if (cfg.noRenderCfg.get()) {
+                ImGui.begin("No Render Config", cfg.noRenderCfg);
+                ImGui.text("No Render is " + (cfg.noRender.get() ? "enabled" : "disabled"));
+                ImGui.checkbox("No Fire Overlay", cfg.noRenderElements[0]);
+                ImGui.checkbox("No Liquid Overlay", cfg.noRenderElements[1]);
+                ImGui.checkbox("No Suffocation Overlay", cfg.noRenderElements[2]);
+                ImGui.checkbox("No Fog", cfg.noRenderElements[3]);
+                ImGui.end();
+            }
+
             if (cfg.handRenderCfg.get()) {
                 ImGui.begin("Hand Render", cfg.handRenderCfg);
                 ImGui.text("Hand Render is " + (cfg.handRender.get() ? "enabled" : "disabled"));
-                ImGui.sliderFloat("Scale", cfg.handRenderScale, .1f, 5f, "%.1f");
-                ImGui.sliderFloat("X Offset", cfg.handRenderXYZ[0], -10f, 10f, "%.1f");
-                ImGui.sliderFloat("Y Offset", cfg.handRenderXYZ[1], -10f, 10f, "%.1f");
-                ImGui.sliderFloat("Z Offset", cfg.handRenderXYZ[2], -10f, 10f, "%.1f");
+                ImGui.sliderFloat("Scale", cfg.handRenderScale, .1f, 5f, "%.2f");
+                ImGui.sliderFloat("X Offset", cfg.handRenderXYZ[0], -10f, 10f, "%.2f");
+                ImGui.sliderFloat("Y Offset", cfg.handRenderXYZ[1], -10f, 10f, "%.2f");
+                ImGui.sliderFloat("Z Offset", cfg.handRenderXYZ[2], -10f, 10f, "%.2f");
                 ImGui.end();
             }
 
@@ -200,7 +103,7 @@ public class Menu {
 
             if (cfg.autoAnchorCfg.get()) {
                 ImGui.begin("Auto Anchor", cfg.autoAnchorCfg);
-                ImGui.text("Auto Anchor is " + (cfg.selfCrystal.get() ? "enabled" : "disabled"));
+                ImGui.text("Auto Anchor is " + (cfg.autoAnchor.get() ? "enabled" : "disabled"));
                 ImGui.sliderInt("Delay (ms)", cfg.autoAnchorDelay, 1, 50);
                 ImGui.sliderInt("Humanity (ms)", cfg.autoAnchorHumanity, 1, 50);
                 ImGui.end();
@@ -728,5 +631,162 @@ public class Menu {
         name = name.replace("_", " ");
         if (!name.isEmpty()) name = Character.toUpperCase(name.charAt(0)) + name.substring(1).toLowerCase();
         return name;
+    }
+
+    static void renderCombatTab() {
+        ImGui.checkbox(icons.GEM + " Auto Crystal", cfg.autoCrystal);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##crystal")) cfg.autoCrystalCfg.set(!cfg.autoCrystalCfg.get());
+
+        ImGui.checkbox(icons.SHIELD_HALVED + " Auto Totem", cfg.autoTotem);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##totem")) cfg.autoTotemCfg.set(!cfg.autoTotemCfg.get());
+
+        ImGui.checkbox(icons.BOMB + " Auto Anchor", cfg.autoAnchor);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##anchor")) cfg.autoAnchorCfg.set(!cfg.autoAnchorCfg.get());
+
+        ImGui.checkbox(icons.CROSSHAIRS + " Aim Assist", cfg.aimAssistToggle);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##aimAssist")) cfg.aimAssistCfg.set(!cfg.aimAssistCfg.get());
+
+        ImGui.checkbox(icons.BOMB + " Crystal Spam", cfg.crystalSpam);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##crystalspam")) cfg.crystalSpamCfg.set(!cfg.crystalSpamCfg.get());
+
+        ImGui.checkbox(icons.BOMB + " Self Crystal", cfg.selfCrystal);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##selfcrystal")) cfg.selfCrystalCfg.set(!cfg.selfCrystalCfg.get());
+
+        ImGui.checkbox(icons.CROSS + " Totem Notifier", cfg.totemNotifier);
+    }
+
+    static void renderVisualsTab() {
+        ImGui.checkbox(icons.TEXT_HEIGHT + " Font Size Override", cfg.fontSizeOverride);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##fontsize")) cfg.fontSizeCfg.set(!cfg.fontSizeCfg.get());
+
+        ImGui.checkbox(icons.USERS + " Show Player List", cfg.displayPlayers);
+
+        ImGui.checkbox(icons.EYE + " Advanced ESP", cfg.advEsp);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##advesp")) cfg.advEspCfg.set(!cfg.advEspCfg.get());
+
+        ImGui.checkbox(icons.STAR + " Show Cosmic Crosshair", cfg.nightFx);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##crosshair")) cfg.nightFxCfg.set(!cfg.nightFxCfg.get());
+
+        ImGui.checkbox(icons.HAND + " Hand Render", cfg.handRender);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##handrender")) cfg.handRenderCfg.set(!cfg.handRenderCfg.get());
+
+        ImGui.checkbox(icons.BAN + " No Render", cfg.noRender);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##norender")) cfg.noRenderCfg.set(!cfg.noRenderCfg.get());
+    }
+
+    static void renderUtilityTab() {
+        ImGui.checkbox(icons.HAND + " Interaction Canceler", cfg.cancelInteraction);
+
+        ImGui.checkbox(icons.PLUG + " Auto Disconnect", cfg.autoDc);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##autodc")) cfg.autoDcCfg.set(!cfg.autoDcCfg.get());
+
+        ImGui.checkbox(icons.MONEY_CHECK_DOLLAR + " Auto Sell", cfg.autoSell);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##autosell")) cfg.autoSellCfg.set(!cfg.autoSellCfg.get());
+
+        ImGui.checkbox(icons.COMMENT_SLASH + " Chat Filter", cfg.chatFilter);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##chatfilter")) cfg.chatFilterCfg.set(!cfg.chatFilterCfg.get());
+
+        ImGui.checkbox(icons.BOX_OPEN + " Storage Scan", cfg.storageScan);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##storagescan")) cfg.storageScanCfg.set(!cfg.storageScanCfg.get());
+
+        ImGui.checkbox(icons.TACHOGRAPH_DIGITAL + " FPS Chart", cfg.showFpsChart);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##fpschart")) cfg.fpsChartCfg.set(!cfg.fpsChartCfg.get());
+
+        if (ImGui.button(icons.BOOK_OPEN + " Loadout Manager##loadouts")) cfg.showLoadouts.set(!cfg.showLoadouts.get());
+    }
+
+    static void renderMiningTab() {
+        ImGui.checkbox(icons.HELMET_SAFETY + " Player Dig Safety", cfg.checkPlayerAirSafety);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##digsafety")) cfg.checkPlayerAirSafetyCfg.set(!cfg.checkPlayerAirSafetyCfg.get());
+
+        ImGui.checkbox(icons.SEEDLING + " Seed-Ray", cfg.oreSim);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##oresim")) cfg.oreSimCfg.set(!cfg.oreSimCfg.get());
+    }
+
+    // Main render method
+    static void renderMainInterface() {
+        // Mode selection at the top
+        ImGui.text("Display Mode:");
+        ImGui.sameLine();
+        if (ImGui.radioButton("Tabs", !cfg.useMenuMode.get())) {
+            cfg.useMenuMode.set(false);
+        }
+        ImGui.sameLine();
+        if (ImGui.radioButton("Menus", cfg.useMenuMode.get())) {
+            cfg.useMenuMode.set(true);
+        }
+
+        ImGui.separator();
+
+        if (!cfg.useMenuMode.get()) {
+            // Tab-based interface using methods
+            if (ImGui.beginTabBar("MainTabBar", ImGuiTabBarFlags.None)) {
+                if (ImGui.beginTabItem(icons.CROSSHAIRS + " Combat")) {
+                    renderCombatTab();
+                    ImGui.endTabItem();
+                }
+
+                if (ImGui.beginTabItem(icons.EYE + " Visuals")) {
+                    renderVisualsTab();
+                    ImGui.endTabItem();
+                }
+
+                if (ImGui.beginTabItem(icons.TOOLBOX + " Utility")) {
+                    renderUtilityTab();
+                    ImGui.endTabItem();
+                }
+
+                if (ImGui.beginTabItem(icons.GEM + " Mining")) {
+                    renderMiningTab();
+                    ImGui.endTabItem();
+                }
+
+                ImGui.endTabBar();
+            }
+        } else {
+            // Menu mode - show all categories as separate windows at once
+
+            // Combat Menu Window
+            if (ImGui.begin(icons.CROSSHAIRS + " Combat Menu")) {
+                renderCombatTab();
+            }
+            ImGui.end();
+
+            // Visuals Menu Window
+            if (ImGui.begin(icons.EYE + " Visuals Menu")) {
+                renderVisualsTab();
+            }
+            ImGui.end();
+
+            // Utility Menu Window
+            if (ImGui.begin(icons.TOOLBOX + " Utility Menu")) {
+                renderUtilityTab();
+            }
+            ImGui.end();
+
+            // Mining Menu Window
+            if (ImGui.begin(icons.GEM + " Mining Menu")) {
+                renderMiningTab();
+            }
+            ImGui.end();
+        }
     }
 }

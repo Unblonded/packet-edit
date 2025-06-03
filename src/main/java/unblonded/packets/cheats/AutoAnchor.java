@@ -47,22 +47,23 @@ public class AutoAnchor {
             processing = false;
             new Thread(() -> {
                 try {
-                    for (int i = 0; i < 4; i++) {
-                        Thread.sleep(5 + util.rndInt(3));
-                        client.execute(() -> {
-                            client.player.getInventory().selectedSlot = glowstoneSlot;
-                            interactWithBlock(anchorPos);
-                        });
-                    }
+                    // Step 1: Switch to glowstone and add one charge
+                    Thread.sleep(5 + util.rndInt(3));
+                    client.execute(() -> {
+                        client.player.getInventory().selectedSlot = glowstoneSlot;
+                        interactWithBlock(anchorPos);
+                    });
 
+                    // Step 2: Find first non-glowstone slot and switch to it
                     Thread.sleep(cfg.autoAnchorDelay[0] + util.rndInt(cfg.autoAnchorHumanity[0]));
                     client.execute(() -> {
-                        int anchorSlot = findHotbarSlot(Items.RESPAWN_ANCHOR);
-                        if (anchorSlot != -1) {
-                            client.player.getInventory().selectedSlot = anchorSlot;
+                        int nonGlowstoneSlot = findFirstNonGlowstoneSlot();
+                        if (nonGlowstoneSlot != -1) {
+                            client.player.getInventory().selectedSlot = nonGlowstoneSlot;
                             interactWithBlock(anchorPos);
                         }
 
+                        // Reset state
                         anchorPos = null;
                         glowstoneSlot = -1;
                     });
@@ -88,6 +89,15 @@ public class AutoAnchor {
             if (client.player.getInventory().getStack(i).isOf(item)) return i;
         }
         return -1;
+    }
+
+    private static int findFirstNonGlowstoneSlot() {
+        for (int i = 0; i < 9; i++) {
+            if (!client.player.getInventory().getStack(i).isOf(Items.GLOWSTONE)) {
+                return i;
+            }
+        }
+        return -1; // All slots have glowstone (shouldn't happen in normal gameplay)
     }
 
     public static void setState(boolean state) { enabled = state; }

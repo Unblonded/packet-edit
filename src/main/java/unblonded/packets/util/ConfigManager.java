@@ -199,6 +199,13 @@ public class ConfigManager {
                             intArray[i] = imIntArray[i].get();
                         }
                         configJson.add(fieldName, gson.toJsonTree(intArray));
+                    } else if (value instanceof ImBoolean[]) {
+                        ImBoolean[] imBooleanArray = (ImBoolean[]) value;
+                        boolean[] booleanArray = new boolean[imBooleanArray.length];
+                        for (int i = 0; i < imBooleanArray.length; i++) {
+                            booleanArray[i] = imBooleanArray[i].get();
+                        }
+                        configJson.add(fieldName, gson.toJsonTree(booleanArray));
                     } else if (value instanceof Map && fieldName.equals("savedLoadouts")) {
                         configJson.add(fieldName, gson.toJsonTree(value, new TypeToken<Map<String, List<KitSlot>>>(){}.getType()));
                     } else if (value instanceof List) {
@@ -278,6 +285,13 @@ public class ConfigManager {
                             imIntArray[i] = new ImInt(intArray[i]);
                         }
                         field.set(null, imIntArray);
+                    } else if (currentValue instanceof ImBoolean[]) {
+                        boolean[] booleanArray = gson.fromJson(jsonElement, boolean[].class);
+                        ImBoolean[] imBooleanArray = new ImBoolean[booleanArray.length];
+                        for (int i = 0; i < booleanArray.length; i++) {
+                            imBooleanArray[i] = new ImBoolean(booleanArray[i]);
+                        }
+                        field.set(null, imBooleanArray);
                     } else if (currentValue instanceof Map && fieldName.equals("savedLoadouts")) {
                         Map<String, List<KitSlot>> loadouts = gson.fromJson(jsonElement, new TypeToken<Map<String, List<KitSlot>>>(){}.getType());
                         ((Map<String, List<KitSlot>>) currentValue).clear();

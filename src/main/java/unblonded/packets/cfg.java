@@ -88,7 +88,10 @@ public class cfg {
     public static float[] handRenderScale = {1.f};
     public static float[][] handRenderXYZ = {{0f},{0f},{0f}};
     public static ImBoolean totemNotifier = new ImBoolean(false);
+    public static ImBoolean noRender = new ImBoolean(false);
+    public static ImBoolean[] noRenderElements = { new ImBoolean(false), new ImBoolean(false), new ImBoolean(false), new ImBoolean(false) };
 
+    public static ImBoolean useMenuMode = new ImBoolean(false);
     public static ImBoolean autoCrystalCfg = new ImBoolean(false);
     public static ImBoolean advEspCfg = new ImBoolean(false);
     public static ImBoolean checkPlayerAirSafetyCfg = new ImBoolean(false);
@@ -106,5 +109,6 @@ public class cfg {
     public static ImBoolean selfCrystalCfg = new ImBoolean(false);
     public static ImBoolean fpsChartCfg = new ImBoolean(false);
     public static ImBoolean handRenderCfg = new ImBoolean(false);
+    public static ImBoolean noRenderCfg = new ImBoolean(false);
 
 }

@@ -5,6 +5,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
 import net.minecraft.client.MinecraftClient;
+import unblonded.packets.imgui.Alert;
 import unblonded.packets.util.Chat;
 
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ public class CommandManager {
             }
         } catch (Exception e) {
             Chat.sendMessage("Error executing command: " + e.getMessage());
+            Alert.error("Command Error", "An error occurred while executing the command: " + e.getMessage());
         }
     }
 

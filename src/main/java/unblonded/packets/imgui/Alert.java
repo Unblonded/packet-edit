@@ -40,11 +40,11 @@ public class Alert {
     private float alpha;
 
     public Alert(String message) {
-        this("Alert", message, AlertType.INFO, 3000);
+        this("Alert", message, AlertType.INFO, 2000);
     }
 
     public Alert(String message, AlertType type) {
-        this("Alert", message, type, 3000);
+        this("Alert", message, type, 2000);
     }
 
     public Alert(String message, AlertType type, long duration) {
@@ -63,6 +63,16 @@ public class Alert {
 
         playSound();
         activeAlerts.add(this);
+    }
+
+    // Get the current font scale factor from ImGui
+    private static float getFontScale() {
+        return ImGui.getFontSize() / ImGui.getFont().getFontSize();
+    }
+
+    // Scale a value based on current font scale
+    private static float scale(float value) {
+        return value * getFontScale();
     }
 
     public static void renderAll() {
@@ -98,9 +108,10 @@ public class Alert {
     }
 
     private void render(int position) {
-        float windowWidth = 320f;
-        float windowHeight = 90f;
-        float padding = 12f;
+        // Scale all dimensions based on font scale
+        float windowWidth = scale(320f);
+        float windowHeight = scale(90f);
+        float padding = scale(12f);
         float yOffset = position * (windowHeight + padding);
 
         ImVec2 displaySize = ImGui.getIO().getDisplaySize();
@@ -120,8 +131,8 @@ public class Alert {
                 ImGuiWindowFlags.AlwaysAutoResize;
 
         ImGui.setNextWindowBgAlpha(0.85f * alpha);
-        ImGui.pushStyleVar(imgui.flag.ImGuiStyleVar.WindowRounding, 8.0f);
-        ImGui.pushStyleVar(imgui.flag.ImGuiStyleVar.WindowPadding, 16.0f, 12.0f);
+        ImGui.pushStyleVar(imgui.flag.ImGuiStyleVar.WindowRounding, scale(8.0f));
+        ImGui.pushStyleVar(imgui.flag.ImGuiStyleVar.WindowPadding, scale(16.0f), scale(12.0f));
 
         String windowName = "Alert##" + id;
         if (ImGui.begin(windowName, flags)) {
@@ -129,10 +140,11 @@ public class Alert {
                 float startX = ImGui.getCursorPosX();
                 float startY = ImGui.getCursorPosY();
 
+                // Scale the colored bar on the left
                 ImVec2 windowPos = ImGui.getWindowPos();
                 ImGui.getWindowDrawList().addRectFilled(
                         windowPos.x, windowPos.y,
-                        windowPos.x + 4, windowPos.y + windowHeight,
+                        windowPos.x + scale(4), windowPos.y + windowHeight,
                         ImGui.getColorU32(type.r, type.g, type.b, alpha)
                 );
 
@@ -146,17 +158,19 @@ public class Alert {
                 ImGui.pushStyleColor(imgui.flag.ImGuiCol.Text,
                         type.r, type.g, type.b, alpha);
 
-                ImGui.setCursorPosX(startX + 8);
+                // Scale icon positioning
+                ImGui.setCursorPosX(startX + scale(8));
                 ImGui.text(icon);
                 ImGui.sameLine();
-                ImGui.setCursorPosX(startX + 32);
+                ImGui.setCursorPosX(startX + scale(32));
 
                 ImGui.pushStyleColor(imgui.flag.ImGuiCol.Text, 1.0f, 1.0f, 1.0f, 0.9f * alpha);
                 ImGui.textWrapped(title);
                 ImGui.popStyleColor();
                 ImGui.spacing();
 
-                ImGui.setCursorPosX(startX + 8);
+                // Scale message positioning
+                ImGui.setCursorPosX(startX + scale(8));
                 ImGui.pushStyleColor(imgui.flag.ImGuiCol.Text, 0.85f, 0.85f, 0.85f, 0.8f * alpha);
                 ImGui.textWrapped(message);
                 ImGui.popStyleColor();
@@ -165,24 +179,27 @@ public class Alert {
                 float progress = Math.min(1.0f, (float) elapsed / duration);
 
                 ImGui.spacing();
-                ImGui.setCursorPosX(startX + 8);
+                ImGui.setCursorPosX(startX + scale(8));
 
                 ImGui.pushStyleColor(imgui.flag.ImGuiCol.PlotHistogram, type.r * 0.8f, type.g * 0.8f, type.b * 0.8f, 0.6f * alpha);
                 ImGui.pushStyleColor(imgui.flag.ImGuiCol.FrameBg, 0.2f, 0.2f, 0.2f, 0.3f * alpha);
-                ImGui.pushStyleVar(imgui.flag.ImGuiStyleVar.FrameRounding, 2.0f);
+                ImGui.pushStyleVar(imgui.flag.ImGuiStyleVar.FrameRounding, scale(2.0f));
 
-                ImGui.progressBar(progress, windowWidth - 60, 2);
+                // Scale progress bar width and height
+                ImGui.progressBar(progress, windowWidth - scale(60), scale(2));
 
                 ImGui.popStyleVar();
                 ImGui.popStyleColor(2);
 
-                ImGui.setCursorPos(windowWidth - (10 + 30), 8);
+                // Scale close button positioning and size
+                float closeButtonSize = scale(30);
+                ImGui.setCursorPos(windowWidth - (scale(10) + closeButtonSize), scale(8));
                 ImGui.pushStyleColor(imgui.flag.ImGuiCol.Button, 0, 0, 0, 0); // Invisible background
                 ImGui.pushStyleColor(imgui.flag.ImGuiCol.ButtonHovered, 1.0f, 0.3f, 0.3f, 0.3f);
                 ImGui.pushStyleColor(imgui.flag.ImGuiCol.ButtonActive, 1.0f, 0.2f, 0.2f, 0.5f);
                 ImGui.pushStyleColor(imgui.flag.ImGuiCol.Text, 0.8f, 0.8f, 0.8f, alpha);
 
-                if (ImGui.button(icons.XMARK, 30, 30)) close();
+                if (ImGui.button(icons.XMARK, closeButtonSize, closeButtonSize)) close();
                 ImGui.popStyleColor(5);
 
             } catch (Exception e) { close(); }
@@ -239,7 +256,7 @@ public class Alert {
 
     public static void playSound() {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player != null) client.player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+        if (client.player != null) client.player.playSound(SoundEvents.ENTITY_ENDER_EYE_DEATH, 1.0f, 2.0f);
     }
 
     public String getTitle() { return title; }
