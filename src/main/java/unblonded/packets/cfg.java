@@ -7,7 +7,6 @@ import unblonded.packets.util.KitSlot;
 import java.util.*;
 
 public class cfg {
-    public static boolean autoSprint = false;
     public static ImBoolean drawBlocks = new ImBoolean(false);
     public static ImBoolean drawBlockTracer = new ImBoolean(false);
     public static List<BlockColor> espBlockList = new ArrayList<>();
@@ -89,7 +88,15 @@ public class cfg {
     public static float[][] handRenderXYZ = {{0f},{0f},{0f}};
     public static ImBoolean totemNotifier = new ImBoolean(false);
     public static ImBoolean noRender = new ImBoolean(false);
-    public static ImBoolean[] noRenderElements = { new ImBoolean(false), new ImBoolean(false), new ImBoolean(false), new ImBoolean(false) };
+    public static ImBoolean[] noRenderItems = new ImBoolean[] {
+            new ImBoolean(false),
+            new ImBoolean(false),
+            new ImBoolean(false),
+            new ImBoolean(false),
+            new ImBoolean(false),
+    };
+    public static ImBoolean timeChanger = new ImBoolean(false);
+    public static long[] timeChangerLTime = {1000L};
 
     public static ImBoolean useMenuMode = new ImBoolean(false);
     public static ImBoolean autoCrystalCfg = new ImBoolean(false);
@@ -110,5 +117,5 @@ public class cfg {
     public static ImBoolean fpsChartCfg = new ImBoolean(false);
     public static ImBoolean handRenderCfg = new ImBoolean(false);
     public static ImBoolean noRenderCfg = new ImBoolean(false);
-
+    public static ImBoolean timeChangerCfg = new ImBoolean(false);
 }

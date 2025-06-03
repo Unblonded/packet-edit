@@ -191,6 +191,7 @@ public class ConfigManager {
                     else if (value instanceof int[]) configJson.add(fieldName, gson.toJsonTree(value));
                     else if (value instanceof float[]) configJson.add(fieldName, gson.toJsonTree(value));
                     else if (value instanceof float[][]) configJson.add(fieldName, gson.toJsonTree(value));
+                    else if (value instanceof long[]) configJson.add(fieldName, gson.toJsonTree(value));
                     else if (value instanceof String[]) configJson.add(fieldName, gson.toJsonTree(value));
                     else if (value instanceof ImInt[]) {
                         ImInt[] imIntArray = (ImInt[]) value;

@@ -20,18 +20,22 @@ public class ToggleCommand extends Command {
             "autototem", "totem",
             "autoanchor", "anchor",
             "aimassist", "aim",
-            "crystalspam", "spam",
-            "selfcrystal", "self",
+            "crystalspam",
+            "selfcrystal",
+            "totemnotifier", "notifier",
             // Visuals
             "fontsize", "font",
             "playerlist", "players",
             "advesp", "esp",
             "crosshair", "cosmic",
+            "handrender", "hand",
+            "norender",
+            "timechanger", "time",
             // Utility
-            "cancelinteraction", "cancel",
+            "cancelinteraction",
             "autodc", "disconnect",
             "autosell", "sell",
-            "chatfilter", "filter",
+            "chatfilter", "chat",
             "storagescan", "storage",
             "fpschart", "fps",
             // Mining
@@ -90,16 +94,20 @@ public class ToggleCommand extends Command {
                 featureName = "Aim Assist";
                 break;
             case "crystalspam":
-            case "spam":
                 cfg.crystalSpam.set(!cfg.crystalSpam.get());
                 toggled = cfg.crystalSpam.get();
                 featureName = "Crystal Spam";
                 break;
             case "selfcrystal":
-            case "self":
                 cfg.selfCrystal.set(!cfg.selfCrystal.get());
                 toggled = cfg.selfCrystal.get();
                 featureName = "Self Crystal";
+                break;
+            case "totemnotifier":
+            case "notifier":
+                cfg.totemNotifier.set(!cfg.totemNotifier.get());
+                toggled = cfg.totemNotifier.get();
+                featureName = "Totem Notifier";
                 break;
 
             // Visual features
@@ -127,10 +135,26 @@ public class ToggleCommand extends Command {
                 toggled = cfg.nightFx.get();
                 featureName = "Cosmic Crosshair";
                 break;
+            case "handrender":
+            case "hand":
+                cfg.handRender.set(!cfg.handRender.get());
+                toggled = cfg.handRender.get();
+                featureName = "Hand Render";
+                break;
+            case "norender":
+                cfg.noRender.set(!cfg.noRender.get());
+                toggled = cfg.noRender.get();
+                featureName = "No Render";
+                break;
+            case "timechanger":
+            case "time":
+                cfg.timeChanger.set(!cfg.timeChanger.get());
+                toggled = cfg.timeChanger.get();
+                featureName = "Time Changer";
+                break;
 
             // Utility features
             case "cancelinteraction":
-            case "cancel":
                 cfg.cancelInteraction.set(!cfg.cancelInteraction.get());
                 toggled = cfg.cancelInteraction.get();
                 featureName = "Interaction Canceler";
@@ -148,7 +172,7 @@ public class ToggleCommand extends Command {
                 featureName = "Auto Sell";
                 break;
             case "chatfilter":
-            case "filter":
+            case "chat":
                 cfg.chatFilter.set(!cfg.chatFilter.get());
                 toggled = cfg.chatFilter.get();
                 featureName = "Chat Filter";

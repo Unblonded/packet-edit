@@ -12,6 +12,6 @@ import unblonded.packets.cfg;
 public class CameraMixin {
     @Inject(method = "getSubmersionType", at = @At("HEAD"), cancellable = true)
     private void getSubmergedFluidState(CallbackInfoReturnable<CameraSubmersionType> cir) {
-        if (cfg.noRender.get() && cfg.noRenderElements[1].get()) cir.cancel();
+        if (cfg.noRender.get() && cfg.noRenderItems[1].get()) cir.cancel();
     }
 }

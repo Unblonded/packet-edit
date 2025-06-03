@@ -9,7 +9,7 @@ public class AlertHandler {
 
     public static void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player != null && cfg.noRenderElements[0].get()) {
+            if (client.player != null && cfg.noRenderItems[0].get()) {
                 boolean isOnFire = client.player.isOnFire();
                 if (isOnFire && !wasOnFire)
                     Alert.info("Fire Alert", "You are on fire! Use water to extinguish yourself.");

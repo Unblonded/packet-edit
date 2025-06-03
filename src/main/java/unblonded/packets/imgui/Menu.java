@@ -61,13 +61,21 @@ public class Menu {
             ImGui.popStyleVar();
             ImGui.popStyleColor();
 
+            if (cfg.timeChangerCfg.get()) {
+                ImGui.begin("Time Changer", cfg.timeChangerCfg);
+                ImGui.text("Time Changer is " + (cfg.timeChanger.get() ? "enabled" : "disabled"));
+                ImGui.sliderScalar("Time", cfg.timeChangerLTime, 0, 24000);
+                ImGui.end();
+            }
+
             if (cfg.noRenderCfg.get()) {
                 ImGui.begin("No Render Config", cfg.noRenderCfg);
                 ImGui.text("No Render is " + (cfg.noRender.get() ? "enabled" : "disabled"));
-                ImGui.checkbox("No Fire Overlay", cfg.noRenderElements[0]);
-                ImGui.checkbox("No Liquid Overlay", cfg.noRenderElements[1]);
-                ImGui.checkbox("No Suffocation Overlay", cfg.noRenderElements[2]);
-                ImGui.checkbox("No Fog", cfg.noRenderElements[3]);
+                ImGui.checkbox("No Fire Overlay", cfg.noRenderItems[0]);
+                ImGui.checkbox("No Liquid Overlay", cfg.noRenderItems[1]);
+                ImGui.checkbox("No Suffocation Overlay", cfg.noRenderItems[2]);
+                ImGui.checkbox("No Fog", cfg.noRenderItems[3]);
+                ImGui.checkbox("No Weather", cfg.noRenderItems[4]);
                 ImGui.end();
             }
 
@@ -683,6 +691,11 @@ public class Menu {
         ImGui.checkbox(icons.BAN + " No Render", cfg.noRender);
         ImGui.sameLine();
         if (ImGui.button(icons.GEARS + "##norender")) cfg.noRenderCfg.set(!cfg.noRenderCfg.get());
+
+        ImGui.checkbox(icons.CLOCK + " Time Changer", cfg.timeChanger);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##timechanger")) cfg.timeChangerCfg.set(!cfg.timeChangerCfg.get());
+
     }
 
     static void renderUtilityTab() {

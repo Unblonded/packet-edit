@@ -15,17 +15,17 @@ import unblonded.packets.cfg;
 public class InGameOverlayRendererMixin {
     @Inject(method = "renderFireOverlay", at = @At("HEAD"), cancellable = true)
     private static void fire(MatrixStack matrices, VertexConsumerProvider vertexConsumers, CallbackInfo ci) {
-        if (cfg.noRender.get() && cfg.noRenderElements[0].get()) ci.cancel();
+        if (cfg.noRender.get() && cfg.noRenderItems[0].get()) ci.cancel();
     }
 
     @Inject(method = "renderUnderwaterOverlay", at = @At("HEAD"), cancellable = true)
     private static void liquid(MinecraftClient client, MatrixStack matrices, VertexConsumerProvider vertexConsumers, CallbackInfo ci) {
-        if (cfg.noRender.get() && cfg.noRenderElements[1].get()) ci.cancel();
+        if (cfg.noRender.get() && cfg.noRenderItems[1].get()) ci.cancel();
     }
 
     @Inject(method = "renderInWallOverlay", at = @At("HEAD"), cancellable = true)
     private static void suffocation(Sprite sprite, MatrixStack matrices, VertexConsumerProvider vertexConsumers, CallbackInfo ci) {
-        if (cfg.noRender.get() && cfg.noRenderElements[2].get()) ci.cancel();
+        if (cfg.noRender.get() && cfg.noRenderItems[2].get()) ci.cancel();
     }
 }
 

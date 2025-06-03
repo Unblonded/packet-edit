@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import unblonded.packets.cfg;
 import unblonded.packets.cheats.CrystalSpam;
 import unblonded.packets.util.ConfigManager;
 import unblonded.packets.util.util;
@@ -26,5 +27,7 @@ public abstract class OnTickMixin {
         CrystalSpam.start();
 
         if (tickCount % 100 == 0) ConfigManager.saveConfig();
+
+        System.out.println("noRenderItems length = " + cfg.noRenderItems.length);
     }
 }

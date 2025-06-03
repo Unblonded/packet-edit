@@ -20,7 +20,9 @@
 		"HandRenderMixin",
 		"InGameOverlayRendererMixin",
 		"CameraMixin",
-		"BackgroundRenderMixin"
+		"BackgroundRenderMixin",
+		"PacketReception",
+		"WorldRenderMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
