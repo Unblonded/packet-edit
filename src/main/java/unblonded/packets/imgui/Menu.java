@@ -231,7 +231,11 @@ public class Menu {
                 ImGui.text("Esp Color");
 
 
-                renderDebrisGraphAnimated();
+                //renderDebrisGraphAnimated();
+
+                for (int i = 0; i < cfg.oreSimOptions.length; i++)
+                    ImGui.checkbox(""+i, cfg.oreSimOptions[i]);
+
                 ImGui.end();
                 ImGui.popStyleColor();
             }

@@ -27,7 +27,5 @@ public abstract class OnTickMixin {
         CrystalSpam.start();
 
         if (tickCount % 100 == 0) ConfigManager.saveConfig();
-
-        System.out.println("noRenderItems length = " + cfg.noRenderItems.length);
     }
 }

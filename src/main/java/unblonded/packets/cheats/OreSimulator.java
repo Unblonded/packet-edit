@@ -1,6 +1,5 @@
 package unblonded.packets.cheats;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
@@ -8,15 +7,18 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.ChunkRandom;
 import net.minecraft.world.Heightmap;
+import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.gen.feature.OrePlacedFeatures;
-import unblonded.packets.util.AncientDebrisUtil;
+import unblonded.packets.util.OreUtil;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -30,8 +32,9 @@ public class OreSimulator {
 	private static boolean verificationMode = false;
 	private static final Map<Long, Set<Vec3d>> actualResults = new ConcurrentHashMap<>();
 
-	static AncientDebrisUtil dataSmall = AncientDebrisUtil.createForFeature(OrePlacedFeatures.ORE_DEBRIS_SMALL, 7);
-	static AncientDebrisUtil dataLarge = AncientDebrisUtil.createForFeature(OrePlacedFeatures.ORE_ANCIENT_DEBRIS_LARGE, 7);
+	static RegistryKey<World> dimension;
+	static Map<RegistryKey<Biome>, List<OreUtil>> ores;
+
 
 	private static long worldSeed;
 	public static int horizontalRadius = 5;
@@ -60,6 +63,10 @@ public class OreSimulator {
 
 	public static void recalculateChunks() {
 		if (mc.player == null || mc.world == null) return;
+
+		OreSimulator.dimension = mc.world.getRegistryKey();
+		OreSimulator.ores = OreUtil.getRegistry(dimension);
+
 		chunkDebrisPositions.clear();
 		blockStateCache.clear(); 
 
@@ -164,7 +171,11 @@ public class OreSimulator {
 		Set<Vec3d> debrisPositions = new HashSet<>();
 
 		random.setPopulationSeed(worldSeed, chunkX, chunkZ);
-		processDebrisGeneration(world, random, populationSeed, dataLarge, chunkX, chunkZ, debrisPositions);
+
+		for (List<OreUtil> oreList : ores.values())
+			for (OreUtil oreData : oreList)
+				processDebrisGeneration(world, random, populationSeed, oreData, chunkX, chunkZ, debrisPositions);
+
 
 		return debrisPositions;
 	}
@@ -200,28 +211,28 @@ public class OreSimulator {
 	}
 
 	private static void processDebrisGeneration(ClientWorld world, ChunkRandom random, long populationSeed,
-												AncientDebrisUtil debrisData, int chunkX, int chunkZ,
+												OreUtil data, int chunkX, int chunkZ,
 												Set<Vec3d> results) {
 		
-		random.setDecoratorSeed(populationSeed, debrisData.index, debrisData.step);
-		int count = debrisData.count.get(random);
+		random.setDecoratorSeed(populationSeed, data.index, data.step);
+		int count = data.count.get(random);
 
 		for (int i = 0; i < count; i++) {
-			if (debrisData.rarity != 1F && random.nextFloat() >= 1/debrisData.rarity) continue;
+			if (data.rarity != 1F && random.nextFloat() >= 1/data.rarity) continue;
 
 			int x = random.nextInt(16) + chunkX;
 			int z = random.nextInt(16) + chunkZ;
-			int y = debrisData.heightProvider.get(random, debrisData.heightContext);
+			int y = data.heightProvider.get(random, data.heightContext);
 
 			BlockPos pos = new BlockPos(x, y, z);
 			
 			if (!hasValidBiomeAtPosition(world, pos)) continue;
 
 			ArrayList<Vec3d> generatedPositions;
-			if (debrisData.scattered)
-				generatedPositions = generateHidden(world, random, pos, debrisData.size);
+			if (data.scattered)
+				generatedPositions = generateHidden(world, random, pos, data.size);
 			else
-				generatedPositions = generateNormal(world, random, pos, debrisData.size, debrisData.discardOnAirChance);
+				generatedPositions = generateNormal(world, random, pos, data.size, data.discardOnAirChance);
 			results.addAll(generatedPositions);
 		}
 	}

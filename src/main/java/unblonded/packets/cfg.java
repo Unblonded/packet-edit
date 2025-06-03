@@ -97,6 +97,7 @@ public class cfg {
     };
     public static ImBoolean timeChanger = new ImBoolean(false);
     public static long[] timeChangerLTime = {1000L};
+    public static ImBoolean[] oreSimOptions = new ImBoolean[10];
 
     public static ImBoolean useMenuMode = new ImBoolean(false);
     public static ImBoolean autoCrystalCfg = new ImBoolean(false);
@@ -118,4 +119,9 @@ public class cfg {
     public static ImBoolean handRenderCfg = new ImBoolean(false);
     public static ImBoolean noRenderCfg = new ImBoolean(false);
     public static ImBoolean timeChangerCfg = new ImBoolean(false);
+
+    static {
+        for (int i = 0; i < cfg.oreSimOptions.length; i++)
+            cfg.oreSimOptions[i] = new ImBoolean(false);
+    }
 }
