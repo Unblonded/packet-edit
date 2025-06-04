@@ -66,48 +66,70 @@ public class OreUtil {
 
 
         Map<PlacedFeature, OreUtil> featureToOre = new HashMap<>();
-        if (cfg.oreSimOptions[0].get()) { // Coal
+        if (cfg.oreSimOptions[0].get() && dimension.equals(World.OVERWORLD)) {
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_COAL_LOWER, 6, cfg.oreColors[0]);
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_COAL_UPPER, 6, cfg.oreColors[0]);
         }
-        if (cfg.oreSimOptions[1].get()) { // Iron
+
+        // Iron - Overworld only
+        if (cfg.oreSimOptions[1].get() && dimension.equals(World.OVERWORLD)) {
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_IRON_MIDDLE, 6, cfg.oreColors[1]);
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_IRON_SMALL, 6, cfg.oreColors[1]);
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_IRON_UPPER, 6, cfg.oreColors[1]);
         }
-        if (cfg.oreSimOptions[2].get()) { // Gold
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD, 6, cfg.oreColors[2]);
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_LOWER, 6, cfg.oreColors[2]);
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_EXTRA, 6, cfg.oreColors[2]);
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_NETHER, 7, cfg.oreColors[2]);
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_DELTAS, 7, cfg.oreColors[2]);
+
+        // Gold - Overworld and Nether
+        if (cfg.oreSimOptions[2].get()) {
+            if (dimension.equals(World.OVERWORLD)) {
+                registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD, 6, cfg.oreColors[2]);
+                registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_LOWER, 6, cfg.oreColors[2]);
+                registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_EXTRA, 6, cfg.oreColors[2]);
+            }
+            if (dimension.equals(World.NETHER)) {
+                registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_NETHER, 7, cfg.oreColors[2]);
+                registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_DELTAS, 7, cfg.oreColors[2]);
+            }
         }
-        if (cfg.oreSimOptions[3].get()) { // Redstone
+
+        // Redstone - Overworld only
+        if (cfg.oreSimOptions[3].get() && dimension.equals(World.OVERWORLD)) {
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_REDSTONE, 6, cfg.oreColors[3]);
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_REDSTONE_LOWER, 6, cfg.oreColors[3]);
         }
-        if (cfg.oreSimOptions[4].get()) { // Diamond
+
+        // Diamond - Overworld only
+        if (cfg.oreSimOptions[4].get() && dimension.equals(World.OVERWORLD)) {
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DIAMOND, 6, cfg.oreColors[4]);
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DIAMOND_BURIED, 6, cfg.oreColors[4]);
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DIAMOND_LARGE, 6, cfg.oreColors[4]);
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DIAMOND_MEDIUM, 6, cfg.oreColors[4]);
         }
-        if (cfg.oreSimOptions[5].get()) { // Lapis
+
+        // Lapis - Overworld only
+        if (cfg.oreSimOptions[5].get() && dimension.equals(World.OVERWORLD)) {
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_LAPIS, 6, cfg.oreColors[5]);
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_LAPIS_BURIED, 6, cfg.oreColors[5]);
         }
-        if (cfg.oreSimOptions[6].get()) { // Copper
+
+        // Copper - Overworld only
+        if (cfg.oreSimOptions[6].get() && dimension.equals(World.OVERWORLD)) {
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_COPPER, 6, cfg.oreColors[6]);
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_COPPER_LARGE, 6, cfg.oreColors[6]);
         }
-        if (cfg.oreSimOptions[7].get()) { // Emerald
+
+        // Emerald - Overworld only
+        if (cfg.oreSimOptions[7].get() && dimension.equals(World.OVERWORLD)) {
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_EMERALD, 6, cfg.oreColors[7]);
         }
-        if (cfg.oreSimOptions[8].get()) { // Quartz
+
+        // Quartz - Nether only
+        if (cfg.oreSimOptions[8].get() && dimension.equals(World.NETHER)) {
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_QUARTZ_NETHER, 7, cfg.oreColors[8]);
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_QUARTZ_DELTAS, 7, cfg.oreColors[8]);
         }
-        if (cfg.oreSimOptions[9].get()) { // Ancient Debris
+
+        // Ancient Debris - Nether only
+        if (cfg.oreSimOptions[9].get() && dimension.equals(World.NETHER)) {
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DEBRIS_SMALL, 7, cfg.oreColors[9]);
             registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_ANCIENT_DEBRIS_LARGE, 7, cfg.oreColors[9]);
         }
