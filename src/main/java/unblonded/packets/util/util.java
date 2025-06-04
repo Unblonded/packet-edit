@@ -9,11 +9,15 @@ import unblonded.packets.cheats.*;
 
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class util {
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
+
     public static void handleKeyInputs(MinecraftClient client) {
         if (Keybinds.openGui.wasPressed() && (client.currentScreen == null))
             client.setScreen(new GuiBackground(Text.of("Packet Edit")));
@@ -41,8 +45,10 @@ public class util {
     }
 
     public static void updateOreSim(MinecraftClient client) {
-        if (client.world != null && client.player.age % 20 == 0) {
-            OreSimulator.recalculateChunks();
+        if (client.world != null && client.player != null && cfg.oreSim.get()) {
+            executor.submit(() -> {
+                if (client.player.age % 10 == 0) OreSimulator.recalculateChunksAsync();
+            });
         }
     }
 

@@ -7,10 +7,8 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.entry.RegistryEntryList;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.intprovider.ConstantIntProvider;
 import net.minecraft.util.math.intprovider.IntProvider;
-import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.gen.HeightContext;
@@ -19,8 +17,6 @@ import net.minecraft.world.gen.feature.*;
 import net.minecraft.world.gen.feature.util.PlacedFeatureIndexer;
 import net.minecraft.world.gen.heightprovider.HeightProvider;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
 import net.minecraft.world.gen.placementmodifier.CountPlacementModifier;
 import net.minecraft.world.gen.placementmodifier.HeightRangePlacementModifier;
 import net.minecraft.world.gen.placementmodifier.PlacementModifier;
@@ -30,12 +26,24 @@ import unblonded.packets.mixin.CPMAccess;
 import unblonded.packets.mixin.HRPMAccess;
 import unblonded.packets.mixin.RFPMAccess;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class OreUtil {
+
+    public static final String[] oreNames = new String[] {
+            "Coal",
+            "Iron",
+            "Gold",
+            "Redstone",
+            "Diamond",
+            "Lapis",
+            "Copper",
+            "Emerald",
+            "Quartz",
+            "Ancient Debris"
+    };
+
     public static Map<RegistryKey<Biome>, List<OreUtil>> getRegistry(RegistryKey<World> dimension) {
 
         RegistryWrapper.WrapperLookup registry = BuiltinRegistries.createWrapperLookup();
@@ -58,52 +66,51 @@ public class OreUtil {
 
 
         Map<PlacedFeature, OreUtil> featureToOre = new HashMap<>();
-        if (cfg.oreSimOptions[0].get()) {
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_COAL_LOWER, 6, new Color(47, 44, 54));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_COAL_UPPER, 6, new Color(47, 44, 54));
+        if (cfg.oreSimOptions[0].get()) { // Coal
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_COAL_LOWER, 6, cfg.oreColors[0]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_COAL_UPPER, 6, cfg.oreColors[0]);
         }
-        if (cfg.oreSimOptions[1].get()) {
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_IRON_MIDDLE, 6, new Color(236, 173, 119));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_IRON_SMALL, 6, new Color(236, 173, 119));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_IRON_UPPER, 6, new Color(236, 173, 119));
+        if (cfg.oreSimOptions[1].get()) { // Iron
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_IRON_MIDDLE, 6, cfg.oreColors[1]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_IRON_SMALL, 6, cfg.oreColors[1]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_IRON_UPPER, 6, cfg.oreColors[1]);
         }
-        if (cfg.oreSimOptions[2].get()) {
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD, 6, new Color(247, 229, 30));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_LOWER, 6, new Color(247, 229, 30));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_EXTRA, 6, new Color(247, 229, 30));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_NETHER, 7, new Color(247, 229, 30));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_DELTAS, 7, new Color(247, 229, 30));
+        if (cfg.oreSimOptions[2].get()) { // Gold
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD, 6, cfg.oreColors[2]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_LOWER, 6, cfg.oreColors[2]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_EXTRA, 6, cfg.oreColors[2]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_NETHER, 7, cfg.oreColors[2]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_GOLD_DELTAS, 7, cfg.oreColors[2]);
         }
-        if (cfg.oreSimOptions[3].get()) {
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_REDSTONE, 6, new Color(245, 7, 23));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_REDSTONE_LOWER, 6, new Color(245, 7, 23));
+        if (cfg.oreSimOptions[3].get()) { // Redstone
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_REDSTONE, 6, cfg.oreColors[3]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_REDSTONE_LOWER, 6, cfg.oreColors[3]);
         }
-        if (cfg.oreSimOptions[4].get()) {
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DIAMOND, 6, new Color(33, 244, 255));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DIAMOND_BURIED, 6, new Color(33, 244, 255));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DIAMOND_LARGE, 6, new Color(33, 244, 255));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DIAMOND_MEDIUM, 6, new Color(33, 244, 255));
+        if (cfg.oreSimOptions[4].get()) { // Diamond
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DIAMOND, 6, cfg.oreColors[4]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DIAMOND_BURIED, 6, cfg.oreColors[4]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DIAMOND_LARGE, 6, cfg.oreColors[4]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DIAMOND_MEDIUM, 6, cfg.oreColors[4]);
         }
-        if (cfg.oreSimOptions[5].get()) {
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_LAPIS, 6, new Color(8, 26, 189));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_LAPIS_BURIED, 6, new Color(8, 26, 189));
+        if (cfg.oreSimOptions[5].get()) { // Lapis
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_LAPIS, 6, cfg.oreColors[5]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_LAPIS_BURIED, 6, cfg.oreColors[5]);
         }
-        if (cfg.oreSimOptions[6].get()) {
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_COPPER, 6, new Color(239, 151, 0));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_COPPER_LARGE, 6, new Color(239, 151, 0));
+        if (cfg.oreSimOptions[6].get()) { // Copper
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_COPPER, 6, cfg.oreColors[6]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_COPPER_LARGE, 6, cfg.oreColors[6]);
         }
-        if (cfg.oreSimOptions[7].get()) {
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_EMERALD, 6, new Color(27, 209, 45));
+        if (cfg.oreSimOptions[7].get()) { // Emerald
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_EMERALD, 6, cfg.oreColors[7]);
         }
-        if (cfg.oreSimOptions[8].get()) {
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_QUARTZ_NETHER, 7, new Color(205, 205, 205));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_QUARTZ_DELTAS, 7, new Color(205, 205, 205));
+        if (cfg.oreSimOptions[8].get()) { // Quartz
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_QUARTZ_NETHER, 7, cfg.oreColors[8]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_QUARTZ_DELTAS, 7, cfg.oreColors[8]);
         }
-        if (cfg.oreSimOptions[9].get()) {
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DEBRIS_SMALL, 7, new Color(209, 27, 245));
-            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_ANCIENT_DEBRIS_LARGE, 7, new Color(209, 27, 245));
+        if (cfg.oreSimOptions[9].get()) { // Ancient Debris
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_DEBRIS_SMALL, 7, cfg.oreColors[9]);
+            registerOre(featureToOre, indexer, features, OrePlacedFeatures.ORE_ANCIENT_DEBRIS_LARGE, 7, cfg.oreColors[9]);
         }
-
 
         Map<RegistryKey<Biome>, List<OreUtil>> biomeOreMap = new HashMap<>();
 

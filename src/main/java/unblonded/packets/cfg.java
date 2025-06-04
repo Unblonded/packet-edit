@@ -2,6 +2,7 @@ package unblonded.packets;
 
 import imgui.type.*;
 import unblonded.packets.util.BlockColor;
+import unblonded.packets.util.Color;
 import unblonded.packets.util.KitSlot;
 
 import java.util.*;
@@ -22,7 +23,19 @@ public class cfg {
     public static ImBoolean oreSim = new ImBoolean(false);
     public static ImBoolean oreSimDrawMode = new ImBoolean(false);
     public static int[] oreSimDistance = {3};
-    public static float[] oreSimColor = {1.0f, 0.0f, 0.0f, 1.0f};
+    public static Color[] oreColors = new Color[] {
+            new Color(0.10f, 0.15f, 0.30f), // Coal
+            new Color(0.55f, 0.66f, 0.50f), // Iron
+            new Color(0.95f, 0.05f, 0.65f), // Gold
+            new Color(0.00f, 0.70f, 0.70f), // Redstone
+            new Color(1.00f, 0.35f, 0.05f), // Diamond
+            new Color(0.30f, 0.90f, 0.10f), // Lapis
+            new Color(0.40f, 0.30f, 0.80f), // Copper
+            new Color(1.00f, 0.95f, 0.00f), // Emerald
+            new Color(0.60f, 0.85f, 1.00f), // Quartz
+            new Color(0.10f, 1.00f, 0.10f)  // Ancient Debris
+    };
+    public static ImBoolean[] oreSimOptions = new ImBoolean[10];
     public static ImBoolean autoTotem = new ImBoolean(false);
     public static int[] autoTotemDelay = {50};
     public static int[] autoTotemHumanity = {0};
@@ -97,7 +110,6 @@ public class cfg {
     };
     public static ImBoolean timeChanger = new ImBoolean(false);
     public static long[] timeChangerLTime = {1000L};
-    public static ImBoolean[] oreSimOptions = new ImBoolean[10];
 
     public static ImBoolean useMenuMode = new ImBoolean(false);
     public static ImBoolean autoCrystalCfg = new ImBoolean(false);

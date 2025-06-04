@@ -193,6 +193,7 @@ public class ConfigManager {
                     else if (value instanceof float[][]) configJson.add(fieldName, gson.toJsonTree(value));
                     else if (value instanceof long[]) configJson.add(fieldName, gson.toJsonTree(value));
                     else if (value instanceof String[]) configJson.add(fieldName, gson.toJsonTree(value));
+                    else if (value instanceof Color[]) configJson.add(fieldName, gson.toJsonTree(value, Color[].class));
                     else if (value instanceof ImInt[]) {
                         ImInt[] imIntArray = (ImInt[]) value;
                         int[] intArray = new int[imIntArray.length];
@@ -278,6 +279,9 @@ public class ConfigManager {
                         field.set(null, array);
                     } else if (currentValue instanceof String[]) {
                         String[] array = gson.fromJson(jsonElement, String[].class);
+                        field.set(null, array);
+                    } else if (currentValue instanceof Color[]) {
+                        Color[] array = gson.fromJson(jsonElement, Color[].class);
                         field.set(null, array);
                     } else if (currentValue instanceof ImInt[]) {
                         int[] intArray = gson.fromJson(jsonElement, int[].class);

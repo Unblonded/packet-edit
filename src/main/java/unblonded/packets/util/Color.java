@@ -1,5 +1,7 @@
 package unblonded.packets.util;
 
+import java.util.Objects;
+
 public class Color {
     private float red;
     private float green;
@@ -70,9 +72,46 @@ public class Color {
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
+    // RGB hex without alpha (common format)
+    public int asRGB() {
+        int r = Math.round(red * 255);
+        int g = Math.round(green * 255);
+        int b = Math.round(blue * 255);
+        return (r << 16) | (g << 8) | b;
+    }
+
+    // Clamp values to valid range
+    private float clamp(float value) {
+        return Math.max(0.0f, Math.min(1.0f, value));
+    }
+
+    public void setRed(float red) { this.red = clamp(red); }
+    public void setGreen(float green) { this.green = clamp(green); }
+    public void setBlue(float blue) { this.blue = clamp(blue); }
+    public void setAlpha(float alpha) { this.alpha = clamp(alpha); }
+
+    public float[] asFloatArr() {
+        return new float[] { this.red, this.green, this.blue, this.alpha };
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Color color = (Color) obj;
+        return Float.compare(color.red, red) == 0 &&
+                Float.compare(color.green, green) == 0 &&
+                Float.compare(color.blue, blue) == 0 &&
+                Float.compare(color.alpha, alpha) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(red, green, blue, alpha);
+    }
 
     @Override
     public String toString() {
-        return "Color{" + "red->" + red + ", green->" + green + ", blue->" + blue + ", alpha->" + alpha + '}';
+        return "Color{" + "red=" + red + ", green=" + green + ", blue=" + blue + ", alpha=" + alpha + '}';
     }
 }

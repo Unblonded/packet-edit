@@ -1,5 +1,6 @@
 package unblonded.packets.cheats;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
@@ -14,27 +15,32 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.gen.feature.OrePlacedFeatures;
+import unblonded.packets.util.BlockColor;
+import unblonded.packets.util.Color;
 import unblonded.packets.util.OreUtil;
+import unblonded.packets.util.PosColor;
 
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class OreSimulator {
+	private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 	private static final MinecraftClient mc = MinecraftClient.getInstance();
-	public static final Map<Long, Set<Vec3d>> chunkDebrisPositions = new ConcurrentHashMap<>();
+	public static final Map<Long, Set<PosColor>> chunkDebrisPositions = new ConcurrentHashMap<>();
 
 	private static final double EPSILON = 1e-10;
 	private static final Map<Long, Long> chunkLoadTimes = new ConcurrentHashMap<>();
 	private static final Map<BlockPos, Boolean> blockStateCache = new ConcurrentHashMap<>();
 	private static boolean verificationMode = false;
-	private static final Map<Long, Set<Vec3d>> actualResults = new ConcurrentHashMap<>();
+	private static final Map<Long, Set<PosColor>> actualResults = new ConcurrentHashMap<>();
 
-	static RegistryKey<World> dimension;
-	static Map<RegistryKey<Biome>, List<OreUtil>> ores;
-
+	public static Map<RegistryKey<Biome>, List<OreUtil>> ores;
 
 	private static long worldSeed;
 	public static int horizontalRadius = 5;
@@ -42,71 +48,61 @@ public class OreSimulator {
 	private static boolean useConsensusMode = true;
 	private static int consensusIterations = 3;
 	private static boolean useChunkStabilityDelay = true;
-	private static long chunkStabilityDelay = 1000; 
+	private static long chunkStabilityDelay = 1000;
 
 	public static void setHorizontalRadius(int radius) { horizontalRadius = radius; }
-
 	public static void setWorldSeed(long seed) { worldSeed = seed; }
 
-	
-	public static void setVerificationMode(boolean enabled) { verificationMode = enabled; }
-
-	public static void setConsensusMode(boolean enabled, int iterations) {
-		useConsensusMode = enabled;
-		consensusIterations = iterations;
-	}
-
-	public static void setChunkStabilityDelay(boolean enabled, long delayMs) {
-		useChunkStabilityDelay = enabled;
-		chunkStabilityDelay = delayMs;
-	}
-
-	public static void recalculateChunks() {
+	public static void recalculateChunksAsync() {
 		if (mc.player == null || mc.world == null) return;
 
-		OreSimulator.dimension = mc.world.getRegistryKey();
-		OreSimulator.ores = OreUtil.getRegistry(dimension);
+		CompletableFuture.runAsync(() -> {
+			executor.execute(() -> {
+				Map<Long, Set<PosColor>> newChunkDebrisPositions = new ConcurrentHashMap<>();
 
-		chunkDebrisPositions.clear();
-		blockStateCache.clear(); 
+				ChunkPos playerChunkPos = mc.player.getChunkPos();
+				int chunkX = playerChunkPos.x;
+				int chunkZ = playerChunkPos.z;
 
-		ChunkPos playerChunkPos = mc.player.getChunkPos();
-		int chunkX = playerChunkPos.x;
-		int chunkZ = playerChunkPos.z;
+				for (int x = chunkX - horizontalRadius; x <= chunkX + horizontalRadius; x++) {
+					for (int z = chunkZ - horizontalRadius; z <= chunkZ + horizontalRadius; z++) {
 
-		for (int x = chunkX - horizontalRadius; x <= chunkX + horizontalRadius; x++) {
-			for (int z = chunkZ - horizontalRadius; z <= chunkZ + horizontalRadius; z++) {
-				
-				Chunk chunk = waitForChunk(mc.world, x, z);
-				if (chunk != null && isChunkStable(chunk)) {
-					if (useConsensusMode) {
-						Set<Vec3d> consensusResults = getConsensusResults(chunk, consensusIterations);
-						if (!consensusResults.isEmpty()) {
-							chunkDebrisPositions.put(chunk.getPos().toLong(), consensusResults);
+						Chunk chunk = waitForChunk(mc.world, x, z);
+						if (chunk != null && isChunkStable(chunk)) {
+							if (useConsensusMode) {
+								Set<PosColor> consensusResults = getConsensusResults(chunk, consensusIterations);
+								if (!consensusResults.isEmpty()) {
+									newChunkDebrisPositions.put(chunk.getPos().toLong(), consensusResults);
+								}
+							} else {
+								doMathOnChunk(chunk, newChunkDebrisPositions);
+							}
 						}
-					} else {
-						doMathOnChunk(chunk);
 					}
 				}
-			}
-		}
+
+				executor.execute(() -> {
+					OreSimulator.ores = OreUtil.getRegistry(mc.world.getRegistryKey());
+					chunkDebrisPositions.clear();
+					chunkDebrisPositions.putAll(newChunkDebrisPositions);
+					blockStateCache.clear();
+				});
+			});
+		});
 	}
 
-	
 	private static Chunk waitForChunk(ClientWorld world, int x, int z) {
 		Chunk chunk = world.getChunk(x, z, ChunkStatus.FEATURES, false);
 		if (chunk != null) return chunk;
 
 		chunk = world.getChunk(x, z, ChunkStatus.BIOMES, true);
 		if (chunk != null) {
-			
 			long chunkKey = ChunkPos.toLong(x, z);
 			chunkLoadTimes.put(chunkKey, System.currentTimeMillis());
 		}
 		return chunk;
 	}
 
-	
 	private static boolean isChunkStable(Chunk chunk) {
 		if (!useChunkStabilityDelay) return true;
 
@@ -118,14 +114,13 @@ public class OreSimulator {
 		return (currentTime - chunkLoadTimes.get(chunkKey)) >= chunkStabilityDelay;
 	}
 
-	
-	private static Set<Vec3d> getConsensusResults(Chunk chunk, int iterations) {
-		Map<Vec3d, Integer> positionCounts = new HashMap<>();
+	private static Set<PosColor> getConsensusResults(Chunk chunk, int iterations) {
+		Map<PosColor, Integer> positionCounts = new HashMap<>();
 
 		for (int i = 0; i < iterations; i++) {
 			blockStateCache.clear();
-			Set<Vec3d> results = simulateChunk(chunk);
-			for (Vec3d pos : results) {
+			Set<PosColor> results = simulateChunk(chunk);
+			for (PosColor pos : results) {
 				positionCounts.merge(pos, 1, Integer::sum);
 			}
 		}
@@ -136,8 +131,7 @@ public class OreSimulator {
 				.collect(Collectors.toSet());
 	}
 
-	
-	private static Set<Vec3d> simulateChunk(Chunk chunk) {
+	private static Set<PosColor> simulateChunk(Chunk chunk) {
 		var chunkPos = chunk.getPos();
 		ClientWorld world = mc.world;
 
@@ -159,16 +153,13 @@ public class OreSimulator {
 			}
 		});
 
-		boolean hasValidBiome = biomes.stream().anyMatch(OreSimulator::isValidAncientDebrisBiome);
-		if (!hasValidBiome) return new HashSet<>();
-
 		int chunkX = chunkPos.x << 4;
 		int chunkZ = chunkPos.z << 4;
-		
+
 		ChunkRandom random = new ChunkRandom(ChunkRandom.RandomProvider.XOROSHIRO.create(0));
 		long populationSeed = random.setPopulationSeed(worldSeed, chunkX, chunkZ);
 
-		Set<Vec3d> debrisPositions = new HashSet<>();
+		Set<PosColor> debrisPositions = new HashSet<>();
 
 		random.setPopulationSeed(worldSeed, chunkX, chunkZ);
 
@@ -176,44 +167,42 @@ public class OreSimulator {
 			for (OreUtil oreData : oreList)
 				processDebrisGeneration(world, random, populationSeed, oreData, chunkX, chunkZ, debrisPositions);
 
-
 		return debrisPositions;
 	}
 
-	private static void doMathOnChunk(Chunk chunk) {
+	private static void doMathOnChunk(Chunk chunk, Map<Long, Set<PosColor>> outputMap) {
 		var chunkPos = chunk.getPos();
 		long chunkKey = chunkPos.toLong();
 
-		if (chunkDebrisPositions.containsKey(chunkKey)) return;
+		if (chunkDebrisPositions.containsKey(chunkKey) || outputMap.containsKey(chunkKey)) return;
 
-		Set<Vec3d> results = simulateChunk(chunk);
+		Set<PosColor> results = simulateChunk(chunk);
 
 		if (!results.isEmpty()) {
-			chunkDebrisPositions.put(chunkKey, results);
-			if (verificationMode && actualResults.containsKey(chunkKey))
+			outputMap.put(chunkKey, results);
+			if (verificationMode && actualResults.containsKey(chunkKey)) {
 				compareResults(chunkKey, results, actualResults.get(chunkKey));
+			}
 		}
 	}
 
-	
-	private static void compareResults(long chunkKey, Set<Vec3d> predicted, Set<Vec3d> actual) {
-		Set<Vec3d> missed = new HashSet<>(actual);
+	private static void compareResults(long chunkKey, Set<PosColor> predicted, Set<PosColor> actual) {
+		Set<PosColor> missed = new HashSet<>(actual);
 		missed.removeAll(predicted);
 
-		Set<Vec3d> falsePositives = new HashSet<>(predicted);
+		Set<PosColor> falsePositives = new HashSet<>(predicted);
 		falsePositives.removeAll(actual);
 
 		if (!missed.isEmpty() || !falsePositives.isEmpty()) {
 			System.out.println("Errors in chunk " + chunkKey +
 					": Missed=" + missed.size() + ", False Positives=" + falsePositives.size());
-			
 		}
 	}
 
 	private static void processDebrisGeneration(ClientWorld world, ChunkRandom random, long populationSeed,
 												OreUtil data, int chunkX, int chunkZ,
-												Set<Vec3d> results) {
-		
+												Set<PosColor> results) {
+
 		random.setDecoratorSeed(populationSeed, data.index, data.step);
 		int count = data.count.get(random);
 
@@ -224,11 +213,11 @@ public class OreSimulator {
 			int z = random.nextInt(16) + chunkZ;
 			int y = data.heightProvider.get(random, data.heightContext);
 
-			BlockPos pos = new BlockPos(x, y, z);
-			
-			if (!hasValidBiomeAtPosition(world, pos)) continue;
+			PosColor pos = new PosColor(new BlockPos(x, y, z), data.color);
 
-			ArrayList<Vec3d> generatedPositions;
+			//if (!hasValidBiomeAtPosition(world, pos)) continue;
+
+			ArrayList<PosColor> generatedPositions;
 			if (data.scattered)
 				generatedPositions = generateHidden(world, random, pos, data.size);
 			else
@@ -237,31 +226,6 @@ public class OreSimulator {
 		}
 	}
 
-	
-	private static boolean hasValidBiomeAtPosition(ClientWorld world, BlockPos pos) {
-		
-		var biome = world.getBiome(pos);
-		if (biome.getKey().isPresent() && isValidAncientDebrisBiome(biome.getKey().get())) {
-			return true;
-		}
-		
-		BlockPos[] testPositions = {
-				pos.add(1, 0, 0),
-				pos.add(-1, 0, 0),
-				pos.add(0, 0, 1),
-				pos.add(0, 0, -1)
-		};
-
-		for (BlockPos testPos : testPositions) {
-			biome = world.getBiome(testPos);
-			if (biome.getKey().isPresent() && isValidAncientDebrisBiome(biome.getKey().get())) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	
 	private static boolean isOpaqueBlock(ClientWorld world, BlockPos pos) {
 		return blockStateCache.computeIfAbsent(pos, p -> world.getBlockState(p).isOpaque());
 	}
@@ -270,26 +234,26 @@ public class OreSimulator {
 		return blockStateCache.computeIfAbsent(pos, p -> world.getBlockState(p).isOf(Blocks.ANCIENT_DEBRIS));
 	}
 
-	private static ArrayList<Vec3d> generateNormal(ClientWorld world, ChunkRandom random, BlockPos blockPos, int veinSize, float discardOnAir) {
+	private static ArrayList<PosColor> generateNormal(ClientWorld world, ChunkRandom random, PosColor blockPos, int veinSize, float discardOnAir) {
 		float f = random.nextFloat() * 3.1415927F;
 		float g = (float) veinSize / 8.0F;
 		int i = MathHelper.ceil(((float) veinSize / 16.0F * 2.0F + 1.0F) / 2.0F);
-		double d = (double) blockPos.getX() + Math.sin(f) * (double) g;
-		double e = (double) blockPos.getX() - Math.sin(f) * (double) g;
-		double h = (double) blockPos.getZ() + Math.cos(f) * (double) g;
-		double j = (double) blockPos.getZ() - Math.cos(f) * (double) g;
-		double l = (blockPos.getY() + random.nextInt(3) - 2);
-		double m = (blockPos.getY() + random.nextInt(3) - 2);
-		int n = blockPos.getX() - MathHelper.ceil(g) - i;
-		int o = blockPos.getY() - 2 - i;
-		int p = blockPos.getZ() - MathHelper.ceil(g) - i;
+		double d = (double) blockPos.pos.getX() + Math.sin(f) * (double) g;
+		double e = (double) blockPos.pos.getX() - Math.sin(f) * (double) g;
+		double h = (double) blockPos.pos.getZ() + Math.cos(f) * (double) g;
+		double j = (double) blockPos.pos.getZ() - Math.cos(f) * (double) g;
+		double l = (blockPos.pos.getY() + random.nextInt(3) - 2);
+		double m = (blockPos.pos.getY() + random.nextInt(3) - 2);
+		int n = blockPos.pos.getX() - MathHelper.ceil(g) - i;
+		int o = blockPos.pos.getY() - 2 - i;
+		int p = blockPos.pos.getZ() - MathHelper.ceil(g) - i;
 		int q = 2 * (MathHelper.ceil(g) + i);
 		int r = 2 * (2 + i);
 
 		for (int s = n; s <= n + q; ++s) {
 			for (int t = p; t <= p + q; ++t) {
 				if (o <= world.getTopY(Heightmap.Type.MOTION_BLOCKING, s, t)) {
-					return generateVeinPart(world, random, veinSize, d, e, h, j, l, m, n, o, p, q, r, discardOnAir);
+					return generateVeinPart(world, random, veinSize, d, e, h, j, l, m, n, o, p, q, r, discardOnAir, blockPos.color);
 				}
 			}
 		}
@@ -297,11 +261,11 @@ public class OreSimulator {
 		return new ArrayList<>();
 	}
 
-	private static ArrayList<Vec3d> generateVeinPart(ClientWorld world, ChunkRandom random, int veinSize, double startX, double endX, double startZ, double endZ, double startY, double endY, int x, int y, int z, int size, int i, float discardOnAir) {
+	private static ArrayList<PosColor> generateVeinPart(ClientWorld world, ChunkRandom random, int veinSize, double startX, double endX, double startZ, double endZ, double startY, double endY, int x, int y, int z, int size, int i, float discardOnAir, Color color) {
 		BitSet bitSet = new BitSet(size * i * size);
 		BlockPos.Mutable mutable = new BlockPos.Mutable();
 		double[] ds = new double[veinSize * 4];
-		ArrayList<Vec3d> poses = new ArrayList<>();
+		ArrayList<PosColor> poses = new ArrayList<>();
 
 		int n;
 		double p;
@@ -369,7 +333,7 @@ public class OreSimulator {
 											mutable.set(ah, aj, al);
 											if (aj >= -64 && aj < 320 && isOpaqueBlock(world, mutable)) {
 												if (shouldPlace(world, mutable, discardOnAir, random)) {
-													poses.add(new Vec3d(ah, aj, al));
+													poses.add(new PosColor(new BlockPos(ah, aj, al), color));
 												}
 											}
 										}
@@ -393,19 +357,19 @@ public class OreSimulator {
 		return true;
 	}
 
-	private static ArrayList<Vec3d> generateHidden(ClientWorld world, ChunkRandom random, BlockPos blockPos, int size) {
-		ArrayList<Vec3d> poses = new ArrayList<>();
+	private static ArrayList<PosColor> generateHidden(ClientWorld world, ChunkRandom random, PosColor blockPos, int size) {
+		ArrayList<PosColor> poses = new ArrayList<>();
 		int i = random.nextInt(size + 1);
 
 		for (int j = 0; j < i; ++j) {
 			size = Math.min(j, 7);
-			int x = randomCoord(random, size) + blockPos.getX();
-			int y = randomCoord(random, size) + blockPos.getY();
-			int z = randomCoord(random, size) + blockPos.getZ();
+			int x = randomCoord(random, size) + blockPos.pos.getX();
+			int y = randomCoord(random, size) + blockPos.pos.getY();
+			int z = randomCoord(random, size) + blockPos.pos.getZ();
 			BlockPos pos = new BlockPos(x, y, z);
 			if (isOpaqueBlock(world, pos)) {
 				if (shouldPlace(world, pos, 1F, random)) {
-					poses.add(new Vec3d(x, y, z));
+					poses.add(new PosColor(new BlockPos(x, y, z), blockPos.color));
 				}
 			}
 		}
@@ -417,26 +381,12 @@ public class OreSimulator {
 		return Math.round((random.nextFloat() - random.nextFloat()) * (float) size);
 	}
 
-	public static boolean inNether() {
-		if (mc.player == null || mc.world == null) return false;
-		return mc.world.getRegistryKey() == ClientWorld.NETHER;
-	}
-
-	private static boolean isValidAncientDebrisBiome(RegistryKey<Biome> biome) {
-		return biome == BiomeKeys.NETHER_WASTES
-				|| biome == BiomeKeys.SOUL_SAND_VALLEY
-				|| biome == BiomeKeys.CRIMSON_FOREST
-				|| biome == BiomeKeys.WARPED_FOREST
-				|| biome == BiomeKeys.BASALT_DELTAS;
-	}
-
-	
 	public static void clearCaches() {
 		blockStateCache.clear();
 		chunkLoadTimes.clear();
 	}
 
-	public static void setActualResults(long chunkKey, Set<Vec3d> actual) {
+	public static void setActualResults(long chunkKey, Set<PosColor> actual) {
 		actualResults.put(chunkKey, actual);
 	}
 

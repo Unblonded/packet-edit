@@ -23,6 +23,7 @@ import unblonded.packets.cfg;
 import unblonded.packets.cheats.OreSimulator;
 import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
+import unblonded.packets.util.PosColor;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -382,13 +383,12 @@ public class ESPOverlayRenderer {
             }
 
             if (cfg.oreSim.get()) {
-                for (Map.Entry<Long, Set<Vec3d>> entry : OreSimulator.chunkDebrisPositions.entrySet()) {
-                    for (Vec3d pos : entry.getValue()) {
+                for (Map.Entry<Long, Set<PosColor>> entry : OreSimulator.chunkDebrisPositions.entrySet()) {
+                    for (PosColor blockPos : entry.getValue()) {
                         try {
-                            BlockPos seedPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
-                            if (mc.world != null && mc.world.getBlockState(seedPos).isOpaque()) {
-                                if (cfg.oreSimDrawMode.get()) drawGlowPos(context, seedPos, new Color(cfg.oreSimColor));
-                                else drawEspPos(context, seedPos, new Color(cfg.oreSimColor));
+                            if (mc.world != null && mc.world.getBlockState(blockPos.pos).isOpaque()) {
+                                if (cfg.oreSimDrawMode.get()) drawGlowPos(context, blockPos.pos, blockPos.color);
+                                else drawEspPos(context, blockPos.pos, blockPos.color);
                             }
                         } catch (Exception e) {
                             System.err.println("Error rendering ore simulation: " + e.getMessage());

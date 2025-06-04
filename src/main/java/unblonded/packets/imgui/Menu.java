@@ -15,6 +15,7 @@ import unblonded.packets.cheats.PlayerTracker;
 import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
 import unblonded.packets.util.KitSlot;
+import unblonded.packets.util.OreUtil;
 
 import java.util.*;
 
@@ -225,16 +226,17 @@ public class Menu {
                 ImGui.inputScalar("Seed", cfg.oreSimSeed);
                 if (ImGui.button("Use Donut Seed")) cfg.oreSimSeed.set(6608149111735331168L);
                 if (ImGui.button((cfg.oreSimDrawMode.get() ? "Glow" : "Wire") + " Mode##drawTypeOresim")) cfg.oreSimDrawMode.set(!cfg.oreSimDrawMode.get());
-                ImGui.sameLine();
-                ImGui.colorEdit4("##espcolor", cfg.oreSimColor, ImGuiColorEditFlags.NoLabel | ImGuiColorEditFlags.NoInputs);
-                ImGui.sameLine();
-                ImGui.text("Esp Color");
 
-
-                //renderDebrisGraphAnimated();
-
-                for (int i = 0; i < cfg.oreSimOptions.length; i++)
-                    ImGui.checkbox(""+i, cfg.oreSimOptions[i]);
+                ImGui.columns(2, "OreOptionsColumns", false);
+                for (int i = 0; i < cfg.oreSimOptions.length; i++) {
+                    if (i == cfg.oreSimOptions.length / 2) ImGui.nextColumn();
+                    ImGui.checkbox(OreUtil.oreNames[i], cfg.oreSimOptions[i]);
+                    ImGui.sameLine();
+                    float[] color = cfg.oreColors[i].asFloatArr();
+                    if (ImGui.colorEdit4("##color-"+i, color, ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.NoLabel))
+                        cfg.oreColors[i] = new Color(color[0], color[1], color[2], color[3]);
+                }
+                ImGui.columns(1);
 
                 ImGui.end();
                 ImGui.popStyleColor();
