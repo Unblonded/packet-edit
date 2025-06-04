@@ -1,26 +1,19 @@
 package unblonded.packets.cheats;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.ChunkRandom;
 import net.minecraft.world.Heightmap;
-import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeKeys;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.ChunkStatus;
-import net.minecraft.world.gen.feature.OrePlacedFeatures;
-import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
 import unblonded.packets.util.OreUtil;
 import unblonded.packets.util.PosColor;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -41,17 +34,13 @@ public class OreSimulator {
 	private static final Map<Long, Set<PosColor>> actualResults = new ConcurrentHashMap<>();
 
 	public static Map<RegistryKey<Biome>, List<OreUtil>> ores;
-
-	private static long worldSeed;
+	public static long worldSeed;
 	public static int horizontalRadius = 5;
 
 	private static boolean useConsensusMode = true;
 	private static int consensusIterations = 3;
 	private static boolean useChunkStabilityDelay = true;
 	private static long chunkStabilityDelay = 1000;
-
-	public static void setHorizontalRadius(int radius) { horizontalRadius = radius; }
-	public static void setWorldSeed(long seed) { worldSeed = seed; }
 
 	public static void recalculateChunksAsync() {
 		if (mc.player == null || mc.world == null) return;
@@ -230,10 +219,6 @@ public class OreSimulator {
 		return blockStateCache.computeIfAbsent(pos, p -> world.getBlockState(p).isOpaque());
 	}
 
-	private static boolean isAncientDebris(ClientWorld world, BlockPos pos) {
-		return blockStateCache.computeIfAbsent(pos, p -> world.getBlockState(p).isOf(Blocks.ANCIENT_DEBRIS));
-	}
-
 	private static ArrayList<PosColor> generateNormal(ClientWorld world, ChunkRandom random, PosColor blockPos, int veinSize, float discardOnAir) {
 		float f = random.nextFloat() * 3.1415927F;
 		float g = (float) veinSize / 8.0F;
@@ -379,22 +364,5 @@ public class OreSimulator {
 
 	private static int randomCoord(ChunkRandom random, int size) {
 		return Math.round((random.nextFloat() - random.nextFloat()) * (float) size);
-	}
-
-	public static void clearCaches() {
-		blockStateCache.clear();
-		chunkLoadTimes.clear();
-	}
-
-	public static void setActualResults(long chunkKey, Set<PosColor> actual) {
-		actualResults.put(chunkKey, actual);
-	}
-
-	public static Map<String, Integer> getStatistics() {
-		Map<String, Integer> stats = new HashMap<>();
-		stats.put("cached_chunks", chunkDebrisPositions.size());
-		stats.put("cached_blocks", blockStateCache.size());
-		stats.put("tracked_load_times", chunkLoadTimes.size());
-		return stats;
 	}
 }

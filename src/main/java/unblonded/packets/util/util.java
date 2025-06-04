@@ -37,8 +37,8 @@ public class util {
         SelfCrystal.setState(cfg.selfCrystal.get());
 
         if (cfg.oreSim.get()) {
-            OreSimulator.setWorldSeed(cfg.oreSimSeed.get());
-            OreSimulator.setHorizontalRadius(cfg.oreSimDistance[0]);
+            OreSimulator.worldSeed = cfg.oreSimSeed.get();
+            OreSimulator.horizontalRadius = cfg.oreSimDistance[0];
         }
 
         if (cfg.checkPlayerAirSafety.get()) AirUnderCheck.checkSafety();

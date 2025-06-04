@@ -268,6 +268,13 @@ public class ConfigManager {
                     else if (currentValue instanceof ImFloat) ((ImFloat) currentValue).set(jsonElement.getAsFloat());
                     else if (currentValue instanceof ImLong) ((ImLong) currentValue).set(jsonElement.getAsLong());
                     else if (currentValue instanceof ImString) ((ImString) currentValue).set(jsonElement.getAsString());
+                    else if (currentValue instanceof long[]) {
+                        long[] array = gson.fromJson(jsonElement, long[].class);
+                        field.set(null, array);
+                    } else if (currentValue instanceof boolean[]) {
+                        boolean[] array = gson.fromJson(jsonElement, boolean[].class);
+                        field.set(null, array);
+                    }
                     else if (currentValue instanceof int[]) {
                         int[] array = gson.fromJson(jsonElement, int[].class);
                         field.set(null, array);
