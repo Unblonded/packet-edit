@@ -27,12 +27,18 @@ public class SelfCrystal {
         int ticksWaited;
         int attackDelay;
         boolean readyToAttack;
+        int attackAttempts;
+        long lastAttackTime;
+        static final int MAX_ATTACK_ATTEMPTS = 10; // Maximum attempts before giving up
+        static final int ATTACK_RETRY_DELAY = 100; // ms between attack attempts
 
         CrystalInfo() {
             this.placedTime = System.currentTimeMillis();
             this.ticksWaited = 0;
-            this.attackDelay = cfg.selfCrystalDelay[0] + util.rndInt(cfg.autoAnchorHumanity[0]);
+            this.attackDelay = cfg.selfCrystalDelay[0] + util.rndInt(cfg.selfCrystalHumanity[0]);
             this.readyToAttack = false;
+            this.attackAttempts = 0;
+            this.lastAttackTime = 0;
         }
     }
 
@@ -62,7 +68,7 @@ public class SelfCrystal {
             possiblePositions.add(primary.add(0, 0, 1));
             possiblePositions.add(primary.add(0, 0, -1));
 
-            
+
             for (BlockPos pos : possiblePositions) {
                 trackedCrystals.put(pos, new CrystalInfo());
             }
@@ -82,25 +88,55 @@ public class SelfCrystal {
 
             info.ticksWaited++;
 
-            if (currentTime - info.placedTime > 10000) {
+            // Extended timeout for laggy servers
+            if (currentTime - info.placedTime > 15000) {
                 iterator.remove();
                 continue;
             }
 
             EndCrystalEntity crystal = findCrystalAtPos(pos);
 
+            // If crystal is gone, check if we successfully broke it
             if (crystal == null) {
-                if (info.ticksWaited > 20) iterator.remove();
+                if (info.attackAttempts > 0) {
+                    // Crystal was attacked and is now gone - success!
+                    iterator.remove();
+                    removeOtherPositionsForSameArea(pos);
+                } else if (info.ticksWaited > 20) {
+                    // Crystal never appeared or disappeared before we could attack
+                    iterator.remove();
+                }
                 continue;
             }
 
-            if (!info.readyToAttack && currentTime - info.placedTime >= info.attackDelay)
+            // Initial delay before first attack
+            if (!info.readyToAttack && currentTime - info.placedTime >= info.attackDelay) {
                 info.readyToAttack = true;
+            }
 
+            // Keep attacking until crystal is destroyed
             if (info.readyToAttack) {
-                attackCrystal(crystal);
-                iterator.remove();
-                removeOtherPositionsForSameArea(pos);
+                // Check if enough time has passed since last attack attempt
+                if (currentTime - info.lastAttackTime >= (cfg.selfCrystalDelay[0] + util.rndInt(cfg.selfCrystalHumanity[0]))) {
+
+                    // Give up if we've tried too many times
+                    if (info.attackAttempts >= CrystalInfo.MAX_ATTACK_ATTEMPTS) {
+                        iterator.remove();
+                        continue;
+                    }
+
+                    // Verify crystal is still alive before attacking
+                    if (crystal.isAlive()) {
+                        attackCrystal(crystal);
+                        info.attackAttempts++;
+                        info.lastAttackTime = currentTime;
+                    } else {
+                        // Crystal is dead, we're done
+                        iterator.remove();
+                        removeOtherPositionsForSameArea(pos);
+                    }
+                }
+                // Don't remove here - keep trying until crystal is actually gone
             }
         }
     }
@@ -135,7 +171,7 @@ public class SelfCrystal {
             return null;
         }
 
-        
+
         EndCrystalEntity closest = crystals.get(0);
         double closestDistance = closest.getPos().distanceTo(pos.toCenterPos());
 

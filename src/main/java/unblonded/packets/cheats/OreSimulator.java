@@ -204,8 +204,6 @@ public class OreSimulator {
 
 			PosColor pos = new PosColor(new BlockPos(x, y, z), data.color);
 
-			//if (!hasValidBiomeAtPosition(world, pos)) continue;
-
 			ArrayList<PosColor> generatedPositions;
 			if (data.scattered)
 				generatedPositions = generateHidden(world, random, pos, data.size);
