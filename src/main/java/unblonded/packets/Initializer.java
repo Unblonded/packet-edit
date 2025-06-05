@@ -28,6 +28,7 @@ public class Initializer implements ClientModInitializer {
         SelfCrystal.onInitializeClient();
         TotemNotifier.onInitializeClient();
         TimeChanger.onInitializeClient();
+        PlayerSee.onInitializeClient();
 
         CommandManager.register(new GCCommand());
         CommandManager.register(new MemoryCommand());
