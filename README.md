@@ -6,10 +6,11 @@ We had to move away from using c++ injection for a few reasons:
 1. caused antivirus conflicts
 2. now allows us to have more powerful menu function
 3. faster menu rendering time when opening Gui
-
+4. and was only able to work on windows
 
 Beside all this shit above:
 this client has lots of insparation from meteor client, cus i ran out of ideas half way.
+wait also btw it can be used on Windows, Mac Os, and Linux (havent tested on Linux)
 reguarding that the client works very well it has a powerful looking gui, and saves configs
 in a folder in your game work directory ex. ```.minecraft/packet-edit/config.json```
 
