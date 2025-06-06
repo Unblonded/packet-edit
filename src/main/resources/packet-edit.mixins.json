@@ -22,7 +22,8 @@
 		"CameraMixin",
 		"BackgroundRenderMixin",
 		"PacketReception",
-		"WorldRenderMixin"
+		"WorldRenderMixin",
+		"EntityRenderMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
