@@ -33,14 +33,15 @@ public abstract class EntityRenderMixin<T extends LivingEntity, S extends Living
         return false;
     }
 
-    @Unique private void renderWallhack(M model, MatrixStack matrices, VertexConsumerProvider consumers, int light, int overlay, PlayerEntityRenderState playerState) {
+    @Unique
+    private void renderWallhack(M model, MatrixStack matrices, VertexConsumerProvider consumers, int light, int overlay, PlayerEntityRenderState playerState) {
         Identifier skinTexture = playerState.skinTextures.texture();
         RenderLayer wallhackLayer = RenderLayer.of(
                 "wallhack",
                 VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL,
                 VertexFormat.DrawMode.QUADS,
-                1536,
-                false,
+                1536*2,
+                true,
                 true,
                 RenderLayer.MultiPhaseParameters.builder()
                         .program(RenderPhase.ENTITY_TRANSLUCENT_PROGRAM)
@@ -53,8 +54,8 @@ public abstract class EntityRenderMixin<T extends LivingEntity, S extends Living
                         .overlay(RenderPhase.ENABLE_OVERLAY_COLOR)
                         .build(false)
         );
-
-        model.render(matrices, consumers.getBuffer(wallhackLayer), cfg.playerEspObeyLighting.get() ? light : 15728880, overlay, cfg.playerEspColor.asHex()); //For Wall Hack
-        model.render(matrices, consumers.getBuffer(RenderLayer.getEntityTranslucent(skinTexture)), light, overlay, Color.WHITE.asHex()); //For Regular Rendering
+        model.render(matrices, consumers.getBuffer(RenderLayer.getOutline(skinTexture)), cfg.playerEspObeyLighting.get() ? light : 15728880, overlay, cfg.playerEspColor.asHex());
+        model.render(matrices, consumers.getBuffer(wallhackLayer), cfg.playerEspObeyLighting.get() ? light : 15728880, overlay, cfg.playerEspColor.asHex());
+        model.render(matrices, consumers.getBuffer(RenderLayer.getEntityTranslucent(skinTexture)), light, overlay, Color.WHITE.asHex());
     }
 }
