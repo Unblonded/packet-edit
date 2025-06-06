@@ -33,55 +33,41 @@ public abstract class EntityRenderMixin<T extends LivingEntity, S extends Living
             return true;
         }
 
-        // Method 1: Simple approach
-        // renderSimpleGlow(instance, matrixStack, consumers, light, overlay, playerState);
-
-        // Method 2: Custom render layer approach
-        renderWithCustomLayer(instance, matrixStack, consumers, light, overlay, playerState);
-
+        renderWallhack(instance, matrixStack, consumers, light, overlay, playerState);
         return false;
     }
 
-    private void renderSimpleGlow(M model, MatrixStack matrices, VertexConsumerProvider consumers, int light, int overlay, PlayerEntityRenderState playerState) {
-        int glowColor = 0xFF0000FF; // Red
+    private void renderWallhack(M model, MatrixStack matrices, VertexConsumerProvider consumers, int light, int overlay, PlayerEntityRenderState playerState) {
         Identifier skinTexture = playerState.skinTextures.texture();
 
-        // Disable depth test and render
-        RenderSystem.disableDepthTest();
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-
-        VertexConsumer glowConsumer = consumers.getBuffer(RenderLayer.getEntityTranslucent(skinTexture));
-        model.render(matrices, glowConsumer, 15728880, overlay, glowColor);
-
-        RenderSystem.enableDepthTest();
-    }
-
-    private void renderWithCustomLayer(M model, MatrixStack matrices, VertexConsumerProvider consumers, int light, int overlay, PlayerEntityRenderState playerState) {
-        Identifier skinTexture = playerState.skinTextures.texture();
-
-        // Use the same vertex format as the original entity rendering
+        // Create wallhack render layer that ALWAYS passes depth test
         RenderLayer wallhackLayer = RenderLayer.of(
                 "player_wallhack",
-                VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL, // Keep this for now
-                VertexFormat.DrawMode.TRIANGLES,
+                VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL,
+                VertexFormat.DrawMode.QUADS,
                 1536,
-                false,
-                true,
+                true, // hasCrumbling
+                true, // translucent
                 RenderLayer.MultiPhaseParameters.builder()
                         .program(RenderPhase.ENTITY_TRANSLUCENT_PROGRAM)
                         .texture(new RenderPhase.Texture(skinTexture, TriState.FALSE, false))
                         .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
                         .depthTest(RenderPhase.ALWAYS_DEPTH_TEST)
                         .writeMaskState(RenderPhase.COLOR_MASK)
-                        .cull(RenderPhase.DISABLE_CULLING) // Add this
-                        .lightmap(RenderPhase.ENABLE_LIGHTMAP) // Add this
+                        .cull(RenderPhase.DISABLE_CULLING)
+                        .lightmap(RenderPhase.ENABLE_LIGHTMAP)
+                        .overlay(RenderPhase.ENABLE_OVERLAY_COLOR)
                         .build(false)
         );
 
-        // Try using the same light value as the normal render
+        // Render wallhack version (always visible)
         VertexConsumer wallhackConsumer = consumers.getBuffer(wallhackLayer);
-        int redColor = 0x80FF0000;
-        model.render(matrices, wallhackConsumer, light, overlay, redColor); // Use 'light' instead of 15728880
+        int redColor = Color.WHITE.asHex();
+        model.render(matrices, wallhackConsumer, light, overlay, redColor);
+
+        // Render normal version (respects depth)
+        VertexConsumer normalConsumer = consumers.getBuffer(RenderLayer.getEntityTranslucent(skinTexture));
+        int whiteColor = Color.WHITE.asHex();
+        model.render(matrices, normalConsumer, light, overlay, whiteColor);
     }
 }
