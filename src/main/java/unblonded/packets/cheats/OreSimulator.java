@@ -236,7 +236,7 @@ public class OreSimulator {
 		for (int s = n; s <= n + q; ++s) {
 			for (int t = p; t <= p + q; ++t) {
 				if (o <= world.getTopY(Heightmap.Type.MOTION_BLOCKING, s, t)) {
-					return generateVeinPart(world, random, veinSize, d, e, h, j, l, m, n, o, p, q, r, discardOnAir, blockPos.color);
+					return generateVeinPart(world, random, veinSize, d, e, h, j, l, m, n, o, p, q, r, discardOnAir, blockPos.getColor());
 				}
 			}
 		}
@@ -352,7 +352,7 @@ public class OreSimulator {
 			BlockPos pos = new BlockPos(x, y, z);
 			if (isOpaqueBlock(world, pos)) {
 				if (shouldPlace(world, pos, 1F, random)) {
-					poses.add(new PosColor(new BlockPos(x, y, z), blockPos.color));
+					poses.add(new PosColor(new BlockPos(x, y, z), blockPos.getColor()));
 				}
 			}
 		}

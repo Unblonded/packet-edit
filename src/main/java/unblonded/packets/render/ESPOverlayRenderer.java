@@ -387,8 +387,8 @@ public class ESPOverlayRenderer {
                     for (PosColor blockPos : entry.getValue()) {
                         try {
                             if (mc.world != null && mc.world.getBlockState(blockPos.pos).isOpaque()) {
-                                if (cfg.oreSimDrawMode.get()) drawGlowPos(context, blockPos.pos, blockPos.color);
-                                else drawEspPos(context, blockPos.pos, blockPos.color);
+                                if (cfg.oreSimDrawMode.get()) drawGlowPos(context, blockPos.pos, blockPos.getColor());
+                                else drawEspPos(context, blockPos.pos, blockPos.getColor());
                             }
                         } catch (Exception e) {
                             System.err.println("Error rendering ore simulation: " + e.getMessage());

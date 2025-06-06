@@ -224,7 +224,7 @@ public class ConfigManager {
             }
 
             try (FileWriter writer = new FileWriter(configFile)) { gson.toJson(configJson, writer); }
-            System.out.println("Config saved to: " + configFile.getAbsolutePath());
+            //System.out.println("Config saved to: " + configFile.getAbsolutePath());
 
         } catch (Exception e) {
             System.err.println("Failed to save config: " + e.getMessage());

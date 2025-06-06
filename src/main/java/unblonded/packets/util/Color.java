@@ -21,6 +21,13 @@ public class Color {
         this.alpha = 1.0f;
     }
 
+    public Color(Color color) {
+        red = color.red;
+        green = color.green;
+        blue = color.blue;
+        alpha = color.alpha;
+    }
+
     public Color(String hex) {
         if (hex.startsWith("#")) hex = hex.substring(1);
         if (hex.length() == 6) {

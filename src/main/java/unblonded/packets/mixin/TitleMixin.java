@@ -18,8 +18,10 @@ public class TitleMixin {
     @Unique
     private final MinecraftClient client = MinecraftClient.getInstance();
 
-    @Redirect(method = "setTitle", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwSetWindowTitle(JLjava/lang/CharSequence;)V"))
-    public void redirectSetTitle(long titleEncoded, CharSequence window) {
+    @Inject(method = "setTitle", at = @At(value = "HEAD"), cancellable = true)
+    public void redirectSetTitle(String title, CallbackInfo ci) {
+        ci.cancel();
+
         String customTitle;
 
         if (client.world != null) {
@@ -29,11 +31,8 @@ public class TitleMixin {
                     .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
                     .collect(Collectors.joining(" "));
             customTitle = formattedTitle + suffix;
-        } else {
-            customTitle = "Packet Edit by Unblonded ❤";
-        }
+        } else customTitle = "Packet Edit by Unblonded ❤";
 
-        // Actually set the window title
         GLFW.glfwSetWindowTitle(client.getWindow().getHandle(), customTitle);
     }
 }

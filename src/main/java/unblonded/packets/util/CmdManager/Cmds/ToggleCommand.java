@@ -4,48 +4,65 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import imgui.type.ImBoolean;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.command.CommandSource;
 import unblonded.packets.cfg;
 import unblonded.packets.util.Chat;
 import unblonded.packets.util.CmdManager.Command;
+import unblonded.packets.util.Toggleable;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
 
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.stream.Collectors;
+
 public class ToggleCommand extends Command {
 
-    private static final String[] FEATURES = {
-            // Combat
-            "autocrystal", "crystal",
-            "autototem", "totem",
-            "autoanchor", "anchor",
-            "aimassist", "aim",
-            "crystalspam",
-            "selfcrystal",
-            "totemnotifier", "notifier",
-            // Visuals
-            "fontsize", "font",
-            "playerlist", "players",
-            "advesp", "esp",
-            "crosshair", "cosmic",
-            "handrender", "hand",
-            "norender",
-            "timechanger", "time",
-            // Utility
-            "cancelinteraction",
-            "autodc", "disconnect",
-            "autosell", "sell",
-            "chatfilter", "chat",
-            "storagescan", "storage",
-            "fpschart", "fps",
-            // Mining
-            "digsafety", "safety",
-            "seedray", "oresim"
-    };
+    private static final Map<String, ToggleableFeature> FEATURE_MAP = new HashMap<>();
+    private static final String[] FEATURE_ALIASES;
+
+    static {
+        initializeFeatures();
+        FEATURE_ALIASES = FEATURE_MAP.keySet().toArray(new String[0]);
+    }
+
+    // Data class to hold feature information
+    private static class ToggleableFeature {
+        final Field field;
+        final String displayName;
+        final String category;
+        final String[] aliases;
+
+        ToggleableFeature(Field field, Toggleable annotation) {
+            this.field = field;
+            this.displayName = annotation.displayName();
+            this.category = annotation.category();
+            this.aliases = annotation.aliases();
+        }
+    }
+
+    // Initialize features by scanning the cfg class for @Toggleable annotations
+    private static void initializeFeatures() {
+        Field[] fields = cfg.class.getDeclaredFields();
+
+        for (Field field : fields) {
+            if (field.isAnnotationPresent(Toggleable.class)) {
+                Toggleable annotation = field.getAnnotation(Toggleable.class);
+                ToggleableFeature feature = new ToggleableFeature(field, annotation);
+
+                // Register all aliases for this feature
+                for (String alias : annotation.aliases()) {
+                    FEATURE_MAP.put(alias.toLowerCase(), feature);
+                }
+            }
+        }
+    }
 
     // Suggestion provider for autocomplete
     private static final SuggestionProvider<FabricClientCommandSource> FEATURE_SUGGESTIONS =
-            (context, builder) -> CommandSource.suggestMatching(FEATURES, builder);
+            (context, builder) -> CommandSource.suggestMatching(FEATURE_ALIASES, builder);
 
     public ToggleCommand() {
         super("t", "Toggles a feature on or off");
@@ -58,159 +75,64 @@ public class ToggleCommand extends Command {
                         .executes(this::toggleFeature))
                 .executes(context -> {
                     Chat.sendMessage(Chat.prefix + " Usage: .t <feature>");
+                    Chat.sendMessage(Chat.prefix + " Available features: " + getAvailableFeatures());
                     return 1;
                 });
     }
 
     private int toggleFeature(CommandContext<FabricClientCommandSource> context) {
-        String feature = StringArgumentType.getString(context, "feature").toLowerCase();
-        boolean toggled = false;
-        String featureName = "";
+        String input = StringArgumentType.getString(context, "feature").toLowerCase();
 
-        // Combat features
-        switch (feature) {
-            case "autocrystal":
-            case "crystal":
-                cfg.autoCrystal.set(!cfg.autoCrystal.get());
-                toggled = cfg.autoCrystal.get();
-                featureName = "Auto Crystal";
-                break;
-            case "autototem":
-            case "totem":
-                cfg.autoTotem.set(!cfg.autoTotem.get());
-                toggled = cfg.autoTotem.get();
-                featureName = "Auto Totem";
-                break;
-            case "autoanchor":
-            case "anchor":
-                cfg.autoAnchor.set(!cfg.autoAnchor.get());
-                toggled = cfg.autoAnchor.get();
-                featureName = "Auto Anchor";
-                break;
-            case "aimassist":
-            case "aim":
-                cfg.aimAssistToggle.set(!cfg.aimAssistToggle.get());
-                toggled = cfg.aimAssistToggle.get();
-                featureName = "Aim Assist";
-                break;
-            case "crystalspam":
-                cfg.crystalSpam.set(!cfg.crystalSpam.get());
-                toggled = cfg.crystalSpam.get();
-                featureName = "Crystal Spam";
-                break;
-            case "selfcrystal":
-                cfg.selfCrystal.set(!cfg.selfCrystal.get());
-                toggled = cfg.selfCrystal.get();
-                featureName = "Self Crystal";
-                break;
-            case "totemnotifier":
-            case "notifier":
-                cfg.totemNotifier.set(!cfg.totemNotifier.get());
-                toggled = cfg.totemNotifier.get();
-                featureName = "Totem Notifier";
-                break;
-
-            // Visual features
-            case "fontsize":
-            case "font":
-                cfg.fontSizeOverride.set(!cfg.fontSizeOverride.get());
-                toggled = cfg.fontSizeOverride.get();
-                featureName = "Font Size Override";
-                break;
-            case "playerlist":
-            case "players":
-                cfg.displayPlayers.set(!cfg.displayPlayers.get());
-                toggled = cfg.displayPlayers.get();
-                featureName = "Show Player List";
-                break;
-            case "advesp":
-            case "esp":
-                cfg.advEsp.set(!cfg.advEsp.get());
-                toggled = cfg.advEsp.get();
-                featureName = "Advanced ESP";
-                break;
-            case "crosshair":
-            case "cosmic":
-                cfg.nightFx.set(!cfg.nightFx.get());
-                toggled = cfg.nightFx.get();
-                featureName = "Cosmic Crosshair";
-                break;
-            case "handrender":
-            case "hand":
-                cfg.handRender.set(!cfg.handRender.get());
-                toggled = cfg.handRender.get();
-                featureName = "Hand Render";
-                break;
-            case "norender":
-                cfg.noRender.set(!cfg.noRender.get());
-                toggled = cfg.noRender.get();
-                featureName = "No Render";
-                break;
-            case "timechanger":
-            case "time":
-                cfg.timeChanger.set(!cfg.timeChanger.get());
-                toggled = cfg.timeChanger.get();
-                featureName = "Time Changer";
-                break;
-
-            // Utility features
-            case "cancelinteraction":
-                cfg.cancelInteraction.set(!cfg.cancelInteraction.get());
-                toggled = cfg.cancelInteraction.get();
-                featureName = "Interaction Canceler";
-                break;
-            case "autodc":
-            case "disconnect":
-                cfg.autoDc.set(!cfg.autoDc.get());
-                toggled = cfg.autoDc.get();
-                featureName = "Auto Disconnect";
-                break;
-            case "autosell":
-            case "sell":
-                cfg.autoSell.set(!cfg.autoSell.get());
-                toggled = cfg.autoSell.get();
-                featureName = "Auto Sell";
-                break;
-            case "chatfilter":
-            case "chat":
-                cfg.chatFilter.set(!cfg.chatFilter.get());
-                toggled = cfg.chatFilter.get();
-                featureName = "Chat Filter";
-                break;
-            case "storagescan":
-            case "storage":
-                cfg.storageScan.set(!cfg.storageScan.get());
-                toggled = cfg.storageScan.get();
-                featureName = "Storage Scan";
-                break;
-            case "fpschart":
-            case "fps":
-                cfg.showFpsChart.set(!cfg.showFpsChart.get());
-                toggled = cfg.showFpsChart.get();
-                featureName = "FPS Chart";
-                break;
-
-            // Mining features
-            case "digsafety":
-            case "safety":
-                cfg.checkPlayerAirSafety.set(!cfg.checkPlayerAirSafety.get());
-                toggled = cfg.checkPlayerAirSafety.get();
-                featureName = "Player Dig Safety";
-                break;
-            case "seedray":
-            case "oresim":
-                cfg.oreSim.set(!cfg.oreSim.get());
-                toggled = cfg.oreSim.get();
-                featureName = "Seed-Ray";
-                break;
-
-            default:
-                Chat.sendMessage(Chat.prefix + " §cUnknown feature: " + feature);
-                return 0;
+        ToggleableFeature feature = FEATURE_MAP.get(input);
+        if (feature == null) {
+            Chat.sendMessage(Chat.prefix + " §cUnknown feature: " + input);
+            Chat.sendMessage(Chat.prefix + " Available features: " + getAvailableFeatures());
+            return 0;
         }
 
-        String status = toggled ? "§aenabled" : "§cdisabled";
-        Chat.sendMessage(Chat.prefix + " §e" + featureName + " " + status);
-        return 1;
+        try {
+            // Get the current value and toggle it
+            Object fieldValue = feature.field.get(null);
+
+            if (fieldValue instanceof ImBoolean) {
+                ImBoolean imBool = (ImBoolean) fieldValue;
+                imBool.set(!imBool.get());
+
+                String status = imBool.get() ? "§aenabled" : "§cdisabled";
+                Chat.sendMessage(Chat.prefix + " §e" + feature.displayName + " " + status);
+                return 1;
+            } else {
+                Chat.sendMessage(Chat.prefix + " §cError: " + feature.displayName + " is not a toggleable boolean field");
+                return 0;
+            }
+
+        } catch (IllegalAccessException e) {
+            Chat.sendMessage(Chat.prefix + " §cError accessing field: " + feature.displayName);
+            return 0;
+        }
+    }
+
+    // Helper method to get a formatted list of available features
+    private String getAvailableFeatures() {
+        Set<String> uniqueFeatures = FEATURE_MAP.values().stream()
+                .map(f -> f.displayName)
+                .collect(Collectors.toSet());
+
+        return String.join(", ", uniqueFeatures);
+    }
+
+    // Optional: Method to list features by category
+    public static void listFeaturesByCategory() {
+        Map<String, List<ToggleableFeature>> byCategory = FEATURE_MAP.values().stream()
+                .collect(Collectors.groupingBy(f -> f.category));
+
+        Chat.sendMessage(Chat.prefix + " Available features by category:");
+        for (Map.Entry<String, List<ToggleableFeature>> entry : byCategory.entrySet()) {
+            String categoryFeatures = entry.getValue().stream()
+                    .map(f -> f.displayName + " (" + String.join("/", f.aliases) + ")")
+                    .collect(Collectors.joining(", "));
+
+            Chat.sendMessage("§6" + entry.getKey() + "§r: " + categoryFeatures);
+        }
     }
 }
