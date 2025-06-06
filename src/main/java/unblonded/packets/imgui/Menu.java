@@ -62,6 +62,16 @@ public class Menu {
             ImGui.popStyleVar();
             ImGui.popStyleColor();
 
+            if (cfg.playerEspCfg.get()) {
+                ImGui.begin("Player ESP", cfg.playerEspCfg);
+                ImGui.text("Player ESP is " + (cfg.playerEsp.get() ? "enabled" : "disabled"));
+                float[] col = cfg.playerEspColor.asFloatArr();
+                ImGui.colorEdit4("ESP Color", col, ImGuiColorEditFlags.NoInputs);
+                ImGui.checkbox("Obey Lighting", cfg.playerEspObeyLighting);
+                cfg.playerEspColor = new Color(col);
+                ImGui.end();
+            }
+
             if (cfg.timeChangerCfg.get()) {
                 ImGui.begin("Time Changer", cfg.timeChangerCfg);
                 ImGui.text("Time Changer is " + (cfg.timeChanger.get() ? "enabled" : "disabled"));
@@ -702,6 +712,9 @@ public class Menu {
         ImGui.sameLine();
         if (ImGui.button(icons.GEARS + "##timechanger")) cfg.timeChangerCfg.set(!cfg.timeChangerCfg.get());
 
+        ImGui.checkbox(icons.GHOST + " Player Esp", cfg.playerEsp);
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##playeresp")) cfg.playerEspCfg.set(!cfg.playerEspCfg.get());
     }
 
     static void renderUtilityTab() {

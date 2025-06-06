@@ -110,6 +110,9 @@ public class cfg {
     };
     public static ImBoolean timeChanger = new ImBoolean(false);
     public static long[] timeChangerLTime = {1000L};
+    public static ImBoolean playerEsp = new ImBoolean(false);
+    public static Color playerEspColor = new Color(0f, 1f, 0.777f, .9f);
+    public static ImBoolean playerEspObeyLighting = new ImBoolean(false);
 
     public static ImBoolean useMenuMode = new ImBoolean(false);
     public static ImBoolean autoCrystalCfg = new ImBoolean(false);
@@ -131,6 +134,7 @@ public class cfg {
     public static ImBoolean handRenderCfg = new ImBoolean(false);
     public static ImBoolean noRenderCfg = new ImBoolean(false);
     public static ImBoolean timeChangerCfg = new ImBoolean(false);
+    public static ImBoolean playerEspCfg = new ImBoolean(false);
 
     static {
         for (int i = 0; i < cfg.oreSimOptions.length; i++)
