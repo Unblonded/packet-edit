@@ -36,8 +36,9 @@ public abstract class EntityRenderMixin<T extends LivingEntity, S extends Living
     @Unique
     private void renderWallhack(M model, MatrixStack matrices, VertexConsumerProvider consumers, int light, int overlay, PlayerEntityRenderState playerState) {
         Identifier skinTexture = playerState.skinTextures.texture();
+        RenderLayer outlineLayer = createCustomOutlineLayer(playerState.name);
         RenderLayer wallhackLayer = RenderLayer.of(
-                "wallhack",
+                ("wallhack-"+playerState.name),
                 VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL,
                 VertexFormat.DrawMode.QUADS,
                 1536*2,
@@ -54,8 +55,35 @@ public abstract class EntityRenderMixin<T extends LivingEntity, S extends Living
                         .overlay(RenderPhase.ENABLE_OVERLAY_COLOR)
                         .build(false)
         );
-        model.render(matrices, consumers.getBuffer(RenderLayer.getOutline(skinTexture)), cfg.playerEspObeyLighting.get() ? light : 15728880, overlay, cfg.playerEspColor.asHex());
+        matrices.push();
+
+        float outlineScale = 1.05f;
+        matrices.scale(outlineScale, outlineScale, outlineScale);
+        model.render(matrices, consumers.getBuffer(outlineLayer), 15728880, overlay, cfg.playerEspColor.asHex());
+        matrices.pop();
         model.render(matrices, consumers.getBuffer(wallhackLayer), cfg.playerEspObeyLighting.get() ? light : 15728880, overlay, cfg.playerEspColor.asHex());
         model.render(matrices, consumers.getBuffer(RenderLayer.getEntityTranslucent(skinTexture)), light, overlay, Color.WHITE.asHex());
+    }
+
+    @Unique
+    private RenderLayer createCustomOutlineLayer(String playerName) {
+        return RenderLayer.of(
+                ("custom-outline-" + playerName),
+                VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL,
+                VertexFormat.DrawMode.QUADS,
+                1536,
+                true,
+                true,
+                RenderLayer.MultiPhaseParameters.builder()
+                        .program(RenderPhase.ENTITY_SOLID_PROGRAM) // Use solid program for pure color
+                        .texture(RenderPhase.NO_TEXTURE) // No texture for solid outline
+                        .transparency(RenderPhase.NO_TRANSPARENCY)
+                        .depthTest(RenderPhase.LEQUAL_DEPTH_TEST)
+                        .writeMaskState(RenderPhase.COLOR_MASK)
+                        .cull(RenderPhase.ENABLE_CULLING) // Show back faces for outline
+                        .lightmap(RenderPhase.DISABLE_LIGHTMAP)
+                        .overlay(RenderPhase.DISABLE_OVERLAY_COLOR)
+                        .build(false)
+        );
     }
 }

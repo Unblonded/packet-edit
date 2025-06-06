@@ -52,19 +52,6 @@ public class util {
         }
     }
 
-    public static void setTitle(MinecraftClient client) {
-        if (client.world != null) {
-            String suffix = " - Packet Edit v3 by Unblonded";
-            String title = client.world.getRegistryKey().getValue().getPath();
-            String formattedTitle = Arrays.stream(title.split("_"))
-                    .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
-                    .collect(Collectors.joining(" "));
-            client.getWindow().setTitle(formattedTitle + suffix);
-        } else {
-            client.getWindow().setTitle("Packet Edit v3 by Unblonded");
-        }
-    }
-
     private static byte getKey() {
         AtomicReference<Byte> keyRef = new AtomicReference<>((byte) 0);
         Packetedit.contactServer("https://api.packetedit.top/key", response -> {

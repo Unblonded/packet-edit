@@ -23,7 +23,8 @@
 		"BackgroundRenderMixin",
 		"PacketReception",
 		"WorldRenderMixin",
-		"EntityRenderMixin"
+		"EntityRenderMixin",
+		"TitleMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

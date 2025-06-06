@@ -23,7 +23,6 @@ public abstract class OnTickMixin {
         util.handleKeyInputs(client);
         util.updateOreSim(client);
         util.updateStates();
-        util.setTitle(client);
         CrystalSpam.start();
 
         if (tickCount % 100 == 0) ConfigManager.saveConfig();
