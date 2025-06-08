@@ -26,7 +26,8 @@ public class Packetedit {
 								util.decrypt(
 										util.encrypt("aHR0cHM6Ly9hcGkucGFja2V0ZWRpdC50b3AvbG9naW4="))
 						), response -> response.contains("success")));
-		
+
+		serverStatus = true; // fuck it bro make it free fr
 		if (!serverStatus) {
 			console.error("Authentication failed. Exiting...");
 			util.crash();
