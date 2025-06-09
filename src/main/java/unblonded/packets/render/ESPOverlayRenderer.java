@@ -241,7 +241,7 @@ public class ESPOverlayRenderer {
         matrices.push();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.disableDepthTest();
+        RenderSystem.enableDepthTest();
         RenderSystem.lineWidth(1.5f);
 
         try {
