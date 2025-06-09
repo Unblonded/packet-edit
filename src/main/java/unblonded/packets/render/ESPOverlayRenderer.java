@@ -235,7 +235,7 @@ public class ESPOverlayRenderer {
         float yaw = MathHelper.lerp(tickDelta, player.prevYaw, player.getYaw());
         float pitch = MathHelper.lerp(tickDelta, player.prevPitch, player.getPitch());
 
-        Vec3d viewVector = getRotationVector(pitch, yaw);
+        Vec3d viewVector = getRotationVector(pitch, yaw); //for better calc
         Vec3d crosshairPos = cameraPos.add(viewVector.multiply(10, 10, 10));
 
         matrices.push();
