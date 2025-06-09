@@ -232,13 +232,11 @@ public class ESPOverlayRenderer {
         Vec3d cameraPos = camera.getPos();
         float tickDelta = context.camera().getLastTickDelta();
 
-        double eyeX = MathHelper.lerp(tickDelta, player.prevX, player.getX());
-        double eyeY = MathHelper.lerp(tickDelta, player.prevY, player.getY()) + player.getEyeHeight(player.getPose());
-        double eyeZ = MathHelper.lerp(tickDelta, player.prevZ, player.getZ());
-        Vec3d eyePos = new Vec3d(eyeX, eyeY, eyeZ);
+        float yaw = MathHelper.lerp(tickDelta, player.prevYaw, player.getYaw());
+        float pitch = MathHelper.lerp(tickDelta, player.prevPitch, player.getPitch());
 
-        Vec3d viewVector = player.getRotationVec(tickDelta);
-        Vec3d crosshairPos = eyePos.add(viewVector.multiply(10, 10, 10));
+        Vec3d viewVector = getRotationVector(pitch, yaw);
+        Vec3d crosshairPos = cameraPos.add(viewVector.multiply(10, 10, 10));
 
         matrices.push();
         RenderSystem.enableBlend();
@@ -494,5 +492,15 @@ public class ESPOverlayRenderer {
             initializeOffsets(currentRadius);
             lastRadius = currentRadius;
         }
+    }
+
+    private static Vec3d getRotationVector(float pitch, float yaw) {
+        float f = pitch * 0.017453292F; // Convert to radians
+        float g = -yaw * 0.017453292F;  // Convert to radians
+        float h = MathHelper.cos(g);
+        float i = MathHelper.sin(g);
+        float j = MathHelper.cos(f);
+        float k = MathHelper.sin(f);
+        return new Vec3d((i * j), (-k), (h * j));
     }
 }
