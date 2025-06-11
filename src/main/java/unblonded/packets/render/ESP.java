@@ -2,7 +2,6 @@ package unblonded.packets.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -29,7 +28,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ESPOverlayRenderer {
+public class ESP {
     private static final MinecraftClient mc = MinecraftClient.getInstance();
     private static List<BlockPos> cachedOffsets = new ArrayList<>();
     private static BlockPos lastSearchPos = null;

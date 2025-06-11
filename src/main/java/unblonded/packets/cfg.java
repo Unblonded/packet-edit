@@ -1,12 +1,14 @@
 package unblonded.packets;
 
 import imgui.type.*;
+import net.minecraft.util.math.BlockPos;
 import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
 import unblonded.packets.util.KitSlot;
 import unblonded.packets.util.Toggleable;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class cfg {
     public static ImBoolean drawBlocks = new ImBoolean(false);
@@ -151,16 +153,13 @@ public class cfg {
 
     @Toggleable(aliases = {"handrender", "hand"}, displayName = "Hand Render", category = "Visuals")
     public static ImBoolean handRender = new ImBoolean(false);
-
     public static float[] handRenderScale = {1.f};
     public static float[][] handRenderXYZ = {{0f},{0f},{0f}};
 
     @Toggleable(aliases = {"totemnotifier", "notifier"}, displayName = "Totem Notifier", category = "Combat")
     public static ImBoolean totemNotifier = new ImBoolean(false);
-
     @Toggleable(aliases = {"norender", "nr"}, displayName = "No Render", category = "Visuals")
     public static ImBoolean noRender = new ImBoolean(false);
-
     public static ImBoolean[] noRenderItems = new ImBoolean[] {
             new ImBoolean(false),
             new ImBoolean(false),
@@ -171,14 +170,17 @@ public class cfg {
 
     @Toggleable(aliases = {"timechanger", "time"}, displayName = "Time Changer", category = "Visuals")
     public static ImBoolean timeChanger = new ImBoolean(false);
-
     public static long[] timeChangerLTime = {1000L};
 
     @Toggleable(aliases = {"playeresp", "pesp"}, displayName = "Player Esp", category = "Visuals")
     public static ImBoolean playerEsp = new ImBoolean(false);
-
     public static Color playerEspColor = new Color(0f, 1f, 0.777f, .9f);
     public static ImBoolean playerEspObeyLighting = new ImBoolean(false);
+    public static float[] grottoFinderColor = {1.0f, 0.0f, 0.0f, 1.0f};
+    public static List<BlockPos> grottoFinderPositions = new CopyOnWriteArrayList<>();
+    public static boolean grottoFinderDrawMode = false;
+    public static ImBoolean grottoFinderTracer = new ImBoolean(false);
+
 
     public static ImBoolean useMenuMode = new ImBoolean(false);
     public static ImBoolean autoCrystalCfg = new ImBoolean(false);
@@ -201,6 +203,7 @@ public class cfg {
     public static ImBoolean noRenderCfg = new ImBoolean(false);
     public static ImBoolean timeChangerCfg = new ImBoolean(false);
     public static ImBoolean playerEspCfg = new ImBoolean(false);
+    public static ImBoolean grottoFinderCfg = new ImBoolean(false);
 
     static {
         for (int i = 0; i < cfg.oreSimOptions.length; i++)

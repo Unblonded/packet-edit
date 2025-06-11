@@ -1,7 +1,6 @@
 package unblonded.packets;
 
 import unblonded.packets.cheats.*;
-import unblonded.packets.imgui.Alert;
 import unblonded.packets.render.*;
 import unblonded.packets.util.*;
 
@@ -15,7 +14,7 @@ public class Initializer implements ClientModInitializer {
     public void onInitializeClient() {
         Packetedit.onInitializeClient();
         PlayerTracker.onInitializeClient();
-        ESPOverlayRenderer.onInitializeClient();
+        ESP.onInitializeClient();
         AutoCrystal.onInitializeClient();
         InteractionCanceler.onInitializeClient();
         Keybinds.onInitializeClient();
@@ -28,6 +27,9 @@ public class Initializer implements ClientModInitializer {
         SelfCrystal.onInitializeClient();
         TotemNotifier.onInitializeClient();
         TimeChanger.onInitializeClient();
+        AutoBreachSwap.onInitializeClient();
+        GrottoFinder.onInitializeClient();
+        RenderCallback.onInitializeClient();
 
         CommandManager.register(new GCCommand());
         CommandManager.register(new MemoryCommand());

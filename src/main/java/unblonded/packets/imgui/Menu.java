@@ -8,10 +8,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import unblonded.packets.cfg;
-import unblonded.packets.cheats.AirUnderCheck;
-import unblonded.packets.cheats.AutoLoadout;
-import unblonded.packets.cheats.OreSimulator;
-import unblonded.packets.cheats.PlayerTracker;
+import unblonded.packets.cheats.*;
 import unblonded.packets.util.BlockColor;
 import unblonded.packets.util.Color;
 import unblonded.packets.util.KitSlot;
@@ -62,13 +59,16 @@ public class Menu {
             ImGui.popStyleVar();
             ImGui.popStyleColor();
 
-            if (cfg.playerEspCfg.get()) {
-                ImGui.begin("Player ESP", cfg.playerEspCfg);
-                ImGui.text("Player ESP is " + (cfg.playerEsp.get() ? "enabled" : "disabled"));
-                float[] col = cfg.playerEspColor.asFloatArr();
-                ImGui.colorEdit4("ESP Color", col, ImGuiColorEditFlags.NoInputs);
-                ImGui.checkbox("Obey Lighting", cfg.playerEspObeyLighting);
-                cfg.playerEspColor = new Color(col);
+            if (cfg.grottoFinderCfg.get()) {
+                ImGui.begin("Grotto Finder", cfg.grottoFinderCfg);
+                ImGui.sliderInt("Radius", GrottoFinder.radius, 0, 1024);
+                ImGui.colorEdit4("##color", cfg.grottoFinderColor, ImGuiColorEditFlags.NoInputs);
+                ImGui.sameLine();
+                if (ImGui.button(cfg.grottoFinderDrawMode ? "Glow" : "Box")) cfg.grottoFinderDrawMode = !cfg.grottoFinderDrawMode;
+                ImGui.sameLine();
+                ImGui.text("Color");
+                ImGui.checkbox("Tracers", cfg.grottoFinderTracer);
+                if (ImGui.button("Clear Positions")) cfg.grottoFinderPositions.clear();
                 ImGui.end();
             }
 
@@ -657,6 +657,12 @@ public class Menu {
         return name;
     }
 
+    static void renderHypixelTab() {
+        if (ImGui.button(icons.GEM + " Find Grotto")) GrottoFinder.scan();
+        ImGui.sameLine();
+        if (ImGui.button(icons.GEARS + "##grotcfg")) cfg.grottoFinderCfg.set(!cfg.grottoFinderCfg.get());
+    }
+
     static void renderCombatTab() {
         ImGui.checkbox(icons.GEM + " Auto Crystal", cfg.autoCrystal);
         ImGui.sameLine();
@@ -791,6 +797,11 @@ public class Menu {
                     ImGui.endTabItem();
                 }
 
+                if (ImGui.beginTabItem(icons.HAMMER + " Hypixel")) {
+                    renderHypixelTab();
+                    ImGui.endTabItem();
+                }
+
                 ImGui.endTabBar();
             }
         } else {
@@ -817,6 +828,11 @@ public class Menu {
             // Mining Menu Window
             if (ImGui.begin(icons.GEM + " Mining Menu")) {
                 renderMiningTab();
+            }
+            ImGui.end();
+
+            if (ImGui.begin(icons.HAMMER + " Hypixel Menu")) {
+                renderHypixelTab();
             }
             ImGui.end();
         }
