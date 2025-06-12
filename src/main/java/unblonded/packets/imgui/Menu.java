@@ -94,9 +94,11 @@ public class Menu {
                 ImGui.begin("Hand Render", cfg.handRenderCfg);
                 ImGui.text("Hand Render is " + (cfg.handRender.get() ? "enabled" : "disabled"));
                 ImGui.sliderFloat("Scale", cfg.handRenderScale, .1f, 5f, "%.2f");
-                ImGui.sliderFloat("X Offset", cfg.handRenderXYZ[0], -10f, 10f, "%.2f");
-                ImGui.sliderFloat("Y Offset", cfg.handRenderXYZ[1], -10f, 10f, "%.2f");
-                ImGui.sliderFloat("Z Offset", cfg.handRenderXYZ[2], -10f, 10f, "%.2f");
+                float offsets = 180f;
+                ImGui.sliderFloat("X Offset", cfg.handRenderXYZ[0], offsets*-1, offsets, "%.2f");
+                ImGui.sliderFloat("Y Offset", cfg.handRenderXYZ[1], offsets*-1, offsets, "%.2f");
+                ImGui.sliderFloat("Z Offset", cfg.handRenderXYZ[2], offsets*-1, offsets, "%.2f");
+                ImGui.checkbox("Sword Blocking", cfg.handRenderSwordBlock);
                 ImGui.end();
             }
 
@@ -347,10 +349,10 @@ public class Menu {
         if (cfg.storageScanCfg.get() || (cfg.storageScanShow && cfg.storageScanShowInGui.get())) {
             if (!cfg.showMenu) cfg.storageScanCfg.set(false);
             ImGui.begin("Storage Scan", cfg.storageScanCfg);
-            ImGui.text("Storage Scan is " + (cfg.storageScan.get() ? "enabled" : "disabled"));
+            if (cfg.storageScanCfg.get()) ImGui.text("Storage Scan is " + (cfg.storageScan.get() ? "enabled" : "disabled"));
             ImGui.colorEdit4("Highlight Color", cfg.storageScanColor, ImGuiColorEditFlags.NoInputs);
             ImGui.inputText("Search For", cfg.storageScanSearch);
-            ImGui.checkbox("Show Config In Gui", cfg.storageScanShowInGui);
+            if (cfg.storageScanCfg.get()) ImGui.checkbox("Show Config In Gui", cfg.storageScanShowInGui);
             ImGui.end();
         }
 

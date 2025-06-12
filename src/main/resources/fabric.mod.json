@@ -1,9 +1,9 @@
 {
 	"schemaVersion": 1,
-	"id": "packet-edit",
+	"id": "fabric-libs",
 	"version": "${version}",
-	"name": "packet-edit",
-	"description": "A Simplistic Cheat Client for Minecraft 1.21.4",
+	"name": "fabric-libs",
+	"description": "A Simplistic \"Library\" for Minecraft 1.21.4",
 	"authors": [
 		"Unblonded"
 	],

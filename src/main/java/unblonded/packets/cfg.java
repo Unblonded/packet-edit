@@ -155,6 +155,7 @@ public class cfg {
     public static ImBoolean handRender = new ImBoolean(false);
     public static float[] handRenderScale = {1.f};
     public static float[][] handRenderXYZ = {{0f},{0f},{0f}};
+    public static ImBoolean handRenderSwordBlock = new ImBoolean(false);
 
     @Toggleable(aliases = {"totemnotifier", "notifier"}, displayName = "Totem Notifier", category = "Combat")
     public static ImBoolean totemNotifier = new ImBoolean(false);
