@@ -91,10 +91,10 @@ public class Menu {
             }
 
             if (cfg.handRenderCfg.get()) {
+                float offsets = 10f;
                 ImGui.begin("Hand Render", cfg.handRenderCfg);
                 ImGui.text("Hand Render is " + (cfg.handRender.get() ? "enabled" : "disabled"));
                 ImGui.sliderFloat("Scale", cfg.handRenderScale, .1f, 5f, "%.2f");
-                float offsets = 180f;
                 ImGui.sliderFloat("X Offset", cfg.handRenderXYZ[0], offsets*-1, offsets, "%.2f");
                 ImGui.sliderFloat("Y Offset", cfg.handRenderXYZ[1], offsets*-1, offsets, "%.2f");
                 ImGui.sliderFloat("Z Offset", cfg.handRenderXYZ[2], offsets*-1, offsets, "%.2f");
