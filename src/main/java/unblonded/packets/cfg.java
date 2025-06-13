@@ -181,6 +181,10 @@ public class cfg {
     public static List<BlockPos> grottoFinderPositions = new CopyOnWriteArrayList<>();
     public static boolean grottoFinderDrawMode = false;
     public static ImBoolean grottoFinderTracer = new ImBoolean(false);
+    public static float[] corleoneFinderColor = {1.0f, 0.0f, 0.0f, 1.0f};
+    public static boolean corleoneFinderDrawMode = false;
+    public static ImBoolean corleoneFinderTracer = new ImBoolean(false);
+
 
 
     public static ImBoolean useMenuMode = new ImBoolean(false);
@@ -205,6 +209,7 @@ public class cfg {
     public static ImBoolean timeChangerCfg = new ImBoolean(false);
     public static ImBoolean playerEspCfg = new ImBoolean(false);
     public static ImBoolean grottoFinderCfg = new ImBoolean(false);
+    public static ImBoolean corleonFinderCfg = new ImBoolean(false);
 
     static {
         for (int i = 0; i < cfg.oreSimOptions.length; i++)

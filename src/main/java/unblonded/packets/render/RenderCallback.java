@@ -1,11 +1,13 @@
 package unblonded.packets.render;
 
 import unblonded.packets.cfg;
+import unblonded.packets.cheats.CorleoneFinder;
 import unblonded.packets.util.Color;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.util.math.BlockPos;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class RenderCallback {
@@ -13,6 +15,14 @@ public class RenderCallback {
         WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
             render(ctx, cfg.grottoFinderPositions, new Color(cfg.grottoFinderColor),
                     cfg.grottoFinderDrawMode, cfg.grottoFinderTracer.get());
+
+
+            List<BlockPos> safePatterns;
+            synchronized (CorleoneFinder.foundPatterns) {
+                safePatterns = new ArrayList<>(CorleoneFinder.foundPatterns);
+                render(ctx, safePatterns, new Color(cfg.corleoneFinderColor),
+                        cfg.corleoneFinderDrawMode, cfg.corleoneFinderTracer.get());
+            }
         });
     }
 

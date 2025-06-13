@@ -30,6 +30,7 @@ public class Initializer implements ClientModInitializer {
         AutoBreachSwap.onInitializeClient();
         GrottoFinder.onInitializeClient();
         RenderCallback.onInitializeClient();
+        CorleoneFinder.onInitializeClient();
 
         CommandManager.register(new GCCommand());
         CommandManager.register(new MemoryCommand());
