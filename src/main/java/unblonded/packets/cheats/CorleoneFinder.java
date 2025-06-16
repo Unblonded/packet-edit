@@ -21,23 +21,23 @@ public class CorleoneFinder {
     private static final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     public static final Queue<BlockPos> foundPatterns = new ConcurrentLinkedQueue<>();
 
-    private static final String[] PATTERN = {
-            "$$$",
-            "$$$",
-            "$$$",
-            "$$$",
-            "$$$",
-            "$$$",
-            "$$$",
-            "$$$",
-            "$$$",
-            "$$$",
+    private static final String[] PATTERN = { //LEN 15
+            "$$$$$$$-$$$$$$$",
+            "$$$$$$$-$$$$$$$",
+            "$$$$$$$-$$$$$$$",
+            "$$$$$$$-$$$$$$$",
+            "-$$$$$$-$$$$$$-",
+            "-$$$$$$-$$$$$$-",
+            "-$$$$$$-$$$$$$-",
+            "-$$$$$$-$$$$$$-",
+            "--$$$-----$$$--",
+            "--$$-------$$--"
     };
 
     // Symbol to block mapping
     private static final Map<Character, Block> SYMBOL_MAP = new HashMap<>();
     static {
-        SYMBOL_MAP.put('$', Blocks.CYAN_TERRACOTTA);
+        SYMBOL_MAP.put('$', Blocks.SPRUCE_PLANKS);
     }
 
     public static void onInitializeClient() {
@@ -97,10 +97,6 @@ public class CorleoneFinder {
                 " Done! Found " + localFound + " patterns. Total: " + foundPatterns.size());
     }
 
-    /**
-     * Check if the pattern matches starting at the given position (X-Y orientation)
-     * Pattern extends along X-axis horizontally and Y-axis vertically
-     */
     private static boolean matchesPatternXY(World world, BlockPos startPos) {
         if (PATTERN.length == 0) return false;
 
@@ -125,10 +121,6 @@ public class CorleoneFinder {
         return true;
     }
 
-    /**
-     * Check if the pattern matches starting at the given position (Z-Y orientation)
-     * Pattern extends along Z-axis horizontally and Y-axis vertically
-     */
     private static boolean matchesPatternZY(World world, BlockPos startPos) {
         if (PATTERN.length == 0) return false;
 
@@ -153,9 +145,6 @@ public class CorleoneFinder {
         return true;
     }
 
-    /**
-     * Check if a block at position matches the pattern symbol
-     */
     private static boolean matchesSymbol(World world, BlockPos pos, char symbol) {
         // Wildcard matches anything
         if (symbol == '-') {
@@ -173,48 +162,6 @@ public class CorleoneFinder {
         return actualState.isOf(expectedBlock);
     }
 
-    /**
-     * Update the pattern at runtime
-     */
-    public static void setPattern(String[] newPattern) {
-        // Validate pattern
-        if (newPattern.length == 0) return;
-
-        int expectedWidth = newPattern[0].length();
-        for (String layer : newPattern) {
-            if (layer.length() != expectedWidth) {
-                Chat.sendMessage(Chat.prefix + " Error: All pattern layers must have the same width!");
-                return;
-            }
-        }
-
-        System.arraycopy(newPattern, 0, PATTERN, 0, Math.min(newPattern.length, PATTERN.length));
-        Chat.sendMessage(Chat.prefix + " Pattern updated! New pattern: " + newPattern.length +
-                " layers, " + expectedWidth + " blocks wide");
-    }
-
-    /**
-     * Add a new symbol mapping
-     */
-    public static void addSymbolMapping(char symbol, Block block) {
-        SYMBOL_MAP.put(symbol, block);
-        Chat.sendMessage(Chat.prefix + " Added symbol mapping: '" + symbol + "' -> " + block.toString());
-    }
-
-    /**
-     * Get pattern info for debugging
-     */
-    public static void printPatternInfo() {
-        Chat.sendMessage(Chat.prefix + " Current pattern:");
-        for (int i = 0; i < PATTERN.length; i++) {
-            Chat.sendMessage("Layer " + i + ": " + PATTERN[i]);
-        }
-        Chat.sendMessage("Symbol mappings: " + SYMBOL_MAP.toString());
-    }
-
-    /**
-     * Clear found patterns
-     */
     public static void clearResults() {
         foundPatterns.clear();
         Chat.sendMessage(Chat.prefix + " Cleared pattern search results");

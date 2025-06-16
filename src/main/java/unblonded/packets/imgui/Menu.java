@@ -59,8 +59,10 @@ public class Menu {
             ImGui.popStyleVar();
             ImGui.popStyleColor();
 
+            if (cfg.waypointsCfg.get()) Waypoints.WaypointManager.render();
+
             if (cfg.corleonFinderCfg.get()) {
-                ImGui.begin("Corleone Finder", cfg.grottoFinderCfg);
+                ImGui.begin("Corleone Finder", cfg.corleonFinderCfg);
                 ImGui.sliderInt("Radius", CorleoneFinder.scanRadius, 0, 1024);
                 ImGui.colorEdit4("##color", cfg.corleoneFinderColor, ImGuiColorEditFlags.NoInputs);
                 ImGui.sameLine();
@@ -680,6 +682,8 @@ public class Menu {
         if (ImGui.button(icons.ADDRESS_BOOK + " Find Corleone")) CorleoneFinder.scan();
         ImGui.sameLine();
         if (ImGui.button(icons.GEARS + "##corlcfg")) cfg.corleonFinderCfg.set(!cfg.corleonFinderCfg.get());
+
+        if (ImGui.button(icons.PAINTBRUSH + " Waypoints")) cfg.waypointsCfg.set(!cfg.waypointsCfg.get());
     }
 
     static void renderCombatTab() {

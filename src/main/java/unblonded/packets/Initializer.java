@@ -37,6 +37,7 @@ public class Initializer implements ClientModInitializer {
         CommandManager.register(new ToggleCommand());
         CommandManager.register(new GodSwordCommand());
         CommandManager.register(new AlertTest());
+        CommandManager.register(new WaypointCommand());
         CommandManager.init();
     }
 }

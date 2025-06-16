@@ -210,6 +210,7 @@ public class cfg {
     public static ImBoolean playerEspCfg = new ImBoolean(false);
     public static ImBoolean grottoFinderCfg = new ImBoolean(false);
     public static ImBoolean corleonFinderCfg = new ImBoolean(false);
+    public static ImBoolean waypointsCfg = new ImBoolean(false);
 
     static {
         for (int i = 0; i < cfg.oreSimOptions.length; i++)
