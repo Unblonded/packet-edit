@@ -97,11 +97,12 @@ public class Menu {
             if (cfg.noRenderCfg.get()) {
                 ImGui.begin("No Render Config", cfg.noRenderCfg);
                 ImGui.text("No Render is " + (cfg.noRender.get() ? "enabled" : "disabled"));
-                ImGui.checkbox("No Fire Overlay", cfg.noRenderItems[0]);
-                ImGui.checkbox("No Liquid Overlay", cfg.noRenderItems[1]);
-                ImGui.checkbox("No Suffocation Overlay", cfg.noRenderItems[2]);
-                ImGui.checkbox("No Fog", cfg.noRenderItems[3]);
-                ImGui.checkbox("No Weather", cfg.noRenderItems[4]);
+                ImGui.checkbox("No Fire Overlay", cfg.noRenderStuff[0]);
+                ImGui.checkbox("No Liquid Overlay", cfg.noRenderStuff[1]);
+                ImGui.checkbox("No Suffocation Overlay", cfg.noRenderStuff[2]);
+                ImGui.checkbox("No Fog", cfg.noRenderStuff[3]);
+                ImGui.checkbox("No Weather", cfg.noRenderStuff[4]);
+                ImGui.checkbox("No Vignette", cfg.noRenderStuff[5]);
                 ImGui.end();
             }
 

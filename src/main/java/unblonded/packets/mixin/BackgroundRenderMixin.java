@@ -13,7 +13,7 @@ import unblonded.packets.cfg;
 public abstract class BackgroundRenderMixin {
     @ModifyArgs(method = "applyFog", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Fog;<init>(FFLnet/minecraft/client/render/FogShape;FFFF)V"))
     private static void fog(Args args, Camera camera, BackgroundRenderer.FogType fogType, Vector4f color, float viewDistance, boolean thickenFog, float tickDelta) {
-        if (cfg.noRender.get() && cfg.noRenderItems[3].get() && fogType == BackgroundRenderer.FogType.FOG_TERRAIN) {
+        if (cfg.noRender.get() && cfg.noRenderStuff[3].get() && fogType == BackgroundRenderer.FogType.FOG_TERRAIN) {
             args.set(0, viewDistance * 10);
             args.set(1, viewDistance * 10);
         }

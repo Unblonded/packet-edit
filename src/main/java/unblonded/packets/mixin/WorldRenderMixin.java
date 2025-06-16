@@ -12,6 +12,6 @@ import unblonded.packets.cfg;
 public class WorldRenderMixin {
     @Inject(method = "method_62216", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WeatherRendering;renderPrecipitation(Lnet/minecraft/world/World;Lnet/minecraft/client/render/VertexConsumerProvider;IFLnet/minecraft/util/math/Vec3d;)V"), cancellable = true)
     void weather(Fog fog, float f, Vec3d vec3d, int i, float g, CallbackInfo ci) {
-        if (cfg.noRenderItems[4].get()) ci.cancel();
+        if (cfg.noRenderStuff[4].get()) ci.cancel();
     }
 }

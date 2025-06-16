@@ -161,12 +161,13 @@ public class cfg {
     public static ImBoolean totemNotifier = new ImBoolean(false);
     @Toggleable(aliases = {"norender", "nr"}, displayName = "No Render", category = "Visuals")
     public static ImBoolean noRender = new ImBoolean(false);
-    public static ImBoolean[] noRenderItems = new ImBoolean[] {
+    public static ImBoolean[] noRenderStuff = new ImBoolean[] {
             new ImBoolean(false),
             new ImBoolean(false),
             new ImBoolean(false),
             new ImBoolean(false),
             new ImBoolean(false),
+            new ImBoolean(false)
     };
 
     @Toggleable(aliases = {"timechanger", "time"}, displayName = "Time Changer", category = "Visuals")
