@@ -9,10 +9,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import unblonded.packets.cfg;
 import unblonded.packets.cheats.*;
-import unblonded.packets.util.BlockColor;
-import unblonded.packets.util.Color;
-import unblonded.packets.util.KitSlot;
-import unblonded.packets.util.OreUtil;
+import unblonded.packets.util.*;
 
 import java.util.*;
 
