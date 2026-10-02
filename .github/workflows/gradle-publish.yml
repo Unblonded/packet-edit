@@ -2,9 +2,8 @@ name: Build
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
     tags: ['v*']
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -36,8 +35,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build (skip sources JAR)
-        run: ./gradlew build -x sourcesJar
+      - name: Build
+        run: ./gradlew build
 
       - name: Upload mod JAR
         uses: actions/upload-artifact@v4
