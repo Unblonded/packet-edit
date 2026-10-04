@@ -1,4 +1,4 @@
-# Downloads At: [https://github.com/Unblonded/PacketEditDownloads](https://github.com/Unblonded/packet-edit/actions)
+# Downloads At: [https://github.com/Unblonded/packet-edit/actions](https://github.com/Unblonded/packet-edit/actions)
 
 ~~Requires the menu/gui of https://github.com/Unblonded/packet-edit-menu~~
 
